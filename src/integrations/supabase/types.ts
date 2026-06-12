@@ -1385,22 +1385,33 @@ export type Database = {
           before_photo_url: string | null
           closed_at: string | null
           closed_by: string | null
+          completion_due_at: string | null
           cost: number | null
           created_at: string
           description: string | null
           id: string
           inspection_id: string | null
+          is_overdue: boolean
+          labor_cost: number
           location: string | null
           notes: string | null
           office_id: string | null
+          parts_cost: number
+          pm_plan_id: string | null
+          priority: Database["public"]["Enums"]["wo_priority"]
           reported_by: string | null
           reporter_name: string | null
           request_date: string
           request_number: string | null
           request_type: string | null
+          responded_at: string | null
+          response_due_at: string | null
+          sla_completion_hours: number | null
+          sla_response_hours: number | null
           space_id: string | null
           status: Database["public"]["Enums"]["maintenance_request_status"]
           updated_at: string
+          work_order_type: Database["public"]["Enums"]["work_order_type"]
         }
         Insert: {
           after_photo_url?: string | null
@@ -1409,22 +1420,33 @@ export type Database = {
           before_photo_url?: string | null
           closed_at?: string | null
           closed_by?: string | null
+          completion_due_at?: string | null
           cost?: number | null
           created_at?: string
           description?: string | null
           id?: string
           inspection_id?: string | null
+          is_overdue?: boolean
+          labor_cost?: number
           location?: string | null
           notes?: string | null
           office_id?: string | null
+          parts_cost?: number
+          pm_plan_id?: string | null
+          priority?: Database["public"]["Enums"]["wo_priority"]
           reported_by?: string | null
           reporter_name?: string | null
           request_date?: string
           request_number?: string | null
           request_type?: string | null
+          responded_at?: string | null
+          response_due_at?: string | null
+          sla_completion_hours?: number | null
+          sla_response_hours?: number | null
           space_id?: string | null
           status?: Database["public"]["Enums"]["maintenance_request_status"]
           updated_at?: string
+          work_order_type?: Database["public"]["Enums"]["work_order_type"]
         }
         Update: {
           after_photo_url?: string | null
@@ -1433,22 +1455,33 @@ export type Database = {
           before_photo_url?: string | null
           closed_at?: string | null
           closed_by?: string | null
+          completion_due_at?: string | null
           cost?: number | null
           created_at?: string
           description?: string | null
           id?: string
           inspection_id?: string | null
+          is_overdue?: boolean
+          labor_cost?: number
           location?: string | null
           notes?: string | null
           office_id?: string | null
+          parts_cost?: number
+          pm_plan_id?: string | null
+          priority?: Database["public"]["Enums"]["wo_priority"]
           reported_by?: string | null
           reporter_name?: string | null
           request_date?: string
           request_number?: string | null
           request_type?: string | null
+          responded_at?: string | null
+          response_due_at?: string | null
+          sla_completion_hours?: number | null
+          sla_response_hours?: number | null
           space_id?: string | null
           status?: Database["public"]["Enums"]["maintenance_request_status"]
           updated_at?: string
+          work_order_type?: Database["public"]["Enums"]["work_order_type"]
         }
         Relationships: [
           {
@@ -2028,6 +2061,75 @@ export type Database = {
           },
         ]
       }
+      pm_plans: {
+        Row: {
+          asset_id: string | null
+          assigned_to: string | null
+          checklist_items: string[]
+          created_at: string
+          created_by: string | null
+          default_priority: Database["public"]["Enums"]["wo_priority"]
+          frequency: Database["public"]["Enums"]["pm_frequency"]
+          id: string
+          is_active: boolean
+          last_executed_at: string | null
+          next_due_at: string
+          notes: string | null
+          plan_name: string
+          space_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          asset_id?: string | null
+          assigned_to?: string | null
+          checklist_items?: string[]
+          created_at?: string
+          created_by?: string | null
+          default_priority?: Database["public"]["Enums"]["wo_priority"]
+          frequency: Database["public"]["Enums"]["pm_frequency"]
+          id?: string
+          is_active?: boolean
+          last_executed_at?: string | null
+          next_due_at?: string
+          notes?: string | null
+          plan_name: string
+          space_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string | null
+          assigned_to?: string | null
+          checklist_items?: string[]
+          created_at?: string
+          created_by?: string | null
+          default_priority?: Database["public"]["Enums"]["wo_priority"]
+          frequency?: Database["public"]["Enums"]["pm_frequency"]
+          id?: string
+          is_active?: boolean
+          last_executed_at?: string | null
+          next_due_at?: string
+          notes?: string | null
+          plan_name?: string
+          space_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pm_plans_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_plans_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2543,6 +2645,7 @@ export type Database = {
     Functions: {
       can_manage_security: { Args: { _uid: string }; Returns: boolean }
       generate_daily_notifications: { Args: never; Returns: undefined }
+      generate_due_pm_work_orders: { Args: never; Returns: number }
       get_my_roles: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]
@@ -2568,10 +2671,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      pm_frequency_interval: {
+        Args: { _f: Database["public"]["Enums"]["pm_frequency"] }
+        Returns: string
+      }
       recalc_invoice_status: {
         Args: { _invoice_id: string }
         Returns: undefined
       }
+      recompute_wo_overdue: { Args: never; Returns: number }
       renew_contract: {
         Args: {
           _contract_id: string
@@ -2646,6 +2754,8 @@ export type Database = {
         | "ticket_emergency"
         | "asset_critical_failure"
         | "generic"
+        | "work_order_overdue"
+        | "pm_due"
       office_status: "متاح" | "محجوز" | "مؤجر" | "تحت الصيانة" | "غير متاح"
       parking_check_status: "سليم" | "يحتاج صيانة"
       parking_spot_status: "متاح" | "مخصص" | "مشغول" | "صيانة"
@@ -2653,6 +2763,7 @@ export type Database = {
       parking_violation_status: "مفتوحة" | "محلولة"
       payment_method: "نقدي" | "تحويل بنكي" | "شيك"
       penalty_reward_type: "مخالفة" | "إنذار" | "مكافأة"
+      pm_frequency: "أسبوعي" | "شهري" | "ربع سنوي" | "نصف سنوي" | "سنوي"
       shift_type: "صباحي" | "مسائي" | "ليلي"
       space_status: "نشط" | "تحت الصيانة" | "مغلق"
       space_type:
@@ -2673,6 +2784,8 @@ export type Database = {
       ticket_status: "جديد" | "جاري المعالجة" | "مغلق"
       ticket_type: "شكوى" | "صيانة" | "نظافة" | "أمن" | "استفسار"
       training_type: "أمن" | "سلامة" | "إسعافات أولية"
+      wo_priority: "طارئة" | "عالية" | "متوسطة" | "منخفضة"
+      work_order_type: "تصحيحي" | "وقائي" | "طارئ"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2868,6 +2981,8 @@ export const Constants = {
         "ticket_emergency",
         "asset_critical_failure",
         "generic",
+        "work_order_overdue",
+        "pm_due",
       ],
       office_status: ["متاح", "محجوز", "مؤجر", "تحت الصيانة", "غير متاح"],
       parking_check_status: ["سليم", "يحتاج صيانة"],
@@ -2876,6 +2991,7 @@ export const Constants = {
       parking_violation_status: ["مفتوحة", "محلولة"],
       payment_method: ["نقدي", "تحويل بنكي", "شيك"],
       penalty_reward_type: ["مخالفة", "إنذار", "مكافأة"],
+      pm_frequency: ["أسبوعي", "شهري", "ربع سنوي", "نصف سنوي", "سنوي"],
       shift_type: ["صباحي", "مسائي", "ليلي"],
       space_status: ["نشط", "تحت الصيانة", "مغلق"],
       space_type: [
@@ -2897,6 +3013,8 @@ export const Constants = {
       ticket_status: ["جديد", "جاري المعالجة", "مغلق"],
       ticket_type: ["شكوى", "صيانة", "نظافة", "أمن", "استفسار"],
       training_type: ["أمن", "سلامة", "إسعافات أولية"],
+      wo_priority: ["طارئة", "عالية", "متوسطة", "منخفضة"],
+      work_order_type: ["تصحيحي", "وقائي", "طارئ"],
     },
   },
 } as const

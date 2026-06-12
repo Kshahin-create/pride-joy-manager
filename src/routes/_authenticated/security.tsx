@@ -229,7 +229,7 @@ function GuardDialog({
       created_by: u.user?.id,
     };
     if (isAdmin && form.salary) insert.salary = Number(form.salary);
-    const { error } = await supabase.from("guards").insert(insert);
+    const { error } = await supabase.from("guards").insert(insert as never);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     toast.success("تمت إضافة الحارس");

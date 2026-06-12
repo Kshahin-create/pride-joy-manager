@@ -70,6 +70,19 @@ function ContractDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [renewOpen, setRenewOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
+
+  const generateInvoices = async () => {
+    setGenerating(true);
+    const { data, error } = await supabase.functions.invoke("generate-rent-invoices", {
+      body: { contract_id: id },
+    });
+    setGenerating(false);
+    if (error) { toast.error("فشل التوليد: " + error.message); return; }
+    const n = (data as { generated?: number; message?: string } | null)?.generated ?? 0;
+    if (n > 0) toast.success(`تم توليد ${n} فاتورة`);
+    else toast.info((data as { message?: string } | null)?.message ?? "لا توجد فواتير جديدة");
+  };
 
   const load = useCallback(async () => {
     setLoading(true);

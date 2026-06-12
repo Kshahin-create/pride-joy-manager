@@ -21,6 +21,7 @@ import {
   FileText,
   Building,
   Send,
+  Code2,
   LogOut,
 } from "lucide-react";
 
@@ -97,6 +98,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { title: "هوية البرج", url: "/identity", icon: Building, roles: ["super_admin", "owner"] },
       { title: "مصفوفة الصلاحيات", url: "/permissions", icon: Shield, roles: ["super_admin", "owner"] },
       { title: "بوت تيليجرام", url: "/telegram", icon: Send },
+      { title: "واجهة الـ API", url: "/api-docs", icon: Code2 },
     ],
   },
 ];

@@ -39,12 +39,14 @@ import { Route as AuthenticatedComplaintsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedBuildingMapRouteImport } from './routes/_authenticated/building-map'
 import { Route as AuthenticatedBuildingLogRouteImport } from './routes/_authenticated/building-log'
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
+import { Route as AuthenticatedApiDocsRouteImport } from './routes/_authenticated/api-docs'
 import { Route as AuthenticatedVendorsIdRouteImport } from './routes/_authenticated/vendors.$id'
 import { Route as AuthenticatedTenantsIdRouteImport } from './routes/_authenticated/tenants.$id'
 import { Route as AuthenticatedOfficesIdRouteImport } from './routes/_authenticated/offices.$id'
 import { Route as AuthenticatedContractsIdRouteImport } from './routes/_authenticated/contracts.$id'
 import { Route as AuthenticatedComplaintsIdRouteImport } from './routes/_authenticated/complaints.$id'
 import { Route as AuthenticatedAssetsIdRouteImport } from './routes/_authenticated/assets.$id'
+import { Route as ApiPublicV1SplatRouteImport } from './routes/api/public/v1/$'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
 import { Route as ApiPublicTelegramNotifyRouteImport } from './routes/api/public/telegram/notify'
 import { Route as ApiPublicTelegramDailyReportRouteImport } from './routes/api/public/telegram/daily-report'
@@ -205,6 +207,11 @@ const AuthenticatedAssetsRoute = AuthenticatedAssetsRouteImport.update({
   path: '/assets',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedApiDocsRoute = AuthenticatedApiDocsRouteImport.update({
+  id: '/api-docs',
+  path: '/api-docs',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedVendorsIdRoute = AuthenticatedVendorsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -237,6 +244,11 @@ const AuthenticatedAssetsIdRoute = AuthenticatedAssetsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedAssetsRoute,
 } as any)
+const ApiPublicV1SplatRoute = ApiPublicV1SplatRouteImport.update({
+  id: '/api/public/v1/$',
+  path: '/api/public/v1/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTelegramWebhookRoute =
   ApiPublicTelegramWebhookRouteImport.update({
     id: '/api/public/telegram/webhook',
@@ -266,6 +278,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/api-docs': typeof AuthenticatedApiDocsRoute
   '/assets': typeof AuthenticatedAssetsRouteWithChildren
   '/building-log': typeof AuthenticatedBuildingLogRoute
   '/building-map': typeof AuthenticatedBuildingMapRoute
@@ -301,12 +314,14 @@ export interface FileRoutesByFullPath {
   '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
   '/api/public/telegram/notify': typeof ApiPublicTelegramNotifyRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
+  '/api/public/v1/$': typeof ApiPublicV1SplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/api-docs': typeof AuthenticatedApiDocsRoute
   '/assets': typeof AuthenticatedAssetsRouteWithChildren
   '/building-log': typeof AuthenticatedBuildingLogRoute
   '/building-map': typeof AuthenticatedBuildingMapRoute
@@ -342,6 +357,7 @@ export interface FileRoutesByTo {
   '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
   '/api/public/telegram/notify': typeof ApiPublicTelegramNotifyRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
+  '/api/public/v1/$': typeof ApiPublicV1SplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -350,6 +366,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/api-docs': typeof AuthenticatedApiDocsRoute
   '/_authenticated/assets': typeof AuthenticatedAssetsRouteWithChildren
   '/_authenticated/building-log': typeof AuthenticatedBuildingLogRoute
   '/_authenticated/building-map': typeof AuthenticatedBuildingMapRoute
@@ -385,6 +402,7 @@ export interface FileRoutesById {
   '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
   '/api/public/telegram/notify': typeof ApiPublicTelegramNotifyRoute
   '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
+  '/api/public/v1/$': typeof ApiPublicV1SplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -393,6 +411,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
+    | '/api-docs'
     | '/assets'
     | '/building-log'
     | '/building-map'
@@ -428,12 +447,14 @@ export interface FileRouteTypes {
     | '/api/public/telegram/daily-report'
     | '/api/public/telegram/notify'
     | '/api/public/telegram/webhook'
+    | '/api/public/v1/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
+    | '/api-docs'
     | '/assets'
     | '/building-log'
     | '/building-map'
@@ -469,6 +490,7 @@ export interface FileRouteTypes {
     | '/api/public/telegram/daily-report'
     | '/api/public/telegram/notify'
     | '/api/public/telegram/webhook'
+    | '/api/public/v1/$'
   id:
     | '__root__'
     | '/'
@@ -476,6 +498,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
+    | '/_authenticated/api-docs'
     | '/_authenticated/assets'
     | '/_authenticated/building-log'
     | '/_authenticated/building-map'
@@ -511,6 +534,7 @@ export interface FileRouteTypes {
     | '/api/public/telegram/daily-report'
     | '/api/public/telegram/notify'
     | '/api/public/telegram/webhook'
+    | '/api/public/v1/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -522,6 +546,7 @@ export interface RootRouteChildren {
   ApiPublicTelegramDailyReportRoute: typeof ApiPublicTelegramDailyReportRoute
   ApiPublicTelegramNotifyRoute: typeof ApiPublicTelegramNotifyRoute
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
+  ApiPublicV1SplatRoute: typeof ApiPublicV1SplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -736,6 +761,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssetsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/api-docs': {
+      id: '/_authenticated/api-docs'
+      path: '/api-docs'
+      fullPath: '/api-docs'
+      preLoaderRoute: typeof AuthenticatedApiDocsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/vendors/$id': {
       id: '/_authenticated/vendors/$id'
       path: '/$id'
@@ -777,6 +809,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/assets/$id'
       preLoaderRoute: typeof AuthenticatedAssetsIdRouteImport
       parentRoute: typeof AuthenticatedAssetsRoute
+    }
+    '/api/public/v1/$': {
+      id: '/api/public/v1/$'
+      path: '/api/public/v1/$'
+      fullPath: '/api/public/v1/$'
+      preLoaderRoute: typeof ApiPublicV1SplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/telegram/webhook': {
       id: '/api/public/telegram/webhook'
@@ -895,6 +934,7 @@ const AuthenticatedVendorsRouteWithChildren =
   AuthenticatedVendorsRoute._addFileChildren(AuthenticatedVendorsRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedApiDocsRoute: typeof AuthenticatedApiDocsRoute
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRouteWithChildren
   AuthenticatedBuildingLogRoute: typeof AuthenticatedBuildingLogRoute
   AuthenticatedBuildingMapRoute: typeof AuthenticatedBuildingMapRoute
@@ -923,6 +963,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedApiDocsRoute: AuthenticatedApiDocsRoute,
   AuthenticatedAssetsRoute: AuthenticatedAssetsRouteWithChildren,
   AuthenticatedBuildingLogRoute: AuthenticatedBuildingLogRoute,
   AuthenticatedBuildingMapRoute: AuthenticatedBuildingMapRoute,
@@ -962,7 +1003,18 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicTelegramDailyReportRoute: ApiPublicTelegramDailyReportRoute,
   ApiPublicTelegramNotifyRoute: ApiPublicTelegramNotifyRoute,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
+  ApiPublicV1SplatRoute: ApiPublicV1SplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

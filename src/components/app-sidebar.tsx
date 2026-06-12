@@ -1,4 +1,5 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Building2,
@@ -20,11 +21,13 @@ import {
   FileText,
   Building,
   Send,
+  LogOut,
 } from "lucide-react";
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -33,7 +36,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useAuth, type AppRole } from "@/lib/auth-context";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth, ROLE_LABELS, type AppRole } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NavItem {
   title: string;
@@ -95,17 +100,41 @@ const NAV: { label: string; items: NavItem[] }[] = [
 ];
 
 export function AppSidebar() {
-  const { hasAnyRole, roles } = useAuth();
+  const { hasAnyRole, roles, user, signOut } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const [fullName, setFullName] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("full_name, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        setFullName(data?.full_name ?? user.email ?? "");
+        setAvatarUrl(data?.avatar_url ?? null);
+      });
+  }, [user]);
 
   const visible = (item: NavItem) =>
-    !item.roles || hasAnyRole(item.roles) || roles.length === 0; // لا تخفي قبل تحميل الأدوار
+    !item.roles || hasAnyRole(item.roles) || roles.length === 0;
+
+  const initials = (fullName || user?.email || "؟").trim().slice(0, 2).toUpperCase();
+  const primaryRole = roles[0];
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate({ to: "/auth" });
+  };
 
   return (
     <Sidebar side="right" collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-3">
-          <div className="w-9 h-9 rounded-lg bg-gold text-gold-foreground flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-gold text-gold-foreground flex items-center justify-center shrink-0 shadow-sm">
             <Building2 className="h-5 w-5" />
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
@@ -142,6 +171,40 @@ export function AppSidebar() {
           );
         })}
       </SidebarContent>
+      <SidebarFooter className="border-t border-sidebar-border p-2">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip={fullName || "ملفي الشخصي"} size="lg">
+              <Link to="/profile" className="flex items-center gap-2">
+                <Avatar className="h-7 w-7 ring-1 ring-sidebar-border shrink-0">
+                  {avatarUrl && <AvatarImage src={avatarUrl} alt={fullName} />}
+                  <AvatarFallback className="bg-gold text-gold-foreground text-[10px]">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col leading-tight min-w-0 group-data-[collapsible=icon]:hidden">
+                  <span className="text-xs font-medium truncate">{fullName || "—"}</span>
+                  {primaryRole && (
+                    <span className="text-[10px] text-sidebar-foreground/70 truncate">
+                      {ROLE_LABELS[primaryRole]}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={handleSignOut}
+              tooltip="تسجيل الخروج"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              <span>تسجيل الخروج</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

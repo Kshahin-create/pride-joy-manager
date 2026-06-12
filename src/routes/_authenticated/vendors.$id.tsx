@@ -326,6 +326,10 @@ function VendorDetailsPage() {
             </Card>
           </div>
         </TabsContent>
+
+        <TabsContent value="documents">
+          <DocumentsTab entityType="vendor" entityId={id} />
+        </TabsContent>
       </Tabs>
     </div>
   );

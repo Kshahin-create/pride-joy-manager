@@ -14,6 +14,109 @@ export type Database = {
   }
   public: {
     Tables: {
+      ac_maintenance_logs: {
+        Row: {
+          ac_unit_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          maintenance_date: string
+          next_maintenance_date: string | null
+          notes: string | null
+          technician: string | null
+          updated_at: string
+        }
+        Insert: {
+          ac_unit_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          maintenance_date?: string
+          next_maintenance_date?: string | null
+          notes?: string | null
+          technician?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ac_unit_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          maintenance_date?: string
+          next_maintenance_date?: string | null
+          notes?: string | null
+          technician?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ac_maintenance_logs_ac_unit_id_fkey"
+            columns: ["ac_unit_id"]
+            isOneToOne: false
+            referencedRelation: "ac_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ac_units: {
+        Row: {
+          ac_type: string | null
+          capacity: string | null
+          created_at: string
+          created_by: string | null
+          current_status: string
+          id: string
+          install_date: string | null
+          maintenance_company: string | null
+          manufacturer: string | null
+          notes: string | null
+          office_id: string
+          unit_number: string
+          updated_at: string
+          warranty_end_date: string | null
+        }
+        Insert: {
+          ac_type?: string | null
+          capacity?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_status?: string
+          id?: string
+          install_date?: string | null
+          maintenance_company?: string | null
+          manufacturer?: string | null
+          notes?: string | null
+          office_id: string
+          unit_number: string
+          updated_at?: string
+          warranty_end_date?: string | null
+        }
+        Update: {
+          ac_type?: string | null
+          capacity?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_status?: string
+          id?: string
+          install_date?: string | null
+          maintenance_company?: string | null
+          manufacturer?: string | null
+          notes?: string | null
+          office_id?: string
+          unit_number?: string
+          updated_at?: string
+          warranty_end_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ac_units_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       building_log: {
         Row: {
           actor_id: string | null
@@ -52,6 +155,188 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      electricity_meters: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_independent: boolean
+          meter_number: string
+          meter_status: string
+          notes: string | null
+          office_id: string
+          updated_at: string
+          utility_account_number: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_independent?: boolean
+          meter_number: string
+          meter_status?: string
+          notes?: string | null
+          office_id: string
+          updated_at?: string
+          utility_account_number?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_independent?: boolean
+          meter_number?: string
+          meter_status?: string
+          notes?: string | null
+          office_id?: string
+          updated_at?: string
+          utility_account_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "electricity_meters_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      electricity_readings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          meter_id: string
+          notes: string | null
+          reading_date: string
+          reading_value: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meter_id: string
+          notes?: string | null
+          reading_date?: string
+          reading_value: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          meter_id?: string
+          notes?: string | null
+          reading_date?: string
+          reading_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "electricity_readings_meter_id_fkey"
+            columns: ["meter_id"]
+            isOneToOne: false
+            referencedRelation: "electricity_meters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      network_points: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          network_point: string | null
+          notes: string | null
+          office_id: string
+          phone_point: string | null
+          service_provider: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          network_point?: string | null
+          notes?: string | null
+          office_id: string
+          phone_point?: string | null
+          service_provider?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          network_point?: string | null
+          notes?: string | null
+          office_id?: string
+          phone_point?: string | null
+          service_provider?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "network_points_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      office_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_type: string
+          id: string
+          mime_type: string | null
+          notes: string | null
+          office_id: string
+          size_bytes: number | null
+          storage_path: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_type?: string
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          office_id: string
+          size_bytes?: number | null
+          storage_path: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_type?: string
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          office_id?: string
+          size_bytes?: number | null
+          storage_path?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "office_files_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       offices: {
         Row: {

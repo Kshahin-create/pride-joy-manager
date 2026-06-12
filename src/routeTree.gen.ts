@@ -27,6 +27,7 @@ import { Route as AuthenticatedContractsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedComplaintsRouteImport } from './routes/_authenticated/complaints'
 import { Route as AuthenticatedBuildingLogRouteImport } from './routes/_authenticated/building-log'
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
+import { Route as AuthenticatedOfficesIdRouteImport } from './routes/_authenticated/offices.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -119,6 +120,11 @@ const AuthenticatedAssetsRoute = AuthenticatedAssetsRouteImport.update({
   path: '/assets',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOfficesIdRoute = AuthenticatedOfficesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedOfficesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -131,13 +137,14 @@ export interface FileRoutesByFullPath {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/inspections': typeof AuthenticatedInspectionsRoute
-  '/offices': typeof AuthenticatedOfficesRoute
+  '/offices': typeof AuthenticatedOfficesRouteWithChildren
   '/operations': typeof AuthenticatedOperationsRoute
   '/parking': typeof AuthenticatedParkingRoute
   '/security': typeof AuthenticatedSecurityRoute
   '/tenants': typeof AuthenticatedTenantsRoute
   '/users': typeof AuthenticatedUsersRoute
   '/vendors': typeof AuthenticatedVendorsRoute
+  '/offices/$id': typeof AuthenticatedOfficesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -150,13 +157,14 @@ export interface FileRoutesByTo {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/inspections': typeof AuthenticatedInspectionsRoute
-  '/offices': typeof AuthenticatedOfficesRoute
+  '/offices': typeof AuthenticatedOfficesRouteWithChildren
   '/operations': typeof AuthenticatedOperationsRoute
   '/parking': typeof AuthenticatedParkingRoute
   '/security': typeof AuthenticatedSecurityRoute
   '/tenants': typeof AuthenticatedTenantsRoute
   '/users': typeof AuthenticatedUsersRoute
   '/vendors': typeof AuthenticatedVendorsRoute
+  '/offices/$id': typeof AuthenticatedOfficesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -171,13 +179,14 @@ export interface FileRoutesById {
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
   '/_authenticated/inspections': typeof AuthenticatedInspectionsRoute
-  '/_authenticated/offices': typeof AuthenticatedOfficesRoute
+  '/_authenticated/offices': typeof AuthenticatedOfficesRouteWithChildren
   '/_authenticated/operations': typeof AuthenticatedOperationsRoute
   '/_authenticated/parking': typeof AuthenticatedParkingRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRoute
   '/_authenticated/tenants': typeof AuthenticatedTenantsRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/vendors': typeof AuthenticatedVendorsRoute
+  '/_authenticated/offices/$id': typeof AuthenticatedOfficesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/tenants'
     | '/users'
     | '/vendors'
+    | '/offices/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/tenants'
     | '/users'
     | '/vendors'
+    | '/offices/$id'
   id:
     | '__root__'
     | '/'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tenants'
     | '/_authenticated/users'
     | '/_authenticated/vendors'
+    | '/_authenticated/offices/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -374,8 +386,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssetsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/offices/$id': {
+      id: '/_authenticated/offices/$id'
+      path: '/$id'
+      fullPath: '/offices/$id'
+      preLoaderRoute: typeof AuthenticatedOfficesIdRouteImport
+      parentRoute: typeof AuthenticatedOfficesRoute
+    }
   }
 }
+
+interface AuthenticatedOfficesRouteChildren {
+  AuthenticatedOfficesIdRoute: typeof AuthenticatedOfficesIdRoute
+}
+
+const AuthenticatedOfficesRouteChildren: AuthenticatedOfficesRouteChildren = {
+  AuthenticatedOfficesIdRoute: AuthenticatedOfficesIdRoute,
+}
+
+const AuthenticatedOfficesRouteWithChildren =
+  AuthenticatedOfficesRoute._addFileChildren(AuthenticatedOfficesRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
@@ -386,7 +416,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
   AuthenticatedInspectionsRoute: typeof AuthenticatedInspectionsRoute
-  AuthenticatedOfficesRoute: typeof AuthenticatedOfficesRoute
+  AuthenticatedOfficesRoute: typeof AuthenticatedOfficesRouteWithChildren
   AuthenticatedOperationsRoute: typeof AuthenticatedOperationsRoute
   AuthenticatedParkingRoute: typeof AuthenticatedParkingRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
@@ -404,7 +434,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
   AuthenticatedInspectionsRoute: AuthenticatedInspectionsRoute,
-  AuthenticatedOfficesRoute: AuthenticatedOfficesRoute,
+  AuthenticatedOfficesRoute: AuthenticatedOfficesRouteWithChildren,
   AuthenticatedOperationsRoute: AuthenticatedOperationsRoute,
   AuthenticatedParkingRoute: AuthenticatedParkingRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,

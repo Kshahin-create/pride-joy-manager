@@ -1,0 +1,1333 @@
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowRight,
+  Loader2,
+  Plus,
+  Pencil,
+  Trash2,
+  Upload,
+  Download,
+  FileText,
+  Image as ImageIcon,
+  AlertTriangle,
+  Gauge,
+  Snowflake,
+  Network,
+  FolderOpen,
+  History,
+  Info as InfoIcon,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/_authenticated/offices/$id")({
+  component: OfficeDetailsPage,
+});
+
+type OfficeStatus = "متاح" | "محجوز" | "مؤجر" | "تحت الصيانة" | "غير متاح";
+const STATUSES: OfficeStatus[] = ["متاح", "محجوز", "مؤجر", "تحت الصيانة", "غير متاح"];
+
+interface Office {
+  id: string;
+  code: string;
+  office_number: string;
+  floor: number;
+  area_sqm: number | null;
+  parking_count: number;
+  view_type: string | null;
+  status: OfficeStatus;
+  management_entity: string | null;
+  notes: string | null;
+}
+
+interface Meter {
+  id: string;
+  office_id: string;
+  meter_number: string;
+  utility_account_number: string | null;
+  meter_status: string;
+  is_independent: boolean;
+  notes: string | null;
+}
+interface Reading {
+  id: string;
+  meter_id: string;
+  reading_value: number;
+  reading_date: string;
+  notes: string | null;
+}
+interface AcUnit {
+  id: string;
+  office_id: string;
+  unit_number: string;
+  ac_type: string | null;
+  manufacturer: string | null;
+  capacity: string | null;
+  install_date: string | null;
+  warranty_end_date: string | null;
+  maintenance_company: string | null;
+  current_status: string;
+  notes: string | null;
+}
+interface AcLog {
+  id: string;
+  ac_unit_id: string;
+  maintenance_date: string;
+  next_maintenance_date: string | null;
+  technician: string | null;
+  notes: string | null;
+}
+interface NetPoint {
+  id: string;
+  office_id: string;
+  network_point: string | null;
+  phone_point: string | null;
+  service_provider: string | null;
+  notes: string | null;
+}
+interface OfficeFile {
+  id: string;
+  office_id: string;
+  file_type: string;
+  file_name: string;
+  storage_path: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  created_at: string;
+}
+
+const STATUS_BADGE: Record<OfficeStatus, string> = {
+  "متاح": "bg-success text-success-foreground",
+  "محجوز": "bg-warning text-warning-foreground",
+  "مؤجر": "bg-primary text-primary-foreground",
+  "تحت الصيانة": "bg-destructive/80 text-destructive-foreground",
+  "غير متاح": "bg-muted-foreground/70 text-background",
+};
+
+function daysUntil(date: string | null): number | null {
+  if (!date) return null;
+  const d = new Date(date).getTime();
+  const now = Date.now();
+  return Math.ceil((d - now) / (1000 * 60 * 60 * 24));
+}
+
+function OfficeDetailsPage() {
+  const { id } = useParams({ from: "/_authenticated/offices/$id" });
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole("super_admin");
+  const isMaint = hasRole("maintenance_supervisor");
+  const canEditUtility = isAdmin || isMaint;
+
+  const [office, setOffice] = useState<Office | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from("offices").select("*").eq("id", id).maybeSingle();
+    if (error || !data) {
+      toast.error("تعذّر تحميل المكتب");
+      setLoading(false);
+      return;
+    }
+    setOffice(data as Office);
+    setLoading(false);
+  }, [id]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const changeStatus = async (status: OfficeStatus) => {
+    if (!isAdmin || !office || status === office.status) return;
+    const { error } = await supabase.from("offices").update({ status }).eq("id", office.id);
+    if (error) return toast.error("تعذّر تغيير الحالة");
+    setOffice({ ...office, status });
+    toast.success("تم تحديث الحالة");
+  };
+
+  if (loading) {
+    return (
+      <div className="p-12 text-center">
+        <Loader2 className="h-6 w-6 animate-spin inline text-muted-foreground" />
+      </div>
+    );
+  }
+  if (!office) {
+    return (
+      <div className="p-12 text-center text-muted-foreground">
+        لم يتم العثور على المكتب.
+        <div className="mt-4">
+          <Link to="/offices"><Button variant="outline">العودة للمكاتب</Button></Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <Link to="/offices">
+            <Button variant="ghost" size="sm">
+              <ArrowRight className="h-4 w-4 ms-1" />
+              المكاتب
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-bold text-primary">المكتب {office.code}</h1>
+            <p className="text-sm text-muted-foreground">الدور {office.floor} — رقم {office.office_number}</p>
+          </div>
+          <Badge className={STATUS_BADGE[office.status]}>{office.status}</Badge>
+        </div>
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            <Select value={office.status} onValueChange={(v) => changeStatus(v as OfficeStatus)}>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button onClick={() => setEditOpen(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
+              <Pencil className="h-4 w-4 ms-1" /> تعديل
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <Tabs defaultValue="basic" dir="rtl">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+          <TabsTrigger value="basic"><InfoIcon className="h-4 w-4 ms-1" />البيانات</TabsTrigger>
+          <TabsTrigger value="electricity"><Gauge className="h-4 w-4 ms-1" />الكهرباء</TabsTrigger>
+          <TabsTrigger value="ac"><Snowflake className="h-4 w-4 ms-1" />التكييف</TabsTrigger>
+          <TabsTrigger value="network"><Network className="h-4 w-4 ms-1" />الشبكات</TabsTrigger>
+          <TabsTrigger value="files"><FolderOpen className="h-4 w-4 ms-1" />الملفات</TabsTrigger>
+          <TabsTrigger value="log"><History className="h-4 w-4 ms-1" />السجل</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="basic" className="mt-4">
+          <BasicTab office={office} />
+        </TabsContent>
+        <TabsContent value="electricity" className="mt-4">
+          <ElectricityTab officeId={office.id} canEdit={canEditUtility} />
+        </TabsContent>
+        <TabsContent value="ac" className="mt-4">
+          <AcTab officeId={office.id} canEdit={canEditUtility} />
+        </TabsContent>
+        <TabsContent value="network" className="mt-4">
+          <NetworkTab officeId={office.id} canEdit={isAdmin} />
+        </TabsContent>
+        <TabsContent value="files" className="mt-4">
+          <FilesTab officeId={office.id} canEdit={isAdmin} />
+        </TabsContent>
+        <TabsContent value="log" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>سجل المكتب</CardTitle>
+            </CardHeader>
+            <CardContent className="py-10 text-center text-muted-foreground">
+              سيتم عرض المستأجرين السابقين، الحجوزات، البلاغات، وأعمال الصيانة الخاصة بهذا المكتب هنا قريبًا.
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      <OfficeEditDialog
+        open={editOpen}
+        office={office}
+        onClose={() => setEditOpen(false)}
+        onSaved={() => { setEditOpen(false); load(); }}
+      />
+    </div>
+  );
+}
+
+/* ===================== Basic ===================== */
+function BasicTab({ office }: { office: Office }) {
+  return (
+    <Card>
+      <CardContent className="pt-6 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+        <Info label="الكود" value={office.code} />
+        <Info label="رقم المكتب" value={office.office_number} />
+        <Info label="الدور" value={office.floor} />
+        <Info label="المساحة" value={office.area_sqm ? `${office.area_sqm} م²` : "—"} />
+        <Info label="عدد المواقف" value={office.parking_count} />
+        <Info label="نوع الإطلالة" value={office.view_type ?? "—"} />
+        <Info label="الجهة المشرفة" value={office.management_entity ?? "—"} />
+        <Info label="الحالة" value={<Badge className={STATUS_BADGE[office.status]}>{office.status}</Badge>} />
+        {office.notes && (
+          <div className="col-span-full">
+            <Info label="ملاحظات" value={office.notes} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+function Info({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="font-medium mt-0.5">{value}</div>
+    </div>
+  );
+}
+
+/* ===================== Electricity ===================== */
+function ElectricityTab({ officeId, canEdit }: { officeId: string; canEdit: boolean }) {
+  const [meters, setMeters] = useState<Meter[]>([]);
+  const [readings, setReadings] = useState<Record<string, Reading[]>>({});
+  const [loading, setLoading] = useState(true);
+  const [meterForm, setMeterForm] = useState<Meter | null>(null);
+  const [createMeter, setCreateMeter] = useState(false);
+  const [delMeter, setDelMeter] = useState<Meter | null>(null);
+  const [readingFor, setReadingFor] = useState<Meter | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data: ms } = await supabase.from("electricity_meters").select("*").eq("office_id", officeId).order("created_at");
+    const list = (ms ?? []) as Meter[];
+    setMeters(list);
+    if (list.length) {
+      const { data: rs } = await supabase.from("electricity_readings")
+        .select("*").in("meter_id", list.map(m => m.id))
+        .order("reading_date", { ascending: false });
+      const map: Record<string, Reading[]> = {};
+      ((rs ?? []) as Reading[]).forEach(r => {
+        (map[r.meter_id] ||= []).push(r);
+      });
+      setReadings(map);
+    } else setReadings({});
+    setLoading(false);
+  }, [officeId]);
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold">عدّادات الكهرباء</h2>
+        {canEdit && (
+          <Button size="sm" onClick={() => setCreateMeter(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
+            <Plus className="h-4 w-4 ms-1" /> إضافة عدّاد
+          </Button>
+        )}
+      </div>
+
+      {loading ? (
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      ) : meters.length === 0 ? (
+        <Card className="py-10 text-center text-muted-foreground">لا توجد عدّادات مسجّلة.</Card>
+      ) : meters.map((m) => {
+        const rs = readings[m.id] ?? [];
+        const last = rs[0];
+        return (
+          <Card key={m.id}>
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between flex-wrap gap-2">
+                <div>
+                  <CardTitle className="text-base">عدّاد رقم {m.meter_number}</CardTitle>
+                  <div className="flex flex-wrap gap-2 mt-2 text-xs">
+                    <Badge variant="outline">{m.is_independent ? "مستقل" : "مشترك"}</Badge>
+                    <Badge variant="outline">{m.meter_status}</Badge>
+                    {m.utility_account_number && <Badge variant="outline">حساب: {m.utility_account_number}</Badge>}
+                  </div>
+                </div>
+                {canEdit && (
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="outline" onClick={() => setReadingFor(m)}>
+                      <Plus className="h-4 w-4 ms-1" /> قراءة جديدة
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setMeterForm(m)}><Pencil className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => setDelMeter(m)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  </div>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {last ? (
+                <div className="mb-3 p-3 rounded-md bg-muted/40 text-sm">
+                  <span className="text-muted-foreground">آخر قراءة: </span>
+                  <span className="font-bold text-primary">{Number(last.reading_value).toLocaleString("ar-EG")}</span>
+                  <span className="text-muted-foreground"> — بتاريخ </span>
+                  <span className="font-medium">{last.reading_date}</span>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground mb-3">لا توجد قراءات بعد.</p>
+              )}
+              {rs.length > 0 && (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>التاريخ</TableHead>
+                      <TableHead>القيمة</TableHead>
+                      <TableHead>ملاحظات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rs.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell>{r.reading_date}</TableCell>
+                        <TableCell className="font-medium">{Number(r.reading_value).toLocaleString("ar-EG")}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{r.notes ?? "—"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+
+      <MeterFormDialog
+        open={createMeter || !!meterForm}
+        meter={meterForm}
+        officeId={officeId}
+        onClose={() => { setCreateMeter(false); setMeterForm(null); }}
+        onSaved={() => { setCreateMeter(false); setMeterForm(null); load(); }}
+      />
+      <ReadingFormDialog
+        meter={readingFor}
+        onClose={() => setReadingFor(null)}
+        onSaved={() => { setReadingFor(null); load(); }}
+      />
+      <ConfirmDelete
+        open={!!delMeter}
+        title="حذف العدّاد"
+        message={`سيتم حذف العدّاد ${delMeter?.meter_number} وجميع قراءاته. هل أنت متأكد؟`}
+        onCancel={() => setDelMeter(null)}
+        onConfirm={async () => {
+          if (!delMeter) return;
+          const { error } = await supabase.from("electricity_meters").delete().eq("id", delMeter.id);
+          if (error) return toast.error("تعذّر الحذف");
+          toast.success("تم الحذف");
+          setDelMeter(null);
+          load();
+        }}
+      />
+    </div>
+  );
+}
+
+function MeterFormDialog({ open, meter, officeId, onClose, onSaved }: {
+  open: boolean; meter: Meter | null; officeId: string; onClose: () => void; onSaved: () => void;
+}) {
+  const [form, setForm] = useState({
+    meter_number: "", utility_account_number: "", meter_status: "يعمل",
+    is_independent: true, notes: "",
+  });
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (open) {
+      setForm(meter ? {
+        meter_number: meter.meter_number,
+        utility_account_number: meter.utility_account_number ?? "",
+        meter_status: meter.meter_status,
+        is_independent: meter.is_independent,
+        notes: meter.notes ?? "",
+      } : { meter_number: "", utility_account_number: "", meter_status: "يعمل", is_independent: true, notes: "" });
+    }
+  }, [open, meter]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.meter_number.trim()) return toast.error("رقم العدّاد مطلوب");
+    setBusy(true);
+    const payload = {
+      office_id: officeId,
+      meter_number: form.meter_number.trim(),
+      utility_account_number: form.utility_account_number.trim() || null,
+      meter_status: form.meter_status,
+      is_independent: form.is_independent,
+      notes: form.notes.trim() || null,
+    };
+    const { error } = meter
+      ? await supabase.from("electricity_meters").update(payload).eq("id", meter.id)
+      : await supabase.from("electricity_meters").insert(payload);
+    setBusy(false);
+    if (error) return toast.error("تعذّر الحفظ");
+    toast.success("تم الحفظ");
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent dir="rtl">
+        <form onSubmit={submit}>
+          <DialogHeader>
+            <DialogTitle>{meter ? "تعديل العدّاد" : "إضافة عدّاد كهرباء"}</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 py-2">
+            <div className="space-y-1.5">
+              <Label>رقم العدّاد</Label>
+              <Input value={form.meter_number} onChange={(e) => setForm({ ...form, meter_number: e.target.value })} required />
+            </div>
+            <div className="space-y-1.5">
+              <Label>رقم حساب الكهرباء</Label>
+              <Input value={form.utility_account_number} onChange={(e) => setForm({ ...form, utility_account_number: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>الحالة</Label>
+              <Select value={form.meter_status} onValueChange={(v) => setForm({ ...form, meter_status: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {["يعمل", "معطّل", "تحت الصيانة", "غير مفعّل"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>النوع</Label>
+              <Select value={form.is_independent ? "ind" : "shared"} onValueChange={(v) => setForm({ ...form, is_independent: v === "ind" })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ind">مستقل</SelectItem>
+                  <SelectItem value="shared">مشترك</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <Label>ملاحظات</Label>
+              <Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>إلغاء</Button>
+            <Button type="submit" disabled={busy} className="bg-gold text-gold-foreground hover:bg-gold/90">
+              {busy && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}حفظ
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ReadingFormDialog({ meter, onClose, onSaved }: {
+  meter: Meter | null; onClose: () => void; onSaved: () => void;
+}) {
+  const [val, setVal] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [notes, setNotes] = useState("");
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (meter) { setVal(""); setDate(new Date().toISOString().slice(0, 10)); setNotes(""); }
+  }, [meter]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!meter) return;
+    const n = Number(val);
+    if (!val || isNaN(n) || n < 0) return toast.error("أدخل قيمة قراءة صحيحة");
+    setBusy(true);
+    const { error } = await supabase.from("electricity_readings").insert({
+      meter_id: meter.id, reading_value: n, reading_date: date, notes: notes.trim() || null,
+    });
+    setBusy(false);
+    if (error) return toast.error("تعذّر التسجيل");
+    toast.success("تم تسجيل القراءة");
+    onSaved();
+  };
+
+  return (
+    <Dialog open={!!meter} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent dir="rtl" className="sm:max-w-md">
+        <form onSubmit={submit}>
+          <DialogHeader>
+            <DialogTitle>تسجيل قراءة جديدة</DialogTitle>
+            <DialogDescription>عدّاد {meter?.meter_number}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label>قيمة القراءة</Label>
+              <Input type="number" step="0.01" value={val} onChange={(e) => setVal(e.target.value)} required />
+            </div>
+            <div className="space-y-1.5">
+              <Label>تاريخ القراءة</Label>
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+            </div>
+            <div className="space-y-1.5">
+              <Label>ملاحظات</Label>
+              <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>إلغاء</Button>
+            <Button type="submit" disabled={busy} className="bg-gold text-gold-foreground hover:bg-gold/90">
+              {busy && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}تسجيل
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ===================== AC ===================== */
+function AcTab({ officeId, canEdit }: { officeId: string; canEdit: boolean }) {
+  const [units, setUnits] = useState<AcUnit[]>([]);
+  const [logs, setLogs] = useState<Record<string, AcLog[]>>({});
+  const [loading, setLoading] = useState(true);
+  const [unitForm, setUnitForm] = useState<AcUnit | null>(null);
+  const [createUnit, setCreateUnit] = useState(false);
+  const [delUnit, setDelUnit] = useState<AcUnit | null>(null);
+  const [logFor, setLogFor] = useState<AcUnit | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data: us } = await supabase.from("ac_units").select("*").eq("office_id", officeId).order("created_at");
+    const list = (us ?? []) as AcUnit[];
+    setUnits(list);
+    if (list.length) {
+      const { data: ls } = await supabase.from("ac_maintenance_logs")
+        .select("*").in("ac_unit_id", list.map(u => u.id))
+        .order("maintenance_date", { ascending: false });
+      const map: Record<string, AcLog[]> = {};
+      ((ls ?? []) as AcLog[]).forEach(l => (map[l.ac_unit_id] ||= []).push(l));
+      setLogs(map);
+    } else setLogs({});
+    setLoading(false);
+  }, [officeId]);
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold">وحدات التكييف</h2>
+        {canEdit && (
+          <Button size="sm" onClick={() => setCreateUnit(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
+            <Plus className="h-4 w-4 ms-1" /> إضافة وحدة
+          </Button>
+        )}
+      </div>
+
+      {loading ? (
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      ) : units.length === 0 ? (
+        <Card className="py-10 text-center text-muted-foreground">لا توجد وحدات تكييف مسجّلة.</Card>
+      ) : units.map((u) => {
+        const ls = logs[u.id] ?? [];
+        const lastLog = ls[0];
+        const nextDays = daysUntil(lastLog?.next_maintenance_date ?? null);
+        const warrantyDays = daysUntil(u.warranty_end_date);
+        const alerts: string[] = [];
+        if (nextDays !== null && nextDays <= 30) {
+          alerts.push(nextDays < 0
+            ? `الصيانة القادمة متأخّرة بـ ${Math.abs(nextDays)} يوم`
+            : `الصيانة القادمة خلال ${nextDays} يوم`);
+        }
+        if (warrantyDays !== null && warrantyDays <= 30) {
+          alerts.push(warrantyDays < 0
+            ? `الضمان انتهى منذ ${Math.abs(warrantyDays)} يوم`
+            : `الضمان ينتهي خلال ${warrantyDays} يوم`);
+        }
+
+        return (
+          <Card key={u.id}>
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between flex-wrap gap-2">
+                <div>
+                  <CardTitle className="text-base">وحدة {u.unit_number}</CardTitle>
+                  <div className="flex flex-wrap gap-2 mt-2 text-xs">
+                    {u.ac_type && <Badge variant="outline">{u.ac_type}</Badge>}
+                    {u.manufacturer && <Badge variant="outline">{u.manufacturer}</Badge>}
+                    {u.capacity && <Badge variant="outline">{u.capacity}</Badge>}
+                    <Badge variant="outline">{u.current_status}</Badge>
+                  </div>
+                </div>
+                {canEdit && (
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="outline" onClick={() => setLogFor(u)}>
+                      <Plus className="h-4 w-4 ms-1" /> سجل صيانة
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setUnitForm(u)}><Pencil className="h-4 w-4" /></Button>
+                    <Button size="sm" variant="ghost" onClick={() => setDelUnit(u)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  </div>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {alerts.length > 0 && (
+                <Alert className="border-warning/50 bg-warning/10 text-foreground">
+                  <AlertTriangle className="h-4 w-4 text-warning" />
+                  <AlertTitle>تنبيه</AlertTitle>
+                  <AlertDescription>
+                    <ul className="list-disc ps-5 mt-1">
+                      {alerts.map((a, i) => <li key={i}>{a}</li>)}
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              )}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <Info label="تاريخ التركيب" value={u.install_date ?? "—"} />
+                <Info label="انتهاء الضمان" value={u.warranty_end_date ?? "—"} />
+                <Info label="شركة الصيانة" value={u.maintenance_company ?? "—"} />
+                <Info label="الصيانة القادمة" value={lastLog?.next_maintenance_date ?? "—"} />
+              </div>
+              {ls.length > 0 && (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>تاريخ الصيانة</TableHead>
+                      <TableHead>الفنّي</TableHead>
+                      <TableHead>الصيانة القادمة</TableHead>
+                      <TableHead>ملاحظات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {ls.map((l) => (
+                      <TableRow key={l.id}>
+                        <TableCell>{l.maintenance_date}</TableCell>
+                        <TableCell>{l.technician ?? "—"}</TableCell>
+                        <TableCell>{l.next_maintenance_date ?? "—"}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{l.notes ?? "—"}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+
+      <AcUnitFormDialog
+        open={createUnit || !!unitForm}
+        unit={unitForm}
+        officeId={officeId}
+        onClose={() => { setCreateUnit(false); setUnitForm(null); }}
+        onSaved={() => { setCreateUnit(false); setUnitForm(null); load(); }}
+      />
+      <AcLogFormDialog
+        unit={logFor}
+        onClose={() => setLogFor(null)}
+        onSaved={() => { setLogFor(null); load(); }}
+      />
+      <ConfirmDelete
+        open={!!delUnit}
+        title="حذف وحدة التكييف"
+        message={`سيتم حذف وحدة ${delUnit?.unit_number} وسجلات صيانتها. هل أنت متأكد؟`}
+        onCancel={() => setDelUnit(null)}
+        onConfirm={async () => {
+          if (!delUnit) return;
+          const { error } = await supabase.from("ac_units").delete().eq("id", delUnit.id);
+          if (error) return toast.error("تعذّر الحذف");
+          toast.success("تم الحذف");
+          setDelUnit(null);
+          load();
+        }}
+      />
+    </div>
+  );
+}
+
+function AcUnitFormDialog({ open, unit, officeId, onClose, onSaved }: {
+  open: boolean; unit: AcUnit | null; officeId: string; onClose: () => void; onSaved: () => void;
+}) {
+  const [f, setF] = useState({
+    unit_number: "", ac_type: "", manufacturer: "", capacity: "",
+    install_date: "", warranty_end_date: "", maintenance_company: "",
+    current_status: "يعمل", notes: "",
+  });
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (open) {
+      setF(unit ? {
+        unit_number: unit.unit_number,
+        ac_type: unit.ac_type ?? "",
+        manufacturer: unit.manufacturer ?? "",
+        capacity: unit.capacity ?? "",
+        install_date: unit.install_date ?? "",
+        warranty_end_date: unit.warranty_end_date ?? "",
+        maintenance_company: unit.maintenance_company ?? "",
+        current_status: unit.current_status,
+        notes: unit.notes ?? "",
+      } : {
+        unit_number: "", ac_type: "سبليت", manufacturer: "", capacity: "",
+        install_date: "", warranty_end_date: "", maintenance_company: "",
+        current_status: "يعمل", notes: "",
+      });
+    }
+  }, [open, unit]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!f.unit_number.trim()) return toast.error("رقم الوحدة مطلوب");
+    setBusy(true);
+    const payload = {
+      office_id: officeId,
+      unit_number: f.unit_number.trim(),
+      ac_type: f.ac_type.trim() || null,
+      manufacturer: f.manufacturer.trim() || null,
+      capacity: f.capacity.trim() || null,
+      install_date: f.install_date || null,
+      warranty_end_date: f.warranty_end_date || null,
+      maintenance_company: f.maintenance_company.trim() || null,
+      current_status: f.current_status,
+      notes: f.notes.trim() || null,
+    };
+    const { error } = unit
+      ? await supabase.from("ac_units").update(payload).eq("id", unit.id)
+      : await supabase.from("ac_units").insert(payload);
+    setBusy(false);
+    if (error) return toast.error("تعذّر الحفظ");
+    toast.success("تم الحفظ");
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent dir="rtl" className="sm:max-w-lg">
+        <form onSubmit={submit}>
+          <DialogHeader>
+            <DialogTitle>{unit ? "تعديل الوحدة" : "إضافة وحدة تكييف"}</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 py-2">
+            <div className="space-y-1.5"><Label>رقم الوحدة</Label>
+              <Input value={f.unit_number} onChange={(e) => setF({ ...f, unit_number: e.target.value })} required /></div>
+            <div className="space-y-1.5"><Label>النوع</Label>
+              <Input value={f.ac_type} onChange={(e) => setF({ ...f, ac_type: e.target.value })} placeholder="سبليت / مركزي / كاسيت" /></div>
+            <div className="space-y-1.5"><Label>الشركة المصنّعة</Label>
+              <Input value={f.manufacturer} onChange={(e) => setF({ ...f, manufacturer: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>السعة</Label>
+              <Input value={f.capacity} onChange={(e) => setF({ ...f, capacity: e.target.value })} placeholder="مثال: 24,000 BTU" /></div>
+            <div className="space-y-1.5"><Label>تاريخ التركيب</Label>
+              <Input type="date" value={f.install_date} onChange={(e) => setF({ ...f, install_date: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>انتهاء الضمان</Label>
+              <Input type="date" value={f.warranty_end_date} onChange={(e) => setF({ ...f, warranty_end_date: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>شركة الصيانة</Label>
+              <Input value={f.maintenance_company} onChange={(e) => setF({ ...f, maintenance_company: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>الحالة الحالية</Label>
+              <Select value={f.current_status} onValueChange={(v) => setF({ ...f, current_status: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {["يعمل", "معطّل", "تحت الصيانة", "خارج الخدمة"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select></div>
+            <div className="col-span-2 space-y-1.5"><Label>ملاحظات</Label>
+              <Textarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>إلغاء</Button>
+            <Button type="submit" disabled={busy} className="bg-gold text-gold-foreground hover:bg-gold/90">
+              {busy && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}حفظ
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AcLogFormDialog({ unit, onClose, onSaved }: {
+  unit: AcUnit | null; onClose: () => void; onSaved: () => void;
+}) {
+  const [f, setF] = useState({
+    maintenance_date: new Date().toISOString().slice(0, 10),
+    next_maintenance_date: "",
+    technician: "",
+    notes: "",
+  });
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (unit) setF({
+      maintenance_date: new Date().toISOString().slice(0, 10),
+      next_maintenance_date: "", technician: "", notes: "",
+    });
+  }, [unit]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!unit) return;
+    setBusy(true);
+    const { error } = await supabase.from("ac_maintenance_logs").insert({
+      ac_unit_id: unit.id,
+      maintenance_date: f.maintenance_date,
+      next_maintenance_date: f.next_maintenance_date || null,
+      technician: f.technician.trim() || null,
+      notes: f.notes.trim() || null,
+    });
+    setBusy(false);
+    if (error) return toast.error("تعذّر التسجيل");
+    toast.success("تم تسجيل الصيانة");
+    onSaved();
+  };
+
+  return (
+    <Dialog open={!!unit} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent dir="rtl">
+        <form onSubmit={submit}>
+          <DialogHeader>
+            <DialogTitle>تسجيل صيانة</DialogTitle>
+            <DialogDescription>وحدة {unit?.unit_number}</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 py-2">
+            <div className="space-y-1.5"><Label>تاريخ الصيانة</Label>
+              <Input type="date" value={f.maintenance_date} onChange={(e) => setF({ ...f, maintenance_date: e.target.value })} required /></div>
+            <div className="space-y-1.5"><Label>الصيانة القادمة</Label>
+              <Input type="date" value={f.next_maintenance_date} onChange={(e) => setF({ ...f, next_maintenance_date: e.target.value })} /></div>
+            <div className="col-span-2 space-y-1.5"><Label>الفنّي</Label>
+              <Input value={f.technician} onChange={(e) => setF({ ...f, technician: e.target.value })} /></div>
+            <div className="col-span-2 space-y-1.5"><Label>ملاحظات</Label>
+              <Textarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>إلغاء</Button>
+            <Button type="submit" disabled={busy} className="bg-gold text-gold-foreground hover:bg-gold/90">
+              {busy && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}حفظ
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ===================== Network ===================== */
+function NetworkTab({ officeId, canEdit }: { officeId: string; canEdit: boolean }) {
+  const [points, setPoints] = useState<NetPoint[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState<NetPoint | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [del, setDel] = useState<NetPoint | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from("network_points").select("*").eq("office_id", officeId).order("created_at");
+    setPoints((data ?? []) as NetPoint[]);
+    setLoading(false);
+  }, [officeId]);
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="text-base">الشبكات والاتصالات</CardTitle>
+        {canEdit && (
+          <Button size="sm" onClick={() => setCreating(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
+            <Plus className="h-4 w-4 ms-1" /> إضافة نقطة
+          </Button>
+        )}
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        ) : points.length === 0 ? (
+          <p className="text-center text-muted-foreground py-6">لا توجد نقاط مسجّلة.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>نقطة شبكة</TableHead>
+                <TableHead>نقطة هاتف</TableHead>
+                <TableHead>مزوّد الخدمة</TableHead>
+                <TableHead>ملاحظات</TableHead>
+                {canEdit && <TableHead className="text-end">إجراءات</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {points.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell>{p.network_point ?? "—"}</TableCell>
+                  <TableCell>{p.phone_point ?? "—"}</TableCell>
+                  <TableCell>{p.service_provider ?? "—"}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{p.notes ?? "—"}</TableCell>
+                  {canEdit && (
+                    <TableCell className="text-end">
+                      <Button size="sm" variant="ghost" onClick={() => setForm(p)}><Pencil className="h-4 w-4" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => setDel(p)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+
+      <NetFormDialog
+        open={creating || !!form}
+        point={form}
+        officeId={officeId}
+        onClose={() => { setCreating(false); setForm(null); }}
+        onSaved={() => { setCreating(false); setForm(null); load(); }}
+      />
+      <ConfirmDelete
+        open={!!del}
+        title="حذف النقطة"
+        message="هل أنت متأكد من حذف هذه النقطة؟"
+        onCancel={() => setDel(null)}
+        onConfirm={async () => {
+          if (!del) return;
+          const { error } = await supabase.from("network_points").delete().eq("id", del.id);
+          if (error) return toast.error("تعذّر الحذف");
+          toast.success("تم الحذف");
+          setDel(null);
+          load();
+        }}
+      />
+    </Card>
+  );
+}
+
+function NetFormDialog({ open, point, officeId, onClose, onSaved }: {
+  open: boolean; point: NetPoint | null; officeId: string; onClose: () => void; onSaved: () => void;
+}) {
+  const [f, setF] = useState({ network_point: "", phone_point: "", service_provider: "", notes: "" });
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (open) setF(point ? {
+      network_point: point.network_point ?? "",
+      phone_point: point.phone_point ?? "",
+      service_provider: point.service_provider ?? "",
+      notes: point.notes ?? "",
+    } : { network_point: "", phone_point: "", service_provider: "", notes: "" });
+  }, [open, point]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    const payload = {
+      office_id: officeId,
+      network_point: f.network_point.trim() || null,
+      phone_point: f.phone_point.trim() || null,
+      service_provider: f.service_provider.trim() || null,
+      notes: f.notes.trim() || null,
+    };
+    const { error } = point
+      ? await supabase.from("network_points").update(payload).eq("id", point.id)
+      : await supabase.from("network_points").insert(payload);
+    setBusy(false);
+    if (error) return toast.error("تعذّر الحفظ");
+    toast.success("تم الحفظ");
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent dir="rtl">
+        <form onSubmit={submit}>
+          <DialogHeader>
+            <DialogTitle>{point ? "تعديل النقطة" : "إضافة نقطة شبكة/هاتف"}</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 py-2">
+            <div className="space-y-1.5"><Label>نقطة الشبكة</Label>
+              <Input value={f.network_point} onChange={(e) => setF({ ...f, network_point: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>نقطة الهاتف</Label>
+              <Input value={f.phone_point} onChange={(e) => setF({ ...f, phone_point: e.target.value })} /></div>
+            <div className="col-span-2 space-y-1.5"><Label>مزوّد الخدمة</Label>
+              <Input value={f.service_provider} onChange={(e) => setF({ ...f, service_provider: e.target.value })} /></div>
+            <div className="col-span-2 space-y-1.5"><Label>ملاحظات</Label>
+              <Textarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>إلغاء</Button>
+            <Button type="submit" disabled={busy} className="bg-gold text-gold-foreground hover:bg-gold/90">
+              {busy && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}حفظ
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ===================== Files ===================== */
+const FILE_TYPES = ["صورة مكتب", "مخطط", "مرفق"];
+
+function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean }) {
+  const [files, setFiles] = useState<OfficeFile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fileType, setFileType] = useState<string>("مرفق");
+  const [uploading, setUploading] = useState(false);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+  const [del, setDel] = useState<OfficeFile | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from("office_files")
+      .select("*").eq("office_id", officeId).order("created_at", { ascending: false });
+    const list = (data ?? []) as OfficeFile[];
+    setFiles(list);
+    // signed urls for images
+    const imgs = list.filter(f => (f.mime_type ?? "").startsWith("image/"));
+    if (imgs.length) {
+      const urls: Record<string, string> = {};
+      await Promise.all(imgs.map(async (f) => {
+        const { data: s } = await supabase.storage.from("office-files").createSignedUrl(f.storage_path, 3600);
+        if (s?.signedUrl) urls[f.id] = s.signedUrl;
+      }));
+      setSignedUrls(urls);
+    } else setSignedUrls({});
+    setLoading(false);
+  }, [officeId]);
+  useEffect(() => { load(); }, [load]);
+
+  const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const list = e.target.files;
+    if (!list || !list.length) return;
+    setUploading(true);
+    let ok = 0, fail = 0;
+    for (const file of Array.from(list)) {
+      const ext = file.name.split(".").pop() ?? "bin";
+      const path = `${officeId}/${crypto.randomUUID()}.${ext}`;
+      const up = await supabase.storage.from("office-files").upload(path, file, {
+        contentType: file.type || undefined,
+      });
+      if (up.error) { fail++; continue; }
+      const { error: insErr } = await supabase.from("office_files").insert({
+        office_id: officeId,
+        file_type: fileType,
+        file_name: file.name,
+        storage_path: path,
+        mime_type: file.type || null,
+        size_bytes: file.size,
+      });
+      if (insErr) { fail++; await supabase.storage.from("office-files").remove([path]); }
+      else ok++;
+    }
+    setUploading(false);
+    if (inputRef.current) inputRef.current.value = "";
+    if (ok) toast.success(`تم رفع ${ok} ملف`);
+    if (fail) toast.error(`فشل ${fail} ملف`);
+    load();
+  };
+
+  const download = async (f: OfficeFile) => {
+    const { data, error } = await supabase.storage.from("office-files").createSignedUrl(f.storage_path, 60, { download: f.file_name });
+    if (error || !data) return toast.error("تعذّر التحميل");
+    window.open(data.signedUrl, "_blank");
+  };
+
+  const remove = async (f: OfficeFile) => {
+    await supabase.storage.from("office-files").remove([f.storage_path]);
+    const { error } = await supabase.from("office_files").delete().eq("id", f.id);
+    if (error) return toast.error("تعذّر الحذف");
+    toast.success("تم الحذف");
+    setDel(null);
+    load();
+  };
+
+  const images = useMemo(() => files.filter(f => (f.mime_type ?? "").startsWith("image/")), [files]);
+  const others = useMemo(() => files.filter(f => !(f.mime_type ?? "").startsWith("image/")), [files]);
+
+  return (
+    <div className="space-y-4">
+      {canEdit && (
+        <Card>
+          <CardContent className="pt-6 flex items-end gap-3 flex-wrap">
+            <div className="space-y-1.5">
+              <Label>نوع الملف</Label>
+              <Select value={fileType} onValueChange={setFileType}>
+                <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {FILE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <input ref={inputRef} type="file" multiple onChange={onUpload} className="hidden" id="office-upload" />
+              <Button asChild className="bg-gold text-gold-foreground hover:bg-gold/90" disabled={uploading}>
+                <label htmlFor="office-upload" className="cursor-pointer">
+                  {uploading ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4 ms-1" />}
+                  رفع ملفات
+                </label>
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">يمكنك اختيار عدة ملفات دفعة واحدة.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {loading ? (
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      ) : files.length === 0 ? (
+        <Card className="py-10 text-center text-muted-foreground">لا توجد ملفات.</Card>
+      ) : (
+        <>
+          {images.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle className="text-base flex items-center gap-2"><ImageIcon className="h-4 w-4" />الصور والمخططات</CardTitle></CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {images.map((f) => (
+                    <div key={f.id} className="border rounded-lg overflow-hidden group relative">
+                      {signedUrls[f.id] ? (
+                        <a href={signedUrls[f.id]} target="_blank" rel="noreferrer">
+                          <img src={signedUrls[f.id]} alt={f.file_name} className="w-full h-32 object-cover" />
+                        </a>
+                      ) : (
+                        <div className="w-full h-32 bg-muted animate-pulse" />
+                      )}
+                      <div className="p-2 text-xs">
+                        <div className="truncate font-medium">{f.file_name}</div>
+                        <div className="flex items-center justify-between mt-1">
+                          <Badge variant="outline" className="text-[10px]">{f.file_type}</Badge>
+                          {canEdit && (
+                            <Button size="sm" variant="ghost" onClick={() => setDel(f)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {others.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" />المرفقات</CardTitle></CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>الاسم</TableHead>
+                      <TableHead>النوع</TableHead>
+                      <TableHead>الحجم</TableHead>
+                      <TableHead>التاريخ</TableHead>
+                      <TableHead className="text-end">إجراءات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {others.map((f) => (
+                      <TableRow key={f.id}>
+                        <TableCell className="font-medium">{f.file_name}</TableCell>
+                        <TableCell><Badge variant="outline">{f.file_type}</Badge></TableCell>
+                        <TableCell>{f.size_bytes ? `${Math.round(f.size_bytes / 1024)} KB` : "—"}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{new Date(f.created_at).toLocaleDateString("ar-EG")}</TableCell>
+                        <TableCell className="text-end">
+                          <Button size="sm" variant="ghost" onClick={() => download(f)}><Download className="h-4 w-4" /></Button>
+                          {canEdit && (
+                            <Button size="sm" variant="ghost" onClick={() => setDel(f)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
+
+      <ConfirmDelete
+        open={!!del}
+        title="حذف الملف"
+        message={`سيتم حذف الملف "${del?.file_name}" نهائيًا.`}
+        onCancel={() => setDel(null)}
+        onConfirm={() => del && remove(del)}
+      />
+    </div>
+  );
+}
+
+/* ===================== Office edit dialog (re-uses inline form) ===================== */
+function OfficeEditDialog({ open, office, onClose, onSaved }: {
+  open: boolean; office: Office; onClose: () => void; onSaved: () => void;
+}) {
+  const [f, setF] = useState({
+    area_sqm: "", parking_count: 0, view_type: "", management_entity: "", notes: "",
+  });
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    if (open) setF({
+      area_sqm: office.area_sqm?.toString() ?? "",
+      parking_count: office.parking_count,
+      view_type: office.view_type ?? "",
+      management_entity: office.management_entity ?? "",
+      notes: office.notes ?? "",
+    });
+  }, [open, office]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    const { error } = await supabase.from("offices").update({
+      area_sqm: f.area_sqm.trim() === "" ? null : Number(f.area_sqm),
+      parking_count: Number(f.parking_count),
+      view_type: f.view_type.trim() || null,
+      management_entity: f.management_entity.trim() || null,
+      notes: f.notes.trim() || null,
+    }).eq("id", office.id);
+    setBusy(false);
+    if (error) return toast.error("تعذّر الحفظ");
+    toast.success("تم الحفظ");
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent dir="rtl">
+        <form onSubmit={submit}>
+          <DialogHeader>
+            <DialogTitle>تعديل بيانات المكتب {office.code}</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-3 py-2">
+            <div className="space-y-1.5"><Label>المساحة (م²)</Label>
+              <Input type="number" step="0.1" value={f.area_sqm} onChange={(e) => setF({ ...f, area_sqm: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>عدد المواقف</Label>
+              <Input type="number" min={0} value={f.parking_count} onChange={(e) => setF({ ...f, parking_count: Number(e.target.value) })} /></div>
+            <div className="space-y-1.5"><Label>نوع الإطلالة</Label>
+              <Input value={f.view_type} onChange={(e) => setF({ ...f, view_type: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>الجهة المشرفة</Label>
+              <Input value={f.management_entity} onChange={(e) => setF({ ...f, management_entity: e.target.value })} /></div>
+            <div className="col-span-2 space-y-1.5"><Label>ملاحظات</Label>
+              <Textarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>إلغاء</Button>
+            <Button type="submit" disabled={busy} className="bg-gold text-gold-foreground hover:bg-gold/90">
+              {busy && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}حفظ
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ===================== Confirm delete ===================== */
+function ConfirmDelete({ open, title, message, onCancel, onConfirm }: {
+  open: boolean; title: string; message: string; onCancel: () => void; onConfirm: () => void;
+}) {
+  return (
+    <AlertDialog open={open} onOpenChange={(o) => !o && onCancel()}>
+      <AlertDialogContent dir="rtl">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{message}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>إلغاء</AlertDialogCancel>
+          <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={onConfirm}>
+            حذف
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}

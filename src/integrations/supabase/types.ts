@@ -2536,6 +2536,123 @@ export type Database = {
         }
         Relationships: []
       }
+      visitors: {
+        Row: {
+          badge_number: string | null
+          check_in_at: string
+          check_out_at: string | null
+          company_id: string | null
+          company_visiting: string | null
+          created_at: string
+          created_by: string | null
+          expected_duration_minutes: number | null
+          full_name: string
+          host_name: string | null
+          id: string
+          id_photo_url: string | null
+          national_id: string | null
+          notes: string | null
+          office_id: string | null
+          phone: string | null
+          purpose: string | null
+          received_by_guard_id: string | null
+          space_id: string | null
+          status: Database["public"]["Enums"]["visitor_status"]
+          updated_at: string
+          vehicle_plate: string | null
+          visitor_number: string | null
+          visitor_type: Database["public"]["Enums"]["visitor_type"]
+        }
+        Insert: {
+          badge_number?: string | null
+          check_in_at?: string
+          check_out_at?: string | null
+          company_id?: string | null
+          company_visiting?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_duration_minutes?: number | null
+          full_name: string
+          host_name?: string | null
+          id?: string
+          id_photo_url?: string | null
+          national_id?: string | null
+          notes?: string | null
+          office_id?: string | null
+          phone?: string | null
+          purpose?: string | null
+          received_by_guard_id?: string | null
+          space_id?: string | null
+          status?: Database["public"]["Enums"]["visitor_status"]
+          updated_at?: string
+          vehicle_plate?: string | null
+          visitor_number?: string | null
+          visitor_type?: Database["public"]["Enums"]["visitor_type"]
+        }
+        Update: {
+          badge_number?: string | null
+          check_in_at?: string
+          check_out_at?: string | null
+          company_id?: string | null
+          company_visiting?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_duration_minutes?: number | null
+          full_name?: string
+          host_name?: string | null
+          id?: string
+          id_photo_url?: string | null
+          national_id?: string | null
+          notes?: string | null
+          office_id?: string | null
+          phone?: string | null
+          purpose?: string | null
+          received_by_guard_id?: string | null
+          space_id?: string | null
+          status?: Database["public"]["Enums"]["visitor_status"]
+          updated_at?: string
+          vehicle_plate?: string | null
+          visitor_number?: string | null
+          visitor_type?: Database["public"]["Enums"]["visitor_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visitors_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitors_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitors_received_by_guard_id_fkey"
+            columns: ["received_by_guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitors_received_by_guard_id_fkey"
+            columns: ["received_by_guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitors_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       dashboard_stats: {
@@ -2784,6 +2901,14 @@ export type Database = {
       ticket_status: "جديد" | "جاري المعالجة" | "مغلق"
       ticket_type: "شكوى" | "صيانة" | "نظافة" | "أمن" | "استفسار"
       training_type: "أمن" | "سلامة" | "إسعافات أولية"
+      visitor_status: "داخل" | "خرج" | "ملغي"
+      visitor_type:
+        | "زائر"
+        | "مقاول"
+        | "موظف توصيل"
+        | "صيانة خارجية"
+        | "ضيف VIP"
+        | "أخرى"
       wo_priority: "طارئة" | "عالية" | "متوسطة" | "منخفضة"
       work_order_type: "تصحيحي" | "وقائي" | "طارئ"
     }
@@ -3013,6 +3138,15 @@ export const Constants = {
       ticket_status: ["جديد", "جاري المعالجة", "مغلق"],
       ticket_type: ["شكوى", "صيانة", "نظافة", "أمن", "استفسار"],
       training_type: ["أمن", "سلامة", "إسعافات أولية"],
+      visitor_status: ["داخل", "خرج", "ملغي"],
+      visitor_type: [
+        "زائر",
+        "مقاول",
+        "موظف توصيل",
+        "صيانة خارجية",
+        "ضيف VIP",
+        "أخرى",
+      ],
       wo_priority: ["طارئة", "عالية", "متوسطة", "منخفضة"],
       work_order_type: ["تصحيحي", "وقائي", "طارئ"],
     },

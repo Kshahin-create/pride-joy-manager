@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Bell, LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon } from "lucide-react";
+import { NotificationsBell } from "@/components/notifications-bell";
 import { useNavigate } from "@tanstack/react-router";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";

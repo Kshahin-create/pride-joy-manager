@@ -243,14 +243,7 @@ function OfficeDetailsPage() {
           <FilesTab officeId={office.id} canEdit={isAdmin} />
         </TabsContent>
         <TabsContent value="log" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>سجل المكتب</CardTitle>
-            </CardHeader>
-            <CardContent className="py-10 text-center text-muted-foreground">
-              سيتم عرض المستأجرين السابقين، الحجوزات، البلاغات، وأعمال الصيانة الخاصة بهذا المكتب هنا قريبًا.
-            </CardContent>
-          </Card>
+          <OfficeContractsLog officeId={office.id} />
         </TabsContent>
       </Tabs>
 

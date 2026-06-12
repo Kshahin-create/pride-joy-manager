@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   LayoutGrid,
@@ -117,6 +117,8 @@ const STATUS_STYLES: Record<OfficeStatus, { badge: string; card: string; dot: st
 function OfficesPage() {
   const { hasRole } = useAuth();
   const canEdit = hasRole("super_admin");
+  const navigate = useNavigate();
+  const openOffice = (o: Office) => navigate({ to: "/offices/$id", params: { id: o.id } });
 
   const [offices, setOffices] = useState<Office[]>([]);
   const [loading, setLoading] = useState(true);
@@ -287,7 +289,7 @@ function OfficesPage() {
           <Loader2 className="h-6 w-6 animate-spin inline text-muted-foreground" />
         </Card>
       ) : view === "grid" ? (
-        <GridView offices={offices} onSelect={setSelected} />
+        <GridView offices={offices} onSelect={openOffice} />
       ) : (
         <Card>
           <div className="p-3 border-b flex items-center gap-2 flex-wrap">
@@ -341,7 +343,7 @@ function OfficesPage() {
                 </TableRow>
               ) : (
                 paged.map((o) => (
-                  <TableRow key={o.id} className="cursor-pointer" onClick={() => setSelected(o)}>
+                  <TableRow key={o.id} className="cursor-pointer" onClick={() => openOffice(o)}>
                     <TableCell className="font-semibold text-primary">{o.code}</TableCell>
                     <TableCell>{o.floor}</TableCell>
                     <TableCell>{o.area_sqm ?? "—"}</TableCell>

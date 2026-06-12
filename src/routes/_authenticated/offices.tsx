@@ -277,7 +277,7 @@ function OfficesPage() {
       {/* الإحصائيات */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         <StatCard label="إجمالي المكاتب" value={stats.total} hint="9 أدوار × 6 مكاتب" tone="primary" />
-        <StatCard label="المؤجّر" value={stats.rented} tone="primary" />
+        <StatCard label="المؤجّر" value={stats.rented} tone="info" />
         <StatCard label="المتاح" value={stats.available} tone="success" />
         <StatCard label="المحجوز" value={stats.reserved} tone="warning" />
         <StatCard label="نسبة الإشغال" value={`${stats.occupancy}%`} tone="gold" />

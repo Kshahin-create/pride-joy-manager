@@ -75,8 +75,11 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
   const [items, setItems] = useState<DocumentRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [fCategory, setFCategory] = useState<string>("all");
+  const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [files, setFiles] = useState<FileList | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const [zipping, setZipping] = useState(false);
   const [form, setForm] = useState<Partial<DocumentRow>>({
     category: "أخرى",
     entity_type: entityType,

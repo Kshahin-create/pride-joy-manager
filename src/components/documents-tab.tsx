@@ -21,7 +21,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Download, Eye, Trash2, FileText, AlertTriangle } from "lucide-react";
+import { Plus, Download, Eye, Trash2, FileText, AlertTriangle, Search, Share2, Archive, UploadCloud, X } from "lucide-react";
+import JSZip from "jszip";
 
 export const DOC_CATEGORIES = [
   "عقد","هوية","سجل تجاري","فاتورة","سند","عقد مورد","عقد صيانة",

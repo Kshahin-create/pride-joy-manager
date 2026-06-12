@@ -53,6 +53,54 @@ export type Database = {
         }
         Relationships: []
       }
+      offices: {
+        Row: {
+          area_sqm: number | null
+          code: string
+          created_at: string
+          created_by: string | null
+          floor: number
+          id: string
+          management_entity: string | null
+          notes: string | null
+          office_number: string
+          parking_count: number
+          status: Database["public"]["Enums"]["office_status"]
+          updated_at: string
+          view_type: string | null
+        }
+        Insert: {
+          area_sqm?: number | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          floor: number
+          id?: string
+          management_entity?: string | null
+          notes?: string | null
+          office_number: string
+          parking_count?: number
+          status?: Database["public"]["Enums"]["office_status"]
+          updated_at?: string
+          view_type?: string | null
+        }
+        Update: {
+          area_sqm?: number | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          floor?: number
+          id?: string
+          management_entity?: string | null
+          notes?: string | null
+          office_number?: string
+          parking_count?: number
+          status?: Database["public"]["Enums"]["office_status"]
+          updated_at?: string
+          view_type?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -135,6 +183,7 @@ export type Database = {
         | "maintenance_supervisor"
         | "receptionist"
         | "owner"
+      office_status: "متاح" | "محجوز" | "مؤجر" | "تحت الصيانة" | "غير متاح"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -270,6 +319,7 @@ export const Constants = {
         "receptionist",
         "owner",
       ],
+      office_status: ["متاح", "محجوز", "مؤجر", "تحت الصيانة", "غير متاح"],
     },
   },
 } as const

@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { CompanyContractsTab } from "@/components/contracts-list";
 import {
   CLIENT_STATUSES, STATUS_STYLE, CompanyFormDialog,
   type ClientStatus, type Company,

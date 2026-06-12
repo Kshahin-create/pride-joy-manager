@@ -42,6 +42,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { OfficeContractsLog } from "@/components/contracts-list";
 
 export const Route = createFileRoute("/_authenticated/offices/$id")({
   component: OfficeDetailsPage,

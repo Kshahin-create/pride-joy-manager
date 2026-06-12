@@ -4,9 +4,9 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
-  Building2, Users, FileSignature, Wallet, ShieldCheck, Wrench, Car,
-  MessageSquareWarning, FolderArchive, BookOpenCheck, ArrowLeft, LogIn,
-  Sparkles, Cctv, Receipt, ChevronLeft, Phone, MapPin, Mail,
+  Building2, FileSignature, ShieldCheck, Wrench, Car,
+  FolderArchive, BookOpenCheck, ArrowLeft, LogIn,
+  Sparkles, Cctv, ChevronLeft, Phone, MapPin, Mail,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -405,5 +405,3 @@ function SectionHeading({ eyebrow, title, subtitle }: { eyebrow: string; title: 
   );
 }
 
-// Note: Unused imports kept intentionally minimal.
-void Users; void FileSignature; void Wallet; void MessageSquareWarning; void Receipt; void LogIn;

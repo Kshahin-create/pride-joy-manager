@@ -43,6 +43,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
     label: "عام",
     items: [
       { title: "الرئيسية", url: "/dashboard", icon: LayoutDashboard },
+      { title: "خريطة البرج", url: "/building-map", icon: Map },
       { title: "سجل البرج", url: "/building-log", icon: ScrollText, roles: ["super_admin", "owner"] },
     ],
   },

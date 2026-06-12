@@ -98,9 +98,9 @@ const STATUS_STYLES: Record<OfficeStatus, { badge: string; card: string; dot: st
     dot: "bg-warning",
   },
   "مؤجر": {
-    badge: "bg-primary text-primary-foreground",
-    card: "border-primary/40 bg-primary/5 hover:bg-primary/10",
-    dot: "bg-primary",
+    badge: "bg-info text-info-foreground",
+    card: "border-info/40 bg-info/5 hover:bg-info/10",
+    dot: "bg-info",
   },
   "تحت الصيانة": {
     badge: "bg-destructive/80 text-destructive-foreground",

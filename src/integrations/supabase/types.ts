@@ -185,6 +185,69 @@ export type Database = {
           },
         ]
       }
+      building_identity: {
+        Row: {
+          address: string | null
+          building_name: string
+          city: string | null
+          country: string | null
+          cr_number: string | null
+          created_at: string
+          email: string | null
+          id: boolean
+          legal_name: string | null
+          logo_url: string | null
+          notes: string | null
+          owner_name: string | null
+          phone: string | null
+          total_floors: number | null
+          total_offices: number | null
+          updated_at: string
+          vat_number: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          building_name?: string
+          city?: string | null
+          country?: string | null
+          cr_number?: string | null
+          created_at?: string
+          email?: string | null
+          id?: boolean
+          legal_name?: string | null
+          logo_url?: string | null
+          notes?: string | null
+          owner_name?: string | null
+          phone?: string | null
+          total_floors?: number | null
+          total_offices?: number | null
+          updated_at?: string
+          vat_number?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          building_name?: string
+          city?: string | null
+          country?: string | null
+          cr_number?: string | null
+          created_at?: string
+          email?: string | null
+          id?: boolean
+          legal_name?: string | null
+          logo_url?: string | null
+          notes?: string | null
+          owner_name?: string | null
+          phone?: string | null
+          total_floors?: number | null
+          total_offices?: number | null
+          updated_at?: string
+          vat_number?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       building_log: {
         Row: {
           actor_id: string | null
@@ -2937,6 +3000,7 @@ export type Database = {
       can_manage_security: { Args: { _uid: string }; Returns: boolean }
       generate_daily_notifications: { Args: never; Returns: undefined }
       generate_due_pm_work_orders: { Args: never; Returns: number }
+      get_daily_report: { Args: { _date?: string }; Returns: Json }
       get_my_roles: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]

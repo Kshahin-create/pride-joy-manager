@@ -117,6 +117,63 @@ export type Database = {
           },
         ]
       }
+      assets: {
+        Row: {
+          asset_code: string
+          asset_name: string
+          created_at: string
+          created_by: string | null
+          criticality: Database["public"]["Enums"]["asset_criticality"]
+          expected_lifespan_years: number | null
+          id: string
+          install_date: string | null
+          location: string | null
+          manufacturer: string | null
+          notes: string | null
+          responsible_person: string | null
+          serial_number: string | null
+          supplier: string | null
+          updated_at: string
+          warranty_end_date: string | null
+        }
+        Insert: {
+          asset_code: string
+          asset_name: string
+          created_at?: string
+          created_by?: string | null
+          criticality?: Database["public"]["Enums"]["asset_criticality"]
+          expected_lifespan_years?: number | null
+          id?: string
+          install_date?: string | null
+          location?: string | null
+          manufacturer?: string | null
+          notes?: string | null
+          responsible_person?: string | null
+          serial_number?: string | null
+          supplier?: string | null
+          updated_at?: string
+          warranty_end_date?: string | null
+        }
+        Update: {
+          asset_code?: string
+          asset_name?: string
+          created_at?: string
+          created_by?: string | null
+          criticality?: Database["public"]["Enums"]["asset_criticality"]
+          expected_lifespan_years?: number | null
+          id?: string
+          install_date?: string | null
+          location?: string | null
+          manufacturer?: string | null
+          notes?: string | null
+          responsible_person?: string | null
+          serial_number?: string | null
+          supplier?: string | null
+          updated_at?: string
+          warranty_end_date?: string | null
+        }
+        Relationships: []
+      }
       building_log: {
         Row: {
           actor_id: string | null
@@ -1107,6 +1164,90 @@ export type Database = {
           },
         ]
       }
+      maintenance_requests: {
+        Row: {
+          after_photo_url: string | null
+          asset_id: string | null
+          assigned_technician: string | null
+          before_photo_url: string | null
+          closed_at: string | null
+          closed_by: string | null
+          cost: number | null
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          notes: string | null
+          office_id: string | null
+          reported_by: string | null
+          reporter_name: string | null
+          request_date: string
+          request_number: string | null
+          request_type: string | null
+          status: Database["public"]["Enums"]["maintenance_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          after_photo_url?: string | null
+          asset_id?: string | null
+          assigned_technician?: string | null
+          before_photo_url?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          office_id?: string | null
+          reported_by?: string | null
+          reporter_name?: string | null
+          request_date?: string
+          request_number?: string | null
+          request_type?: string | null
+          status?: Database["public"]["Enums"]["maintenance_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          after_photo_url?: string | null
+          asset_id?: string | null
+          assigned_technician?: string | null
+          before_photo_url?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          cost?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          office_id?: string | null
+          reported_by?: string | null
+          reporter_name?: string | null
+          request_date?: string
+          request_number?: string | null
+          request_type?: string | null
+          status?: Database["public"]["Enums"]["maintenance_request_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_requests_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_requests_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       network_points: {
         Row: {
           created_at: string
@@ -1607,6 +1748,7 @@ export type Database = {
         | "maintenance_supervisor"
         | "receptionist"
         | "owner"
+      asset_criticality: "حرج" | "عادي"
       camera_status: "تعمل" | "معطلة" | "تحت الصيانة"
       cleaning_frequency: "يومي" | "أسبوعي" | "شهري"
       cleaning_photo_kind: "قبل" | "بعد"
@@ -1630,6 +1772,11 @@ export type Database = {
       invoice_status: "مستحق" | "مدفوع جزئي" | "مدفوع" | "متأخر"
       invoice_type: "إيجار" | "تأمين" | "رسوم تشغيل" | "رسوم خدمات" | "غرامات"
       leave_status: "قيد المراجعة" | "معتمدة" | "مرفوضة"
+      maintenance_request_status:
+        | "جديد"
+        | "جاري التنفيذ"
+        | "بانتظار قطع غيار"
+        | "مغلق"
       office_status: "متاح" | "محجوز" | "مؤجر" | "تحت الصيانة" | "غير متاح"
       payment_method: "نقدي" | "تحويل بنكي" | "شيك"
       penalty_reward_type: "مخالفة" | "إنذار" | "مكافأة"
@@ -1770,6 +1917,7 @@ export const Constants = {
         "receptionist",
         "owner",
       ],
+      asset_criticality: ["حرج", "عادي"],
       camera_status: ["تعمل", "معطلة", "تحت الصيانة"],
       cleaning_frequency: ["يومي", "أسبوعي", "شهري"],
       cleaning_photo_kind: ["قبل", "بعد"],
@@ -1795,6 +1943,12 @@ export const Constants = {
       invoice_status: ["مستحق", "مدفوع جزئي", "مدفوع", "متأخر"],
       invoice_type: ["إيجار", "تأمين", "رسوم تشغيل", "رسوم خدمات", "غرامات"],
       leave_status: ["قيد المراجعة", "معتمدة", "مرفوضة"],
+      maintenance_request_status: [
+        "جديد",
+        "جاري التنفيذ",
+        "بانتظار قطع غيار",
+        "مغلق",
+      ],
       office_status: ["متاح", "محجوز", "مؤجر", "تحت الصيانة", "غير متاح"],
       payment_method: ["نقدي", "تحويل بنكي", "شيك"],
       penalty_reward_type: ["مخالفة", "إنذار", "مكافأة"],

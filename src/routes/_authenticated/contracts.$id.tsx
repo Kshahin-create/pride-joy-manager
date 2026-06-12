@@ -119,6 +119,12 @@ function ContractDetailsPage() {
           <Badge className={CONTRACT_STATUS_STYLE[contract.status]}>{contract.status}</Badge>
         </div>
         <div className="flex items-center gap-2">
+          {(isAdmin || hasRole?.("accountant")) && (
+            <Button variant="outline" onClick={generateInvoices} disabled={generating}>
+              {generating ? <Loader2 className="h-4 w-4 ms-1 animate-spin" /> : <Receipt className="h-4 w-4 ms-1" />}
+              توليد الفواتير
+            </Button>
+          )}
           {canManage && (
             <Button onClick={() => setRenewOpen(true)} className="bg-primary text-primary-foreground">
               <RotateCw className="h-4 w-4 ms-1" /> تجديد

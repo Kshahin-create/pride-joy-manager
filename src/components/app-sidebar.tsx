@@ -37,8 +37,10 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BrandLogo } from "@/components/brand-logo";
 import { useAuth, ROLE_LABELS, type AppRole } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+
 
 interface NavItem {
   title: string;
@@ -134,15 +136,16 @@ export function AppSidebar() {
     <Sidebar side="right" collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-3">
-          <div className="w-9 h-9 rounded-lg bg-gold text-gold-foreground flex items-center justify-center shrink-0 shadow-sm">
-            <Building2 className="h-5 w-5" />
+          <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm p-1">
+            <BrandLogo variant="color" className="h-full w-full object-contain" />
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-bold text-sidebar-foreground">Pride &amp; Joy</span>
-            <span className="text-xs text-sidebar-foreground/70">إدارة البرج</span>
+            <span className="text-sm font-bold text-sidebar-foreground">نخبة تسكين</span>
+            <span className="text-xs text-sidebar-foreground/70">العقارية</span>
           </div>
         </div>
       </SidebarHeader>
+
       <SidebarContent>
         {NAV.map((group) => {
           const items = group.items.filter(visible);

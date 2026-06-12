@@ -123,7 +123,7 @@ interface OfficeFile {
 const STATUS_BADGE: Record<OfficeStatus, string> = {
   "متاح": "bg-success text-success-foreground",
   "محجوز": "bg-warning text-warning-foreground",
-  "مؤجر": "bg-primary text-primary-foreground",
+  "مؤجر": "bg-info text-info-foreground",
   "تحت الصيانة": "bg-destructive/80 text-destructive-foreground",
   "غير متاح": "bg-muted-foreground/70 text-background",
 };

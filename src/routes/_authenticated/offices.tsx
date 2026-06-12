@@ -98,9 +98,9 @@ const STATUS_STYLES: Record<OfficeStatus, { badge: string; card: string; dot: st
     dot: "bg-warning",
   },
   "مؤجر": {
-    badge: "bg-primary text-primary-foreground",
-    card: "border-primary/40 bg-primary/5 hover:bg-primary/10",
-    dot: "bg-primary",
+    badge: "bg-info text-info-foreground",
+    card: "border-info/40 bg-info/5 hover:bg-info/10",
+    dot: "bg-info",
   },
   "تحت الصيانة": {
     badge: "bg-destructive/80 text-destructive-foreground",
@@ -277,7 +277,7 @@ function OfficesPage() {
       {/* الإحصائيات */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         <StatCard label="إجمالي المكاتب" value={stats.total} hint="9 أدوار × 6 مكاتب" tone="primary" />
-        <StatCard label="المؤجّر" value={stats.rented} tone="primary" />
+        <StatCard label="المؤجّر" value={stats.rented} tone="info" />
         <StatCard label="المتاح" value={stats.available} tone="success" />
         <StatCard label="المحجوز" value={stats.reserved} tone="warning" />
         <StatCard label="نسبة الإشغال" value={`${stats.occupancy}%`} tone="gold" />
@@ -445,13 +445,14 @@ function StatCard({
   label: string;
   value: number | string;
   hint?: string;
-  tone: "primary" | "success" | "warning" | "gold";
+  tone: "primary" | "success" | "warning" | "gold" | "info";
 }) {
   const toneClass = {
     primary: "border-t-primary text-primary",
     success: "border-t-success text-success",
     warning: "border-t-warning text-[oklch(0.55_0.15_75)]",
     gold: "border-t-gold text-[oklch(0.45_0.13_85)]",
+    info: "border-t-info text-info",
   }[tone];
   return (
     <Card className={`border-t-4 ${toneClass}`}>

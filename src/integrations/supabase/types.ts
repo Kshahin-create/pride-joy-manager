@@ -156,6 +156,181 @@ export type Database = {
         }
         Relationships: []
       }
+      client_interactions: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          details: string | null
+          id: string
+          interaction_date: string
+          interaction_type: Database["public"]["Enums"]["interaction_type"]
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          id?: string
+          interaction_date?: string
+          interaction_type: Database["public"]["Enums"]["interaction_type"]
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          id?: string
+          interaction_date?: string
+          interaction_type?: Database["public"]["Enums"]["interaction_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_interactions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_unit_views: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          office_id: string
+          updated_at: string
+          view_date: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          office_id: string
+          updated_at?: string
+          view_date?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          office_id?: string
+          updated_at?: string
+          view_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_unit_views_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_unit_views_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          activity: string | null
+          commercial_register: string | null
+          company_name: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["client_status"]
+          tax_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          activity?: string | null
+          commercial_register?: string | null
+          company_name: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["client_status"]
+          tax_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activity?: string | null
+          commercial_register?: string | null
+          company_name?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["client_status"]
+          tax_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      contact_persons: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          mobile: string | null
+          name: string
+          notes: string | null
+          position: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          mobile?: string | null
+          name: string
+          notes?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          mobile?: string | null
+          name?: string
+          notes?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_persons_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       electricity_meters: {
         Row: {
           created_at: string
@@ -468,6 +643,15 @@ export type Database = {
         | "maintenance_supervisor"
         | "receptionist"
         | "owner"
+      client_status:
+        | "استفسار"
+        | "مهتم"
+        | "معاينة"
+        | "تفاوض"
+        | "حجز"
+        | "تعاقد"
+        | "غير مهتم"
+      interaction_type: "مكالمة" | "زيارة" | "ملاحظة"
       office_status: "متاح" | "محجوز" | "مؤجر" | "تحت الصيانة" | "غير متاح"
     }
     CompositeTypes: {
@@ -604,6 +788,16 @@ export const Constants = {
         "receptionist",
         "owner",
       ],
+      client_status: [
+        "استفسار",
+        "مهتم",
+        "معاينة",
+        "تفاوض",
+        "حجز",
+        "تعاقد",
+        "غير مهتم",
+      ],
+      interaction_type: ["مكالمة", "زيارة", "ملاحظة"],
       office_status: ["متاح", "محجوز", "مؤجر", "تحت الصيانة", "غير متاح"],
     },
   },

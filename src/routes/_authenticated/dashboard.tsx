@@ -11,7 +11,7 @@ import {
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, ROLE_LABELS } from "@/lib/auth-context";
-import { BuildingLogTimeline, type BuildingLogRow } from "@/components/building-log-timeline";
+import { Timeline as BuildingLogTimeline, type BuildingLogRow } from "@/components/building-log-timeline";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,

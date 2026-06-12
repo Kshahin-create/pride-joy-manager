@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-  ArrowRight, Loader2, RotateCw, Ban, Upload, Download, Trash2, FileText,
+  ArrowRight, Loader2, RotateCw, Ban, Upload, Download, Trash2, FileText, Receipt,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -70,6 +70,19 @@ function ContractDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [renewOpen, setRenewOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
+
+  const generateInvoices = async () => {
+    setGenerating(true);
+    const { data, error } = await supabase.functions.invoke("generate-rent-invoices", {
+      body: { contract_id: id },
+    });
+    setGenerating(false);
+    if (error) { toast.error("فشل التوليد: " + error.message); return; }
+    const n = (data as { generated?: number; message?: string } | null)?.generated ?? 0;
+    if (n > 0) toast.success(`تم توليد ${n} فاتورة`);
+    else toast.info((data as { message?: string } | null)?.message ?? "لا توجد فواتير جديدة");
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -119,6 +132,12 @@ function ContractDetailsPage() {
           <Badge className={CONTRACT_STATUS_STYLE[contract.status]}>{contract.status}</Badge>
         </div>
         <div className="flex items-center gap-2">
+          {(isAdmin || hasRole("accountant")) && (
+            <Button variant="outline" onClick={generateInvoices} disabled={generating}>
+              {generating ? <Loader2 className="h-4 w-4 ms-1 animate-spin" /> : <Receipt className="h-4 w-4 ms-1" />}
+              توليد الفواتير
+            </Button>
+          )}
           {canManage && (
             <Button onClick={() => setRenewOpen(true)} className="bg-primary text-primary-foreground">
               <RotateCw className="h-4 w-4 ms-1" /> تجديد

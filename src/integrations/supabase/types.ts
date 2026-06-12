@@ -545,6 +545,72 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          amount_due: number
+          amount_paid: number
+          company_id: string
+          contract_id: string | null
+          created_at: string
+          created_by: string | null
+          due_date: string
+          id: string
+          invoice_number: string
+          invoice_type: Database["public"]["Enums"]["invoice_type"]
+          issue_date: string
+          notes: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount_due: number
+          amount_paid?: number
+          company_id: string
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date: string
+          id?: string
+          invoice_number: string
+          invoice_type: Database["public"]["Enums"]["invoice_type"]
+          issue_date?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount_due?: number
+          amount_paid?: number
+          company_id?: string
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string
+          id?: string
+          invoice_number?: string
+          invoice_type?: Database["public"]["Enums"]["invoice_type"]
+          issue_date?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       network_points: {
         Row: {
           created_at: string
@@ -687,6 +753,53 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          created_by: string | null
+          id: string
+          invoice_id: string
+          notes: string | null
+          payment_date: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_number: string
+          updated_at: string
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id: string
+          notes?: string | null
+          payment_date?: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_number: string
+          updated_at?: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          receipt_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -760,6 +873,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      mark_overdue_invoices: { Args: never; Returns: undefined }
+      recalc_invoice_status: {
+        Args: { _invoice_id: string }
+        Returns: undefined
+      }
       renew_contract: {
         Args: {
           _contract_id: string
@@ -793,7 +911,10 @@ export type Database = {
         | "سند دفع"
       contract_status: "ساري" | "منتهي" | "مجدد" | "ملغي"
       interaction_type: "مكالمة" | "زيارة" | "ملاحظة"
+      invoice_status: "مستحق" | "مدفوع جزئي" | "مدفوع" | "متأخر"
+      invoice_type: "إيجار" | "تأمين" | "رسوم تشغيل" | "رسوم خدمات" | "غرامات"
       office_status: "متاح" | "محجوز" | "مؤجر" | "تحت الصيانة" | "غير متاح"
+      payment_method: "نقدي" | "تحويل بنكي" | "شيك"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -946,7 +1067,10 @@ export const Constants = {
       ],
       contract_status: ["ساري", "منتهي", "مجدد", "ملغي"],
       interaction_type: ["مكالمة", "زيارة", "ملاحظة"],
+      invoice_status: ["مستحق", "مدفوع جزئي", "مدفوع", "متأخر"],
+      invoice_type: ["إيجار", "تأمين", "رسوم تشغيل", "رسوم خدمات", "غرامات"],
       office_status: ["متاح", "محجوز", "مؤجر", "تحت الصيانة", "غير متاح"],
+      payment_method: ["نقدي", "تحويل بنكي", "شيك"],
     },
   },
 } as const

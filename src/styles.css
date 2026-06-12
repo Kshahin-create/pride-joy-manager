@@ -156,7 +156,22 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
+
+  /* صور وأشكال متجاوبة افتراضياً */
+  img, svg, video, canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* عناوين عربية أنيقة */
+  h1, h2, h3, h4 {
+    letter-spacing: -0.01em;
+  }
+
 
   /* شريط تمرير أنيق متوافق مع الهوية */
   * {

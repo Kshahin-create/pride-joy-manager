@@ -105,12 +105,13 @@ function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-primary">{title}</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          مرحباً {user?.email}
+        <h1 className="text-xl sm:text-2xl font-bold text-primary">{title}</h1>
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
+          مرحباً <span dir="ltr" className="inline-block align-middle">{user?.email}</span>
           {roles.length > 0 && <> — صلاحيتك: {roles.map((r) => ROLE_LABELS[r]).join(", ")}</>}
         </p>
       </div>
+
 
       {(show.occupancy || show.revenueChart) && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

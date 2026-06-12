@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/telegram")({
   component: TelegramPage,
 });
 
-const BOT_USERNAME = "PrideJoyManagerBot"; // عرضي فقط — يُستبدل بالـ username الحقيقي بعد الإعداد
+const BOT_USERNAME = "Pride_and_Joy_Tower_bot";
 
 function TelegramPage() {
   const { user } = useAuth();

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { LogOut, User as UserIcon, Settings } from "lucide-react";
 import { NotificationsBell } from "@/components/notifications-bell";
+import { BrandLogo } from "@/components/brand-logo";
 import { Link, useNavigate } from "@tanstack/react-router";
+
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
@@ -49,10 +51,12 @@ export function AppHeader() {
     <header className="h-14 border-b bg-card/80 backdrop-blur-sm flex items-center justify-between px-4 sticky top-0 z-30 supports-[backdrop-filter]:bg-card/60">
       <div className="flex items-center gap-3">
         <SidebarTrigger />
-        <div className="hidden md:flex items-center gap-2">
-          <span className="text-sm font-semibold text-primary">Pride &amp; Joy Tower</span>
-        </div>
+        <Link to="/dashboard" className="hidden md:flex items-center gap-2">
+          <BrandLogo variant="color" className="h-8 w-8 object-contain" />
+          <span className="text-sm font-semibold text-primary">نخبة تسكين العقارية</span>
+        </Link>
       </div>
+
 
       <div className="flex items-center gap-1">
         <ThemeToggle />

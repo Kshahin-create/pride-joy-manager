@@ -1,6 +1,8 @@
 import { createFileRoute, Navigate, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Building2, Loader2, Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Loader2, Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
+
 import { z } from "zod";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -41,14 +43,14 @@ function AuthPage() {
   return (
     <div
       dir="rtl"
-      className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-primary via-primary to-[oklch(0.22_0.05_250)] p-4"
+      className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-primary via-primary to-[oklch(0.24_0.06_240)] p-4"
     >
       <div className="w-full max-w-md">
         <div className="text-center mb-8 text-primary-foreground">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gold text-gold-foreground mb-4 shadow-lg">
-            <Building2 className="h-8 w-8" />
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white mb-4 shadow-lg p-3">
+            <BrandLogo variant="color" className="h-full w-full object-contain" />
           </div>
-          <h1 className="text-3xl font-bold mb-1">Pride &amp; Joy Tower</h1>
+          <h1 className="text-3xl font-bold mb-1">نخبة تسكين العقارية</h1>
           <p className="text-primary-foreground/80 text-sm">نظام إدارة وتشغيل البرج</p>
         </div>
 
@@ -64,6 +66,7 @@ function AuthPage() {
         </p>
       </div>
     </div>
+
   );
 }
 

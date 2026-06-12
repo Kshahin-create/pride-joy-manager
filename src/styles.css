@@ -51,30 +51,30 @@
   --radius: 0.625rem;
 
   /* خلفية فاتحة هادئة */
-  --background: oklch(0.985 0.005 250);
-  --foreground: oklch(0.22 0.04 250);
+  --background: oklch(0.985 0.004 240);
+  --foreground: oklch(0.24 0.05 240);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.04 250);
+  --card-foreground: oklch(0.24 0.05 240);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.04 250);
+  --popover-foreground: oklch(0.24 0.05 240);
 
-  /* كحلي داكن #1E3A5F */
-  --primary: oklch(0.32 0.06 250);
-  --primary-foreground: oklch(0.985 0.005 250);
+  /* أزرق الشعار الأساسي */
+  --primary: oklch(0.43 0.10 240);
+  --primary-foreground: oklch(0.985 0.004 240);
 
-  /* ذهبي #C9A227 */
-  --gold: oklch(0.74 0.13 85);
-  --gold-foreground: oklch(0.2 0.03 85);
+  /* بيج/ذهبي دافئ من الشعار */
+  --gold: oklch(0.82 0.04 75);
+  --gold-foreground: oklch(0.28 0.05 240);
 
-  --secondary: oklch(0.95 0.01 250);
-  --secondary-foreground: oklch(0.28 0.05 250);
+  --secondary: oklch(0.95 0.012 240);
+  --secondary-foreground: oklch(0.30 0.06 240);
 
-  --muted: oklch(0.95 0.01 250);
-  --muted-foreground: oklch(0.52 0.03 250);
+  --muted: oklch(0.95 0.012 240);
+  --muted-foreground: oklch(0.52 0.03 240);
 
-  --accent: oklch(0.93 0.04 85);
-  --accent-foreground: oklch(0.28 0.05 250);
+  --accent: oklch(0.93 0.035 75);
+  --accent-foreground: oklch(0.28 0.05 240);
 
   --destructive: oklch(0.58 0.22 25);
   --destructive-foreground: oklch(0.985 0 0);
@@ -85,23 +85,24 @@
   --warning: oklch(0.78 0.15 75);
   --warning-foreground: oklch(0.2 0.05 75);
 
-  --info: oklch(0.55 0.14 200);
-  --info-foreground: oklch(0.985 0.005 200);
+  --info: oklch(0.55 0.14 220);
+  --info-foreground: oklch(0.985 0.005 220);
 
-  --border: oklch(0.9 0.01 250);
-  --input: oklch(0.9 0.01 250);
-  --ring: oklch(0.74 0.13 85);
+  --border: oklch(0.9 0.01 240);
+  --input: oklch(0.9 0.01 240);
+  --ring: oklch(0.43 0.10 240);
 
-  /* Sidebar كحلي داكن مع نص فاتح */
-  --sidebar: oklch(0.27 0.05 250);
-  --sidebar-foreground: oklch(0.95 0.01 250);
-  --sidebar-primary: oklch(0.74 0.13 85);
-  --sidebar-primary-foreground: oklch(0.2 0.03 85);
-  --sidebar-accent: oklch(0.32 0.06 250);
-  --sidebar-accent-foreground: oklch(0.985 0.005 250);
-  --sidebar-border: oklch(0.32 0.06 250);
-  --sidebar-ring: oklch(0.74 0.13 85);
+  /* الشريط الجانبي بأزرق الشعار */
+  --sidebar: oklch(0.32 0.08 240);
+  --sidebar-foreground: oklch(0.96 0.01 240);
+  --sidebar-primary: oklch(0.82 0.04 75);
+  --sidebar-primary-foreground: oklch(0.25 0.05 240);
+  --sidebar-accent: oklch(0.38 0.09 240);
+  --sidebar-accent-foreground: oklch(0.985 0.005 240);
+  --sidebar-border: oklch(0.38 0.09 240);
+  --sidebar-ring: oklch(0.82 0.04 75);
 }
+
 
 .dark {
   --background: oklch(0.18 0.03 250);

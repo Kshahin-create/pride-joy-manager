@@ -245,7 +245,7 @@ function OfficeDetailsPage() {
           <FilesTab officeId={office.id} canEdit={isAdmin} />
         </TabsContent>
         <TabsContent value="log" className="mt-4">
-          <OfficeContractsLog officeId={office.id} />
+          <OfficeBuildingLogTab officeId={office.id} />
         </TabsContent>
         <TabsContent value="tickets" className="mt-4">
           <OfficeTicketsTab officeId={office.id} />

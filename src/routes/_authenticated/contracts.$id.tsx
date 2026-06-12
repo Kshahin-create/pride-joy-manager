@@ -218,7 +218,7 @@ function RenewDialog({
       _contract_id: contract.id,
       _new_start: form.start_date,
       _new_end: form.end_date,
-      _new_rent: Number(form.rent_amount) || null,
+      _new_rent: Number(form.rent_amount) || undefined,
     });
     setSaving(false);
     if (error) { toast.error("فشل التجديد: " + error.message); return; }

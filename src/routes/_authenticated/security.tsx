@@ -632,6 +632,7 @@ function IncidentDialog({ open, onClose, onSaved }: { open: boolean; onClose: ()
     }
     const { data: u } = await supabase.auth.getUser();
     const { error } = await supabase.from("security_incidents").insert({
+      incident_number: "",
       incident_date: new Date(form.incident_date).toISOString(),
       location: form.location, incident_type: form.incident_type,
       description: form.description || null,

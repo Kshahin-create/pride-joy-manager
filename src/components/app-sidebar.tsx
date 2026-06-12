@@ -14,6 +14,7 @@ import {
   FolderArchive,
   ClipboardCheck,
   ScrollText,
+  Map,
   UserCog,
 } from "lucide-react";
 

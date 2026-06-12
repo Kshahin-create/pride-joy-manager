@@ -26,6 +26,7 @@ import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedContractsRouteImport } from './routes/_authenticated/contracts'
 import { Route as AuthenticatedComplaintsRouteImport } from './routes/_authenticated/complaints'
+import { Route as AuthenticatedBuildingMapRouteImport } from './routes/_authenticated/building-map'
 import { Route as AuthenticatedBuildingLogRouteImport } from './routes/_authenticated/building-log'
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedVendorsIdRouteImport } from './routes/_authenticated/vendors.$id'
@@ -122,6 +123,12 @@ const AuthenticatedComplaintsRoute = AuthenticatedComplaintsRouteImport.update({
   path: '/complaints',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBuildingMapRoute =
+  AuthenticatedBuildingMapRouteImport.update({
+    id: '/building-map',
+    path: '/building-map',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedBuildingLogRoute =
   AuthenticatedBuildingLogRouteImport.update({
     id: '/building-log',
@@ -177,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/assets': typeof AuthenticatedAssetsRouteWithChildren
   '/building-log': typeof AuthenticatedBuildingLogRoute
+  '/building-map': typeof AuthenticatedBuildingMapRoute
   '/complaints': typeof AuthenticatedComplaintsRouteWithChildren
   '/contracts': typeof AuthenticatedContractsRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -204,6 +212,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/assets': typeof AuthenticatedAssetsRouteWithChildren
   '/building-log': typeof AuthenticatedBuildingLogRoute
+  '/building-map': typeof AuthenticatedBuildingMapRoute
   '/complaints': typeof AuthenticatedComplaintsRouteWithChildren
   '/contracts': typeof AuthenticatedContractsRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -233,6 +242,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/assets': typeof AuthenticatedAssetsRouteWithChildren
   '/_authenticated/building-log': typeof AuthenticatedBuildingLogRoute
+  '/_authenticated/building-map': typeof AuthenticatedBuildingMapRoute
   '/_authenticated/complaints': typeof AuthenticatedComplaintsRouteWithChildren
   '/_authenticated/contracts': typeof AuthenticatedContractsRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/assets'
     | '/building-log'
+    | '/building-map'
     | '/complaints'
     | '/contracts'
     | '/dashboard'
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/assets'
     | '/building-log'
+    | '/building-map'
     | '/complaints'
     | '/contracts'
     | '/dashboard'
@@ -317,6 +329,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/assets'
     | '/_authenticated/building-log'
+    | '/_authenticated/building-map'
     | '/_authenticated/complaints'
     | '/_authenticated/contracts'
     | '/_authenticated/dashboard'
@@ -465,6 +478,13 @@ declare module '@tanstack/react-router' {
       path: '/complaints'
       fullPath: '/complaints'
       preLoaderRoute: typeof AuthenticatedComplaintsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/building-map': {
+      id: '/_authenticated/building-map'
+      path: '/building-map'
+      fullPath: '/building-map'
+      preLoaderRoute: typeof AuthenticatedBuildingMapRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/building-log': {
@@ -621,6 +641,7 @@ const AuthenticatedVendorsRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRouteWithChildren
   AuthenticatedBuildingLogRoute: typeof AuthenticatedBuildingLogRoute
+  AuthenticatedBuildingMapRoute: typeof AuthenticatedBuildingMapRoute
   AuthenticatedComplaintsRoute: typeof AuthenticatedComplaintsRouteWithChildren
   AuthenticatedContractsRoute: typeof AuthenticatedContractsRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -640,6 +661,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssetsRoute: AuthenticatedAssetsRouteWithChildren,
   AuthenticatedBuildingLogRoute: AuthenticatedBuildingLogRoute,
+  AuthenticatedBuildingMapRoute: AuthenticatedBuildingMapRoute,
   AuthenticatedComplaintsRoute: AuthenticatedComplaintsRouteWithChildren,
   AuthenticatedContractsRoute: AuthenticatedContractsRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,

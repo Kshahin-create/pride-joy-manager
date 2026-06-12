@@ -83,6 +83,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
     label: "الإدارة",
     items: [
       { title: "المستخدمون", url: "/users", icon: UserCog, roles: ["super_admin"] },
+      { title: "مصفوفة الصلاحيات", url: "/permissions", icon: Shield, roles: ["super_admin", "owner"] },
     ],
   },
 ];

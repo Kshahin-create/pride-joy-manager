@@ -16,6 +16,7 @@ import {
   ScrollText,
   Map,
   UserCog,
+  UserPlus,
 } from "lucide-react";
 
 import {

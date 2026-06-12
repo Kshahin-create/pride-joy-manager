@@ -183,6 +183,7 @@ export type Database = {
           entity_id: string | null
           event_type: string
           id: string
+          location: string | null
           metadata: Json | null
           module: string
           updated_at: string
@@ -195,6 +196,7 @@ export type Database = {
           entity_id?: string | null
           event_type: string
           id?: string
+          location?: string | null
           metadata?: Json | null
           module: string
           updated_at?: string
@@ -207,6 +209,7 @@ export type Database = {
           entity_id?: string | null
           event_type?: string
           id?: string
+          location?: string | null
           metadata?: Json | null
           module?: string
           updated_at?: string

@@ -42,7 +42,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { OfficeContractsLog } from "@/components/contracts-list";
+import { Timeline, useBuildingLog } from "@/components/building-log-timeline";
 
 export const Route = createFileRoute("/_authenticated/offices/$id")({
   component: OfficeDetailsPage,
@@ -245,7 +245,7 @@ function OfficeDetailsPage() {
           <FilesTab officeId={office.id} canEdit={isAdmin} />
         </TabsContent>
         <TabsContent value="log" className="mt-4">
-          <OfficeContractsLog officeId={office.id} />
+          <OfficeBuildingLogTab officeId={office.id} />
         </TabsContent>
         <TabsContent value="tickets" className="mt-4">
           <OfficeTicketsTab officeId={office.id} />
@@ -1378,4 +1378,10 @@ function OfficeTicketsTab({ officeId }: { officeId: string }) {
       </CardContent>
     </Card>
   );
+}
+
+function OfficeBuildingLogTab({ officeId }: { officeId: string }) {
+  const { items, loading } = useBuildingLog({ officeId });
+  if (loading) return <Card><CardContent className="py-8 text-center text-muted-foreground">جارٍ التحميل...</CardContent></Card>;
+  return <Timeline items={items} />;
 }

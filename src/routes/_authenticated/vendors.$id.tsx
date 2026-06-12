@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+import { DocumentsTab } from "@/components/documents-tab";
 import { ArrowRight, Plus, Star, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/vendors/$id")({
@@ -153,6 +154,7 @@ function VendorDetailsPage() {
           <TabsTrigger value="info">البيانات</TabsTrigger>
           <TabsTrigger value="contracts">العقود ({contracts.length})</TabsTrigger>
           <TabsTrigger value="evals">التقييمات ({evals.length})</TabsTrigger>
+          <TabsTrigger value="documents">المستندات</TabsTrigger>
         </TabsList>
 
         <TabsContent value="info">
@@ -323,6 +325,10 @@ function VendorDetailsPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="documents">
+          <DocumentsTab entityType="vendor" entityId={id} />
         </TabsContent>
       </Tabs>
     </div>

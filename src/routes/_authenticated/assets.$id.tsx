@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowRight, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { DocumentsTab } from "@/components/documents-tab";
 
 type Asset = {
   id: string; asset_name: string; asset_code: string; location: string | null;
@@ -128,6 +129,13 @@ function AssetDetail() {
               )}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>مستندات الأصل</CardTitle></CardHeader>
+        <CardContent>
+          <DocumentsTab entityType="asset" entityId={asset.id} />
         </CardContent>
       </Card>
     </div>

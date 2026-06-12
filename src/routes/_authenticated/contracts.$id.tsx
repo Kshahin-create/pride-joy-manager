@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { DocumentsTab } from "@/components/documents-tab";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -182,6 +183,13 @@ function ContractDetailsPage() {
       </Card>
 
       <AttachmentsCard contractId={contract.id} canUpload={canUpload} canDelete={isAdmin} />
+
+      <Card>
+        <CardHeader><CardTitle>مستندات العقد</CardTitle></CardHeader>
+        <CardContent>
+          <DocumentsTab entityType="contract" entityId={contract.id} />
+        </CardContent>
+      </Card>
 
       <RenewDialog
         open={renewOpen} onClose={() => setRenewOpen(false)}

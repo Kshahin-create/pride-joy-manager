@@ -680,6 +680,60 @@ export type Database = {
           },
         ]
       }
+      documents: {
+        Row: {
+          category: Database["public"]["Enums"]["doc_category"]
+          created_at: string
+          entity_id: string | null
+          entity_type: Database["public"]["Enums"]["doc_entity_type"]
+          expiry_date: string | null
+          file_name: string | null
+          file_path: string
+          file_size: number | null
+          id: string
+          issue_date: string | null
+          mime_type: string | null
+          notes: string | null
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["doc_category"]
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: Database["public"]["Enums"]["doc_entity_type"]
+          expiry_date?: string | null
+          file_name?: string | null
+          file_path: string
+          file_size?: number | null
+          id?: string
+          issue_date?: string | null
+          mime_type?: string | null
+          notes?: string | null
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["doc_category"]
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: Database["public"]["Enums"]["doc_entity_type"]
+          expiry_date?: string | null
+          file_name?: string | null
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          issue_date?: string | null
+          mime_type?: string | null
+          notes?: string | null
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       electricity_meters: {
         Row: {
           created_at: string
@@ -2184,6 +2238,22 @@ export type Database = {
         | "السجل التجاري"
         | "سند دفع"
       contract_status: "ساري" | "منتهي" | "مجدد" | "ملغي"
+      doc_category:
+        | "عقد"
+        | "هوية"
+        | "سجل تجاري"
+        | "فاتورة"
+        | "سند"
+        | "عقد مورد"
+        | "عقد صيانة"
+        | "مخطط البرج"
+        | "شهادة دفاع مدني"
+        | "شهادة مصعد"
+        | "عقد أمن"
+        | "شهادة نظام حريق"
+        | "تقرير صيانة سنوي"
+        | "أخرى"
+      doc_entity_type: "tenant" | "contract" | "asset" | "vendor" | "building"
       evaluation_type: "شهري" | "ربع سنوي"
       incident_status: "مفتوح" | "مغلق"
       interaction_type: "مكالمة" | "زيارة" | "ملاحظة"
@@ -2362,6 +2432,23 @@ export const Constants = {
         "سند دفع",
       ],
       contract_status: ["ساري", "منتهي", "مجدد", "ملغي"],
+      doc_category: [
+        "عقد",
+        "هوية",
+        "سجل تجاري",
+        "فاتورة",
+        "سند",
+        "عقد مورد",
+        "عقد صيانة",
+        "مخطط البرج",
+        "شهادة دفاع مدني",
+        "شهادة مصعد",
+        "عقد أمن",
+        "شهادة نظام حريق",
+        "تقرير صيانة سنوي",
+        "أخرى",
+      ],
+      doc_entity_type: ["tenant", "contract", "asset", "vendor", "building"],
       evaluation_type: ["شهري", "ربع سنوي"],
       incident_status: ["مفتوح", "مغلق"],
       interaction_type: ["مكالمة", "زيارة", "ملاحظة"],

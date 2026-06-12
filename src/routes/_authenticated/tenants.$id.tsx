@@ -27,6 +27,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { CompanyContractsTab } from "@/components/contracts-list";
+import { DocumentsTab } from "@/components/documents-tab";
 import {
   CLIENT_STATUSES, STATUS_STYLE, CompanyFormDialog,
   type ClientStatus, type Company,
@@ -122,12 +123,13 @@ function ClientDetailsPage() {
       </div>
 
       <Tabs defaultValue="basic" dir="rtl">
-        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
           <TabsTrigger value="basic"><Building2 className="h-4 w-4 ms-1" />البيانات</TabsTrigger>
           <TabsTrigger value="contacts"><Phone className="h-4 w-4 ms-1" />المسؤولون</TabsTrigger>
           <TabsTrigger value="interactions"><MapPin className="h-4 w-4 ms-1" />التفاعلات</TabsTrigger>
-          <TabsTrigger value="views"><Building2 className="h-4 w-4 ms-1" />الوحدات المُشاهدة</TabsTrigger>
+          <TabsTrigger value="views"><Building2 className="h-4 w-4 ms-1" />الوحدات</TabsTrigger>
           <TabsTrigger value="contracts"><FileText className="h-4 w-4 ms-1" />العقود</TabsTrigger>
+          <TabsTrigger value="documents"><FileText className="h-4 w-4 ms-1" />المستندات</TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="mt-4">
@@ -155,6 +157,10 @@ function ClientDetailsPage() {
 
         <TabsContent value="contracts" className="mt-4">
           <CompanyContractsTab companyId={company.id} />
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-4">
+          <DocumentsTab entityType="tenant" entityId={company.id} />
         </TabsContent>
       </Tabs>
 

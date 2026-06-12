@@ -1152,6 +1152,131 @@ export type Database = {
         }
         Relationships: []
       }
+      inspection_results: {
+        Row: {
+          corrective_action: string | null
+          created_at: string
+          id: string
+          inspection_id: string
+          item_name: string
+          maintenance_request_id: string | null
+          notes: string | null
+          photo_urls: string[] | null
+          result: Database["public"]["Enums"]["inspection_item_result"]
+        }
+        Insert: {
+          corrective_action?: string | null
+          created_at?: string
+          id?: string
+          inspection_id: string
+          item_name: string
+          maintenance_request_id?: string | null
+          notes?: string | null
+          photo_urls?: string[] | null
+          result?: Database["public"]["Enums"]["inspection_item_result"]
+        }
+        Update: {
+          corrective_action?: string | null
+          created_at?: string
+          id?: string
+          inspection_id?: string
+          item_name?: string
+          maintenance_request_id?: string | null
+          notes?: string | null
+          photo_urls?: string[] | null
+          result?: Database["public"]["Enums"]["inspection_item_result"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_results_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_results_maintenance_request_id_fkey"
+            columns: ["maintenance_request_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_templates: {
+        Row: {
+          active: boolean
+          created_at: string
+          frequency: Database["public"]["Enums"]["inspection_frequency"]
+          id: string
+          items: Json
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          frequency: Database["public"]["Enums"]["inspection_frequency"]
+          id?: string
+          items?: Json
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          frequency?: Database["public"]["Enums"]["inspection_frequency"]
+          id?: string
+          items?: Json
+          template_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inspections: {
+        Row: {
+          created_at: string
+          id: string
+          inspection_date: string
+          inspector_id: string | null
+          inspector_name: string | null
+          notes: string | null
+          overall_result: Database["public"]["Enums"]["inspection_overall"]
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inspection_date?: string
+          inspector_id?: string | null
+          inspector_name?: string | null
+          notes?: string | null
+          overall_result?: Database["public"]["Enums"]["inspection_overall"]
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inspection_date?: string
+          inspector_id?: string | null
+          inspector_name?: string | null
+          notes?: string | null
+          overall_result?: Database["public"]["Enums"]["inspection_overall"]
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspections_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount_due: number
@@ -1230,6 +1355,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          inspection_id: string | null
           location: string | null
           notes: string | null
           office_id: string | null
@@ -1252,6 +1378,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          inspection_id?: string | null
           location?: string | null
           notes?: string | null
           office_id?: string | null
@@ -1274,6 +1401,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          inspection_id?: string | null
           location?: string | null
           notes?: string | null
           office_id?: string | null
@@ -1291,6 +1419,13 @@ export type Database = {
             columns: ["asset_id"]
             isOneToOne: false
             referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_requests_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
             referencedColumns: ["id"]
           },
           {
@@ -2256,6 +2391,9 @@ export type Database = {
       doc_entity_type: "tenant" | "contract" | "asset" | "vendor" | "building"
       evaluation_type: "شهري" | "ربع سنوي"
       incident_status: "مفتوح" | "مغلق"
+      inspection_frequency: "يومي" | "أسبوعي" | "شهري"
+      inspection_item_result: "سليم" | "يحتاج إجراء"
+      inspection_overall: "مطابق" | "ملاحظات" | "غير مطابق"
       interaction_type: "مكالمة" | "زيارة" | "ملاحظة"
       invoice_status: "مستحق" | "مدفوع جزئي" | "مدفوع" | "متأخر"
       invoice_type: "إيجار" | "تأمين" | "رسوم تشغيل" | "رسوم خدمات" | "غرامات"
@@ -2451,6 +2589,9 @@ export const Constants = {
       doc_entity_type: ["tenant", "contract", "asset", "vendor", "building"],
       evaluation_type: ["شهري", "ربع سنوي"],
       incident_status: ["مفتوح", "مغلق"],
+      inspection_frequency: ["يومي", "أسبوعي", "شهري"],
+      inspection_item_result: ["سليم", "يحتاج إجراء"],
+      inspection_overall: ["مطابق", "ملاحظات", "غير مطابق"],
       interaction_type: ["مكالمة", "زيارة", "ملاحظة"],
       invoice_status: ["مستحق", "مدفوع جزئي", "مدفوع", "متأخر"],
       invoice_type: ["إيجار", "تأمين", "رسوم تشغيل", "رسوم خدمات", "غرامات"],

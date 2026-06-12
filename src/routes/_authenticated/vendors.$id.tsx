@@ -154,6 +154,7 @@ function VendorDetailsPage() {
           <TabsTrigger value="info">البيانات</TabsTrigger>
           <TabsTrigger value="contracts">العقود ({contracts.length})</TabsTrigger>
           <TabsTrigger value="evals">التقييمات ({evals.length})</TabsTrigger>
+          <TabsTrigger value="documents">المستندات</TabsTrigger>
         </TabsList>
 
         <TabsContent value="info">

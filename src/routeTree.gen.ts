@@ -20,6 +20,7 @@ import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedTenantsRouteImport } from './routes/_authenticated/tenants'
 import { Route as AuthenticatedTelegramRouteImport } from './routes/_authenticated/telegram'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPmPlansRouteImport } from './routes/_authenticated/pm-plans'
 import { Route as AuthenticatedPermissionsRouteImport } from './routes/_authenticated/permissions'
 import { Route as AuthenticatedParkingRouteImport } from './routes/_authenticated/parking'
@@ -101,6 +102,11 @@ const AuthenticatedTelegramRoute = AuthenticatedTelegramRouteImport.update({
 const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
   id: '/security',
   path: '/security',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPmPlansRoute = AuthenticatedPmPlansRouteImport.update({
@@ -278,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/parking': typeof AuthenticatedParkingRoute
   '/permissions': typeof AuthenticatedPermissionsRoute
   '/pm-plans': typeof AuthenticatedPmPlansRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/telegram': typeof AuthenticatedTelegramRoute
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
@@ -318,6 +325,7 @@ export interface FileRoutesByTo {
   '/parking': typeof AuthenticatedParkingRoute
   '/permissions': typeof AuthenticatedPermissionsRoute
   '/pm-plans': typeof AuthenticatedPmPlansRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/telegram': typeof AuthenticatedTelegramRoute
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
@@ -360,6 +368,7 @@ export interface FileRoutesById {
   '/_authenticated/parking': typeof AuthenticatedParkingRoute
   '/_authenticated/permissions': typeof AuthenticatedPermissionsRoute
   '/_authenticated/pm-plans': typeof AuthenticatedPmPlansRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRouteWithChildren
   '/_authenticated/telegram': typeof AuthenticatedTelegramRoute
   '/_authenticated/tenants': typeof AuthenticatedTenantsRouteWithChildren
@@ -402,6 +411,7 @@ export interface FileRouteTypes {
     | '/parking'
     | '/permissions'
     | '/pm-plans'
+    | '/profile'
     | '/security'
     | '/telegram'
     | '/tenants'
@@ -442,6 +452,7 @@ export interface FileRouteTypes {
     | '/parking'
     | '/permissions'
     | '/pm-plans'
+    | '/profile'
     | '/security'
     | '/telegram'
     | '/tenants'
@@ -483,6 +494,7 @@ export interface FileRouteTypes {
     | '/_authenticated/parking'
     | '/_authenticated/permissions'
     | '/_authenticated/pm-plans'
+    | '/_authenticated/profile'
     | '/_authenticated/security'
     | '/_authenticated/telegram'
     | '/_authenticated/tenants'
@@ -589,6 +601,13 @@ declare module '@tanstack/react-router' {
       path: '/security'
       fullPath: '/security'
       preLoaderRoute: typeof AuthenticatedSecurityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/pm-plans': {
@@ -894,6 +913,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedParkingRoute: typeof AuthenticatedParkingRoute
   AuthenticatedPermissionsRoute: typeof AuthenticatedPermissionsRoute
   AuthenticatedPmPlansRoute: typeof AuthenticatedPmPlansRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
   AuthenticatedTelegramRoute: typeof AuthenticatedTelegramRoute
   AuthenticatedTenantsRoute: typeof AuthenticatedTenantsRouteWithChildren
@@ -921,6 +941,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedParkingRoute: AuthenticatedParkingRoute,
   AuthenticatedPermissionsRoute: AuthenticatedPermissionsRoute,
   AuthenticatedPmPlansRoute: AuthenticatedPmPlansRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRouteWithChildren,
   AuthenticatedTelegramRoute: AuthenticatedTelegramRoute,
   AuthenticatedTenantsRoute: AuthenticatedTenantsRouteWithChildren,

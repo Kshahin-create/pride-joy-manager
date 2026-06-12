@@ -132,6 +132,7 @@ export type Database = {
           notes: string | null
           responsible_person: string | null
           serial_number: string | null
+          space_id: string | null
           supplier: string | null
           updated_at: string
           warranty_end_date: string | null
@@ -150,6 +151,7 @@ export type Database = {
           notes?: string | null
           responsible_person?: string | null
           serial_number?: string | null
+          space_id?: string | null
           supplier?: string | null
           updated_at?: string
           warranty_end_date?: string | null
@@ -168,11 +170,20 @@ export type Database = {
           notes?: string | null
           responsible_person?: string | null
           serial_number?: string | null
+          space_id?: string | null
           supplier?: string | null
           updated_at?: string
           warranty_end_date?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "assets_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       building_log: {
         Row: {
@@ -310,6 +321,7 @@ export type Database = {
           id: string
           notes: string | null
           plan_id: string
+          space_id: string | null
           updated_at: string
         }
         Insert: {
@@ -322,6 +334,7 @@ export type Database = {
           id?: string
           notes?: string | null
           plan_id: string
+          space_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -334,6 +347,7 @@ export type Database = {
           id?: string
           notes?: string | null
           plan_id?: string
+          space_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -342,6 +356,13 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "cleaning_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cleaning_logs_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
             referencedColumns: ["id"]
           },
         ]
@@ -1245,6 +1266,7 @@ export type Database = {
           inspector_name: string | null
           notes: string | null
           overall_result: Database["public"]["Enums"]["inspection_overall"]
+          space_id: string | null
           template_id: string
           updated_at: string
         }
@@ -1256,6 +1278,7 @@ export type Database = {
           inspector_name?: string | null
           notes?: string | null
           overall_result?: Database["public"]["Enums"]["inspection_overall"]
+          space_id?: string | null
           template_id: string
           updated_at?: string
         }
@@ -1267,10 +1290,18 @@ export type Database = {
           inspector_name?: string | null
           notes?: string | null
           overall_result?: Database["public"]["Enums"]["inspection_overall"]
+          space_id?: string | null
           template_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "inspections_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "inspections_template_id_fkey"
             columns: ["template_id"]
@@ -1367,6 +1398,7 @@ export type Database = {
           request_date: string
           request_number: string | null
           request_type: string | null
+          space_id: string | null
           status: Database["public"]["Enums"]["maintenance_request_status"]
           updated_at: string
         }
@@ -1390,6 +1422,7 @@ export type Database = {
           request_date?: string
           request_number?: string | null
           request_type?: string | null
+          space_id?: string | null
           status?: Database["public"]["Enums"]["maintenance_request_status"]
           updated_at?: string
         }
@@ -1413,6 +1446,7 @@ export type Database = {
           request_date?: string
           request_number?: string | null
           request_type?: string | null
+          space_id?: string | null
           status?: Database["public"]["Enums"]["maintenance_request_status"]
           updated_at?: string
         }
@@ -1436,6 +1470,13 @@ export type Database = {
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_requests_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
             referencedColumns: ["id"]
           },
         ]
@@ -1594,6 +1635,7 @@ export type Database = {
           notes: string | null
           office_number: string
           parking_count: number
+          space_id: string | null
           status: Database["public"]["Enums"]["office_status"]
           updated_at: string
           view_type: string | null
@@ -1609,6 +1651,7 @@ export type Database = {
           notes?: string | null
           office_number: string
           parking_count?: number
+          space_id?: string | null
           status?: Database["public"]["Enums"]["office_status"]
           updated_at?: string
           view_type?: string | null
@@ -1624,11 +1667,20 @@ export type Database = {
           notes?: string | null
           office_number?: string
           parking_count?: number
+          space_id?: string | null
           status?: Database["public"]["Enums"]["office_status"]
           updated_at?: string
           view_type?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "offices_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       parking_cleaning_logs: {
         Row: {
@@ -1727,6 +1779,7 @@ export type Database = {
           location_description: string | null
           notes: string | null
           office_id: string | null
+          space_id: string | null
           spot_number: string
           spot_type: Database["public"]["Enums"]["parking_spot_type"]
           status: Database["public"]["Enums"]["parking_spot_status"]
@@ -1741,6 +1794,7 @@ export type Database = {
           location_description?: string | null
           notes?: string | null
           office_id?: string | null
+          space_id?: string | null
           spot_number: string
           spot_type?: Database["public"]["Enums"]["parking_spot_type"]
           status?: Database["public"]["Enums"]["parking_spot_status"]
@@ -1755,6 +1809,7 @@ export type Database = {
           location_description?: string | null
           notes?: string | null
           office_id?: string | null
+          space_id?: string | null
           spot_number?: string
           spot_type?: Database["public"]["Enums"]["parking_spot_type"]
           status?: Database["public"]["Enums"]["parking_spot_status"]
@@ -1773,6 +1828,13 @@ export type Database = {
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parking_spots_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
             referencedColumns: ["id"]
           },
         ]
@@ -2014,6 +2076,7 @@ export type Database = {
           incident_type: string
           location: string
           photos: Json
+          space_id: string | null
           status: Database["public"]["Enums"]["incident_status"]
           updated_at: string
         }
@@ -2031,6 +2094,7 @@ export type Database = {
           incident_type: string
           location: string
           photos?: Json
+          space_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"]
           updated_at?: string
         }
@@ -2048,10 +2112,72 @@ export type Database = {
           incident_type?: string
           location?: string
           photos?: Json
+          space_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "security_incidents_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spaces: {
+        Row: {
+          area_sqm: number | null
+          created_at: string
+          created_by: string | null
+          floor: number | null
+          id: string
+          notes: string | null
+          parent_space_id: string | null
+          space_code: string
+          space_name: string
+          space_type: Database["public"]["Enums"]["space_type"]
+          status: Database["public"]["Enums"]["space_status"]
+          updated_at: string
+        }
+        Insert: {
+          area_sqm?: number | null
+          created_at?: string
+          created_by?: string | null
+          floor?: number | null
+          id?: string
+          notes?: string | null
+          parent_space_id?: string | null
+          space_code: string
+          space_name: string
+          space_type: Database["public"]["Enums"]["space_type"]
+          status?: Database["public"]["Enums"]["space_status"]
+          updated_at?: string
+        }
+        Update: {
+          area_sqm?: number | null
+          created_at?: string
+          created_by?: string | null
+          floor?: number | null
+          id?: string
+          notes?: string | null
+          parent_space_id?: string | null
+          space_code?: string
+          space_name?: string
+          space_type?: Database["public"]["Enums"]["space_type"]
+          status?: Database["public"]["Enums"]["space_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spaces_parent_space_id_fkey"
+            columns: ["parent_space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tickets: {
         Row: {
@@ -2068,6 +2194,7 @@ export type Database = {
           office_id: string | null
           priority: Database["public"]["Enums"]["ticket_priority"]
           resolution_notes: string | null
+          space_id: string | null
           status: Database["public"]["Enums"]["ticket_status"]
           ticket_number: string | null
           ticket_type: Database["public"]["Enums"]["ticket_type"]
@@ -2087,6 +2214,7 @@ export type Database = {
           office_id?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
           resolution_notes?: string | null
+          space_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           ticket_number?: string | null
           ticket_type: Database["public"]["Enums"]["ticket_type"]
@@ -2106,6 +2234,7 @@ export type Database = {
           office_id?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
           resolution_notes?: string | null
+          space_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           ticket_number?: string | null
           ticket_type?: Database["public"]["Enums"]["ticket_type"]
@@ -2131,6 +2260,13 @@ export type Database = {
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
             referencedColumns: ["id"]
           },
         ]
@@ -2518,6 +2654,21 @@ export type Database = {
       payment_method: "نقدي" | "تحويل بنكي" | "شيك"
       penalty_reward_type: "مخالفة" | "إنذار" | "مكافأة"
       shift_type: "صباحي" | "مسائي" | "ليلي"
+      space_status: "نشط" | "تحت الصيانة" | "مغلق"
+      space_type:
+        | "مكتب"
+        | "موقف سيارة"
+        | "لوبي"
+        | "مكتب مدير البرج"
+        | "غرفة كاميرات"
+        | "مخزن"
+        | "دورة مياه"
+        | "ممر"
+        | "مصعد"
+        | "سلم"
+        | "غرفة كهرباء"
+        | "سطح"
+        | "أخرى"
       ticket_priority: "منخفضة" | "متوسطة" | "عالية" | "طارئة"
       ticket_status: "جديد" | "جاري المعالجة" | "مغلق"
       ticket_type: "شكوى" | "صيانة" | "نظافة" | "أمن" | "استفسار"
@@ -2726,6 +2877,22 @@ export const Constants = {
       payment_method: ["نقدي", "تحويل بنكي", "شيك"],
       penalty_reward_type: ["مخالفة", "إنذار", "مكافأة"],
       shift_type: ["صباحي", "مسائي", "ليلي"],
+      space_status: ["نشط", "تحت الصيانة", "مغلق"],
+      space_type: [
+        "مكتب",
+        "موقف سيارة",
+        "لوبي",
+        "مكتب مدير البرج",
+        "غرفة كاميرات",
+        "مخزن",
+        "دورة مياه",
+        "ممر",
+        "مصعد",
+        "سلم",
+        "غرفة كهرباء",
+        "سطح",
+        "أخرى",
+      ],
       ticket_priority: ["منخفضة", "متوسطة", "عالية", "طارئة"],
       ticket_status: ["جديد", "جاري المعالجة", "مغلق"],
       ticket_type: ["شكوى", "صيانة", "نظافة", "أمن", "استفسار"],

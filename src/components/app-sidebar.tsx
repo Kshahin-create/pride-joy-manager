@@ -17,6 +17,8 @@ import {
   Map,
   UserCog,
   UserPlus,
+  FileText,
+  Building,
 } from "lucide-react";
 
 import {
@@ -45,6 +47,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
     items: [
       { title: "الرئيسية", url: "/dashboard", icon: LayoutDashboard },
       { title: "خريطة البرج", url: "/building-map", icon: Map },
+      { title: "التقرير اليومي", url: "/daily-report", icon: FileText },
       { title: "سجل البرج", url: "/building-log", icon: ScrollText, roles: ["super_admin", "owner"] },
     ],
   },
@@ -83,6 +86,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
     label: "الإدارة",
     items: [
       { title: "المستخدمون", url: "/users", icon: UserCog, roles: ["super_admin"] },
+      { title: "هوية البرج", url: "/identity", icon: Building, roles: ["super_admin", "owner"] },
       { title: "مصفوفة الصلاحيات", url: "/permissions", icon: Shield, roles: ["super_admin", "owner"] },
     ],
   },

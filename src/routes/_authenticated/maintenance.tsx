@@ -132,7 +132,7 @@ function MaintenancePage() {
     <div className="p-6 space-y-6" dir="rtl">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold">طلبات الصيانة</h1>
+          <h1 className="text-2xl font-bold">أوامر العمل</h1>
           <p className="text-sm text-muted-foreground">سير العمل: جديد ← جاري التنفيذ ← بانتظار قطع غيار ← مغلق</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>

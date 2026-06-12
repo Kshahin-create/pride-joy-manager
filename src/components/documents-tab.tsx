@@ -350,14 +350,18 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
             </TableHeader>
             <TableBody>
               {loading && <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">جارٍ التحميل...</TableCell></TableRow>}
-              {!loading && items.length === 0 && (
+              {!loading && filtered.length === 0 && (
                 <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
-                  <FileText className="h-8 w-8 mx-auto mb-1 opacity-40" /> لا توجد مستندات بعد
+                  <FileText className="h-8 w-8 mx-auto mb-1 opacity-40" />
+                  {items.length === 0 ? "لا توجد مستندات بعد" : "لا نتائج مطابقة للبحث"}
                 </TableCell></TableRow>
               )}
-              {items.map((d) => (
+              {filtered.map((d) => (
                 <TableRow key={d.id}>
-                  <TableCell className="font-medium">{d.title}</TableCell>
+                  <TableCell className="font-medium">
+                    <div>{d.title}</div>
+                    {d.file_name && <div className="text-xs text-muted-foreground truncate max-w-xs">{d.file_name}</div>}
+                  </TableCell>
                   <TableCell><Badge variant="secondary">{d.category}</Badge></TableCell>
                   <TableCell>{d.issue_date ?? "—"}</TableCell>
                   <TableCell>{d.expiry_date ?? "—"}</TableCell>
@@ -366,6 +370,7 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
                     <div className="flex gap-1">
                       <Button size="icon" variant="ghost" onClick={() => view(d)} title="معاينة"><Eye className="h-4 w-4" /></Button>
                       <Button size="icon" variant="ghost" onClick={() => download(d)} title="تحميل"><Download className="h-4 w-4" /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => share(d)} title="نسخ رابط مشاركة (7 أيام)"><Share2 className="h-4 w-4" /></Button>
                       {canManage && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>

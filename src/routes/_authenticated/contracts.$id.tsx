@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-  ArrowRight, Loader2, RotateCw, Ban, Upload, Download, Trash2, FileText,
+  ArrowRight, Loader2, RotateCw, Ban, Upload, Download, Trash2, FileText, Receipt,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";

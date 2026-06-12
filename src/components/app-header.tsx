@@ -48,9 +48,7 @@ export function AppHeader() {
 
       <div className="flex items-center gap-2">
         <ThemeToggle />
-        <Button variant="ghost" size="icon" aria-label="الإشعارات">
-          <Bell className="h-5 w-5" />
-        </Button>
+        <NotificationsBell />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

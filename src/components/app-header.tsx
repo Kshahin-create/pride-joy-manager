@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth, ROLE_LABELS } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function AppHeader() {
   const { user, roles, signOut } = useAuth();
@@ -45,6 +46,7 @@ export function AppHeader() {
       </div>
 
       <div className="flex items-center gap-2">
+        <ThemeToggle />
         <Button variant="ghost" size="icon" aria-label="الإشعارات">
           <Bell className="h-5 w-5" />
         </Button>

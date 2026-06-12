@@ -139,7 +139,7 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
       if (error) throw error;
       toast.success(`تم رفع ${rows.length} مستند`);
       setOpen(false);
-      setFiles(null);
+      setFiles([]);
       setForm({ category: "أخرى", entity_type: entityType });
       void load();
     } catch (e: any) { toast.error(e.message ?? "فشل الرفع"); }

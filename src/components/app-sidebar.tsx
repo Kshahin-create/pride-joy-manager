@@ -16,6 +16,7 @@ import {
   ScrollText,
   Map,
   UserCog,
+  UserPlus,
 } from "lucide-react";
 
 import {
@@ -72,6 +73,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
     label: "خدمات",
     items: [
       { title: "الشكاوى والطلبات", url: "/complaints", icon: MessageSquareWarning },
+      { title: "الزوار", url: "/visitors", icon: UserPlus, roles: ["super_admin", "receptionist", "security_supervisor", "owner"] },
       { title: "المستندات", url: "/documents", icon: FolderArchive },
       { title: "التفتيشات", url: "/inspections", icon: ClipboardCheck, roles: ["super_admin", "maintenance_supervisor", "security_supervisor", "owner"] },
     ],

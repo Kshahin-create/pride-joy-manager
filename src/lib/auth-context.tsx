@@ -38,20 +38,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
   };
 
+  const checkActive = async (uid: string | undefined) => {
+    if (!uid) return true;
+    const { data } = await supabase.from("profiles").select("is_active").eq("id", uid).maybeSingle();
+    if (data && data.is_active === false) {
+      await supabase.auth.signOut();
+      setRoles([]);
+      setUser(null);
+      setSession(null);
+      return false;
+    }
+    return true;
+  };
+
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       setUser(s?.user ?? null);
-      // تأجيل لتفادي قفل المتصفح
-      setTimeout(() => {
-        loadRoles(s?.user?.id);
+      setTimeout(async () => {
+        const ok = await checkActive(s?.user?.id);
+        if (ok) await loadRoles(s?.user?.id);
       }, 0);
     });
 
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session);
       setUser(data.session?.user ?? null);
-      loadRoles(data.session?.user?.id).finally(() => setLoading(false));
+      const ok = await checkActive(data.session?.user?.id);
+      if (ok) await loadRoles(data.session?.user?.id);
+      setLoading(false);
     });
 
     return () => sub.subscription.unsubscribe();

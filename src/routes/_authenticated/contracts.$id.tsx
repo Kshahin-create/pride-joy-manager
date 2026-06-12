@@ -183,6 +183,13 @@ function ContractDetailsPage() {
 
       <AttachmentsCard contractId={contract.id} canUpload={canUpload} canDelete={isAdmin} />
 
+      <Card>
+        <CardHeader><CardTitle>مستندات العقد</CardTitle></CardHeader>
+        <CardContent>
+          <DocumentsTab entityType="contract" entityId={contract.id} />
+        </CardContent>
+      </Card>
+
       <RenewDialog
         open={renewOpen} onClose={() => setRenewOpen(false)}
         contract={contract} onDone={() => { setRenewOpen(false); load(); }}

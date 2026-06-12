@@ -131,6 +131,13 @@ function AssetDetail() {
           </Table>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader><CardTitle>مستندات الأصل</CardTitle></CardHeader>
+        <CardContent>
+          <DocumentsTab entityType="asset" entityId={asset.id} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

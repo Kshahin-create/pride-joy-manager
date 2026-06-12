@@ -32,21 +32,62 @@ const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n || 0);
 const fmtSAR = (n: number) => `${new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 0 }).format(n || 0)} ر.س`;
 
 function Dashboard() {
-  const { user, roles } = useAuth();
+  const { user, roles, hasAnyRole } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
   const [monthly, setMonthly] = useState<{ month: string; revenue: number }[]>([]);
   const [events, setEvents] = useState<BuildingLogRow[]>([]);
+  const [extras, setExtras] = useState({
+    visitors_inside: 0, visitors_today: 0,
+    expenses_pending: 0, expenses_paid_month: 0,
+    wo_overdue: 0, wo_pm_due: 0,
+  });
+
+  const isAdmin = hasAnyRole(["super_admin", "owner"]);
+  const isAccountant = hasAnyRole(["accountant"]);
+  const isMaintenance = hasAnyRole(["maintenance_supervisor"]);
+  const isSecurity = hasAnyRole(["security_supervisor"]);
+  const isReception = hasAnyRole(["receptionist"]);
+
+  const show = {
+    occupancy: isAdmin,
+    revenueChart: isAdmin || isAccountant,
+    finance: isAdmin || isAccountant,
+    expenses: isAdmin || isAccountant || isMaintenance,
+    operations: isAdmin || isMaintenance || isReception,
+    workOrders: isAdmin || isMaintenance,
+    contracts: isAdmin || isAccountant,
+    security: isAdmin || isSecurity,
+    parking: isAdmin || isSecurity,
+    visitors: isAdmin || isSecurity || isReception,
+    events: isAdmin,
+  };
 
   useEffect(() => {
     (async () => {
-      const [s, m, e] = await Promise.all([
+      const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const [s, m, e, vIn, vTd, eP, eM, woO, woP] = await Promise.all([
         supabase.from("dashboard_stats").select("*").maybeSingle(),
         supabase.from("monthly_revenue").select("*"),
         supabase.from("building_log").select("*").order("created_at", { ascending: false }).limit(10),
+        supabase.from("visitors").select("id", { count: "exact", head: true }).eq("status", "داخل"),
+        supabase.from("visitors").select("id", { count: "exact", head: true }).gte("check_in_at", today.toISOString()),
+        supabase.from("expenses").select("amount").eq("status", "معلّق"),
+        supabase.from("expenses").select("amount").eq("status", "مدفوع").gte("expense_date", monthStart.toISOString().slice(0, 10)),
+        supabase.from("maintenance_requests").select("id", { count: "exact", head: true }).eq("is_overdue", true).neq("status", "مغلق"),
+        supabase.from("pm_plans").select("id", { count: "exact", head: true }).eq("is_active", true).lte("next_due_at", new Date().toISOString()),
       ]);
       if (s.data) setStats(s.data as Stats);
       if (m.data) setMonthly(m.data.map((r: any) => ({ month: r.month, revenue: Number(r.revenue) })));
       if (e.data) setEvents(e.data as BuildingLogRow[]);
+      setExtras({
+        visitors_inside: vIn.count ?? 0,
+        visitors_today: vTd.count ?? 0,
+        expenses_pending: (eP.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
+        expenses_paid_month: (eM.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
+        wo_overdue: woO.count ?? 0,
+        wo_pm_due: woP.count ?? 0,
+      });
     })();
   }, []);
 
@@ -54,119 +95,159 @@ function Dashboard() {
     ? Math.round(((stats.offices_rented + stats.offices_reserved) / stats.offices_total) * 100)
     : 0;
 
+  const title = isAdmin ? "لوحة الإدارة العليا"
+    : isAccountant ? "لوحة المالية"
+    : isMaintenance ? "لوحة الصيانة والتشغيل"
+    : isSecurity ? "لوحة الأمن والمواقف"
+    : isReception ? "لوحة الاستقبال"
+    : "اللوحة الرئيسية";
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-primary">لوحة الإدارة العليا</h1>
+        <h1 className="text-2xl font-bold text-primary">{title}</h1>
         <p className="text-sm text-muted-foreground mt-1">
           مرحباً {user?.email}
           {roles.length > 0 && <> — صلاحيتك: {roles.map((r) => ROLE_LABELS[r]).join(", ")}</>}
         </p>
       </div>
 
-      {/* OCCUPANCY ROW */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Card className="lg:col-span-1">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">نسبة الإشغال</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center gap-6">
-            <OccupancyRing percent={occRate} />
-            <div className="space-y-1.5 text-sm">
-              <Row label="إجمالي" value={fmt(stats?.offices_total ?? 0)} dot="bg-primary" />
-              <Row label="مؤجر" value={fmt(stats?.offices_rented ?? 0)} dot="bg-emerald-500" />
-              <Row label="محجوز" value={fmt(stats?.offices_reserved ?? 0)} dot="bg-amber-500" />
-              <Row label="متاح" value={fmt(stats?.offices_available ?? 0)} dot="bg-slate-400" />
-              <Row label="صيانة" value={fmt(stats?.offices_maintenance ?? 0)} dot="bg-red-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-sm text-muted-foreground">الإيرادات — آخر 12 شهر</CardTitle>
-            <TrendingUp className="h-4 w-4 text-emerald-600" />
-          </CardHeader>
-          <CardContent className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthly} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="month" tick={{ fontSize: 11 }} reversed />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                <Tooltip
-                  formatter={(v: any) => fmtSAR(Number(v))}
-                  contentStyle={{ direction: "rtl", borderRadius: 8, fontSize: 12 }}
-                />
-                <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* FINANCE */}
-      <Section title="المؤشرات المالية">
-        <Stat label="محصل هذا الشهر" value={fmtSAR(stats?.collected_this_month ?? 0)} icon={Receipt} color="emerald" link="/finance" />
-        <Stat label="إيرادات هذه السنة" value={fmtSAR(stats?.revenue_ytd ?? 0)} icon={Wallet} color="blue" link="/finance" />
-        <Stat label="إجمالي المتأخرات" value={fmtSAR(stats?.overdue_total ?? 0)} icon={AlertTriangle} color="red" link="/finance" />
-      </Section>
-
-      {/* OPERATIONS */}
-      <Section title="مؤشرات التشغيل">
-        <Stat label="بلاغات مفتوحة" value={fmt(stats?.tickets_open ?? 0)} icon={Clock} color="amber" link="/complaints" />
-        <Stat label="بلاغات مغلقة" value={fmt(stats?.tickets_closed ?? 0)} icon={CheckCircle2} color="emerald" link="/complaints" />
-        <Stat
-          label="بلاغات طارئة"
-          value={fmt(stats?.tickets_emergency ?? 0)}
-          icon={AlertTriangle}
-          color="red"
-          link="/complaints"
-          pulse={(stats?.tickets_emergency ?? 0) > 0}
-        />
-        <Stat label="أعطال أصول حرجة" value={fmt(stats?.critical_failures ?? 0)} icon={AlertTriangle} color="red" link="/maintenance" />
-        <Stat label="صيانة مجدولة هذا الأسبوع" value={fmt(stats?.scheduled_week ?? 0)} icon={Wrench} color="blue" link="/maintenance" />
-      </Section>
-
-      {/* CONTRACTS */}
-      <Section title="مؤشرات العقود">
-        <Stat label="العقود السارية" value={fmt(stats?.contracts_active ?? 0)} icon={FileSignature} color="emerald" link="/contracts" />
-        <Stat label="تنتهي خلال 90 يوم" value={fmt(stats?.contracts_expiring ?? 0)} icon={AlertTriangle} color="amber" link="/contracts" />
-        <Stat label="عقود منتهية" value={fmt(stats?.contracts_expired ?? 0)} icon={FileSignature} color="slate" link="/contracts" />
-      </Section>
-
-      {/* SECURITY */}
-      <Section title="مؤشرات الأمن">
-        <Stat label="عدد الحراس" value={fmt(stats?.guards_count ?? 0)} icon={Users} color="blue" link="/security" />
-        <Stat label="جولات هذا الأسبوع" value={fmt(stats?.patrols_week ?? 0)} icon={Shield} color="emerald" link="/security" />
-        <Stat label="حوادث مفتوحة" value={fmt(stats?.incidents_open ?? 0)} icon={AlertTriangle} color="red" link="/security" />
-      </Section>
-
-      {/* PARKING */}
-      <Section title="مؤشرات المواقف">
-        <Stat label="مواقف مشغولة" value={fmt(stats?.parking_occupied ?? 0)} icon={Car} color="emerald" link="/parking" />
-        <Stat label="مواقف متاحة" value={fmt(stats?.parking_available ?? 0)} icon={Car} color="slate" link="/parking" />
-        <Stat label="مخالفات مفتوحة" value={fmt(stats?.violations_open ?? 0)} icon={AlertTriangle} color="red" link="/parking" />
-      </Section>
-
-      {/* RECENT EVENTS */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Building2 className="h-4 w-4" /> آخر الأحداث في البرج
-          </CardTitle>
-          <Link to="/building-log" className="text-xs text-primary hover:underline">عرض السجل الكامل</Link>
-        </CardHeader>
-        <CardContent>
-          {events.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">لا توجد أحداث بعد</p>
-          ) : (
-            <BuildingLogTimeline items={events} />
+      {(show.occupancy || show.revenueChart) && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {show.occupancy && (
+            <Card className="lg:col-span-1">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-muted-foreground">نسبة الإشغال</CardTitle>
+              </CardHeader>
+              <CardContent className="flex items-center gap-6">
+                <OccupancyRing percent={occRate} />
+                <div className="space-y-1.5 text-sm">
+                  <Row label="إجمالي" value={fmt(stats?.offices_total ?? 0)} dot="bg-primary" />
+                  <Row label="مؤجر" value={fmt(stats?.offices_rented ?? 0)} dot="bg-emerald-500" />
+                  <Row label="محجوز" value={fmt(stats?.offices_reserved ?? 0)} dot="bg-amber-500" />
+                  <Row label="متاح" value={fmt(stats?.offices_available ?? 0)} dot="bg-slate-400" />
+                  <Row label="صيانة" value={fmt(stats?.offices_maintenance ?? 0)} dot="bg-red-500" />
+                </div>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
+
+          {show.revenueChart && (
+            <Card className={show.occupancy ? "lg:col-span-2" : "lg:col-span-3"}>
+              <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                <CardTitle className="text-sm text-muted-foreground">الإيرادات — آخر 12 شهر</CardTitle>
+                <TrendingUp className="h-4 w-4 text-emerald-600" />
+              </CardHeader>
+              <CardContent className="h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={monthly} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11 }} reversed />
+                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                    <Tooltip
+                      formatter={(v: any) => fmtSAR(Number(v))}
+                      contentStyle={{ direction: "rtl", borderRadius: 8, fontSize: 12 }}
+                    />
+                    <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {show.finance && (
+        <Section title="المؤشرات المالية">
+          <Stat label="محصل هذا الشهر" value={fmtSAR(stats?.collected_this_month ?? 0)} icon={Receipt} color="emerald" link="/finance" />
+          <Stat label="إيرادات هذه السنة" value={fmtSAR(stats?.revenue_ytd ?? 0)} icon={Wallet} color="blue" link="/finance" />
+          <Stat label="إجمالي المتأخرات" value={fmtSAR(stats?.overdue_total ?? 0)} icon={AlertTriangle} color="red" link="/finance" />
+        </Section>
+      )}
+
+      {show.expenses && (
+        <Section title="المصروفات">
+          <Stat label="معلّقة بانتظار الاعتماد" value={fmtSAR(extras.expenses_pending)} icon={Clock} color="amber" link="/expenses" />
+          <Stat label="مدفوعة هذا الشهر" value={fmtSAR(extras.expenses_paid_month)} icon={Wallet} color="emerald" link="/expenses" />
+        </Section>
+      )}
+
+      {show.operations && (
+        <Section title="مؤشرات التشغيل">
+          <Stat label="بلاغات مفتوحة" value={fmt(stats?.tickets_open ?? 0)} icon={Clock} color="amber" link="/complaints" />
+          <Stat label="بلاغات مغلقة" value={fmt(stats?.tickets_closed ?? 0)} icon={CheckCircle2} color="emerald" link="/complaints" />
+          <Stat
+            label="بلاغات طارئة"
+            value={fmt(stats?.tickets_emergency ?? 0)}
+            icon={AlertTriangle}
+            color="red"
+            link="/complaints"
+            pulse={(stats?.tickets_emergency ?? 0) > 0}
+          />
+        </Section>
+      )}
+
+      {show.workOrders && (
+        <Section title="أوامر العمل والصيانة">
+          <Stat label="أعطال أصول حرجة" value={fmt(stats?.critical_failures ?? 0)} icon={AlertTriangle} color="red" link="/maintenance" />
+          <Stat label="صيانة مجدولة هذا الأسبوع" value={fmt(stats?.scheduled_week ?? 0)} icon={Wrench} color="blue" link="/maintenance" />
+          <Stat label="أوامر متأخرة (SLA)" value={fmt(extras.wo_overdue)} icon={AlertTriangle} color="red" link="/maintenance" pulse={extras.wo_overdue > 0} />
+          <Stat label="خطط وقائية مستحقة" value={fmt(extras.wo_pm_due)} icon={Wrench} color="amber" link="/pm-plans" />
+        </Section>
+      )}
+
+      {show.contracts && (
+        <Section title="مؤشرات العقود">
+          <Stat label="العقود السارية" value={fmt(stats?.contracts_active ?? 0)} icon={FileSignature} color="emerald" link="/contracts" />
+          <Stat label="تنتهي خلال 90 يوم" value={fmt(stats?.contracts_expiring ?? 0)} icon={AlertTriangle} color="amber" link="/contracts" />
+          <Stat label="عقود منتهية" value={fmt(stats?.contracts_expired ?? 0)} icon={FileSignature} color="slate" link="/contracts" />
+        </Section>
+      )}
+
+      {show.visitors && (
+        <Section title="الزوار">
+          <Stat label="داخل البرج الآن" value={fmt(extras.visitors_inside)} icon={Users} color="emerald" link="/visitors" />
+          <Stat label="زوار اليوم" value={fmt(extras.visitors_today)} icon={Users} color="blue" link="/visitors" />
+        </Section>
+      )}
+
+      {show.security && (
+        <Section title="مؤشرات الأمن">
+          <Stat label="عدد الحراس" value={fmt(stats?.guards_count ?? 0)} icon={Users} color="blue" link="/security" />
+          <Stat label="جولات هذا الأسبوع" value={fmt(stats?.patrols_week ?? 0)} icon={Shield} color="emerald" link="/security" />
+          <Stat label="حوادث مفتوحة" value={fmt(stats?.incidents_open ?? 0)} icon={AlertTriangle} color="red" link="/security" />
+        </Section>
+      )}
+
+      {show.parking && (
+        <Section title="مؤشرات المواقف">
+          <Stat label="مواقف مشغولة" value={fmt(stats?.parking_occupied ?? 0)} icon={Car} color="emerald" link="/parking" />
+          <Stat label="مواقف متاحة" value={fmt(stats?.parking_available ?? 0)} icon={Car} color="slate" link="/parking" />
+          <Stat label="مخالفات مفتوحة" value={fmt(stats?.violations_open ?? 0)} icon={AlertTriangle} color="red" link="/parking" />
+        </Section>
+      )}
+
+      {show.events && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Building2 className="h-4 w-4" /> آخر الأحداث في البرج
+            </CardTitle>
+            <Link to="/building-log" className="text-xs text-primary hover:underline">عرض السجل الكامل</Link>
+          </CardHeader>
+          <CardContent>
+            {events.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">لا توجد أحداث بعد</p>
+            ) : (
+              <BuildingLogTimeline items={events} />
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
+
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

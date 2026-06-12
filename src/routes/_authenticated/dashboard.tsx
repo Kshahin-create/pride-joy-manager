@@ -160,7 +160,7 @@ function Dashboard() {
           {events.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">لا توجد أحداث بعد</p>
           ) : (
-            <BuildingLogTimeline rows={events} />
+            <BuildingLogTimeline items={events} />
           )}
         </CardContent>
       </Card>

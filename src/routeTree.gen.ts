@@ -30,6 +30,7 @@ import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedTenantsIdRouteImport } from './routes/_authenticated/tenants.$id'
 import { Route as AuthenticatedOfficesIdRouteImport } from './routes/_authenticated/offices.$id'
 import { Route as AuthenticatedContractsIdRouteImport } from './routes/_authenticated/contracts.$id'
+import { Route as AuthenticatedContractsIdRouteImport } from './routes/_authenticated/contracts.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -132,6 +133,11 @@ const AuthenticatedOfficesIdRoute = AuthenticatedOfficesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedOfficesRoute,
 } as any)
+const AuthenticatedContractsIdRoute = AuthenticatedContractsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedContractsRoute,
+} as any)
 const AuthenticatedContractsIdRoute =
   AuthenticatedContractsIdRouteImport.update({
     id: '/$id',
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof AuthenticatedUsersRoute
   '/vendors': typeof AuthenticatedVendorsRoute
   '/contracts/$id': typeof AuthenticatedContractsIdRoute
+  '/contracts/$id': typeof AuthenticatedContractsIdRoute
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
 }
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/users': typeof AuthenticatedUsersRoute
   '/vendors': typeof AuthenticatedVendorsRoute
   '/contracts/$id': typeof AuthenticatedContractsIdRoute
+  '/contracts/$id': typeof AuthenticatedContractsIdRoute
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
 }
@@ -191,7 +199,7 @@ export interface FileRoutesById {
   '/_authenticated/assets': typeof AuthenticatedAssetsRoute
   '/_authenticated/building-log': typeof AuthenticatedBuildingLogRoute
   '/_authenticated/complaints': typeof AuthenticatedComplaintsRoute
-  '/_authenticated/contracts': typeof AuthenticatedContractsRouteWithChildren
+  '/_authenticated/contracts': typeof AuthenticatedContractsRouteWithChildrenWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
@@ -203,6 +211,7 @@ export interface FileRoutesById {
   '/_authenticated/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/vendors': typeof AuthenticatedVendorsRoute
+  '/_authenticated/contracts/$id': typeof AuthenticatedContractsIdRoute
   '/_authenticated/contracts/$id': typeof AuthenticatedContractsIdRoute
   '/_authenticated/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/_authenticated/tenants/$id': typeof AuthenticatedTenantsIdRoute
@@ -227,6 +236,8 @@ export interface FileRouteTypes {
     | '/tenants'
     | '/users'
     | '/vendors'
+    | '/contracts/$id'
+    | '/contracts/$id'
     | '/contracts/$id'
     | '/offices/$id'
     | '/tenants/$id'
@@ -272,6 +283,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tenants'
     | '/_authenticated/users'
     | '/_authenticated/vendors'
+    | '/_authenticated/contracts/$id'
     | '/_authenticated/contracts/$id'
     | '/_authenticated/offices/$id'
     | '/_authenticated/tenants/$id'
@@ -432,6 +444,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedContractsIdRouteImport
       parentRoute: typeof AuthenticatedContractsRoute
     }
+    '/_authenticated/contracts/$id': {
+      id: '/_authenticated/contracts/$id'
+      path: '/$id'
+      fullPath: '/contracts/$id'
+      preLoaderRoute: typeof AuthenticatedContractsIdRouteImport
+      parentRoute: typeof AuthenticatedContractsRoute
+    }
   }
 }
 
@@ -471,11 +490,22 @@ const AuthenticatedTenantsRouteChildren: AuthenticatedTenantsRouteChildren = {
 const AuthenticatedTenantsRouteWithChildren =
   AuthenticatedTenantsRoute._addFileChildren(AuthenticatedTenantsRouteChildren)
 
+interface AuthenticatedContractsRouteChildren {
+  AuthenticatedContractsIdRoute: typeof AuthenticatedContractsIdRoute
+}
+
+const AuthenticatedContractsRouteChildren: AuthenticatedContractsRouteChildren = {
+  AuthenticatedContractsIdRoute: AuthenticatedContractsIdRoute,
+}
+
+const AuthenticatedContractsRouteWithChildren =
+  AuthenticatedContractsRoute._addFileChildren(AuthenticatedContractsRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRoute
   AuthenticatedBuildingLogRoute: typeof AuthenticatedBuildingLogRoute
   AuthenticatedComplaintsRoute: typeof AuthenticatedComplaintsRoute
-  AuthenticatedContractsRoute: typeof AuthenticatedContractsRouteWithChildren
+  AuthenticatedContractsRoute: typeof AuthenticatedContractsRouteWithChildrenWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute

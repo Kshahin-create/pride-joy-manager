@@ -55,6 +55,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { title: "العملاء", url: "/tenants", icon: Users },
       { title: "العقود", url: "/contracts", icon: FileSignature },
       { title: "المالية", url: "/finance", icon: Wallet, roles: ["super_admin", "accountant", "owner"] },
+      { title: "المصروفات", url: "/expenses", icon: Wallet, roles: ["super_admin", "accountant", "maintenance_supervisor", "owner"] },
     ],
   },
   {

@@ -846,6 +846,107 @@ export type Database = {
           },
         ]
       }
+      expenses: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          asset_id: string | null
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at: string
+          created_by: string | null
+          description: string
+          expense_date: string
+          expense_number: string | null
+          id: string
+          invoice_attachment_url: string | null
+          maintenance_request_id: string | null
+          notes: string | null
+          paid_at: string | null
+          payment_method: string | null
+          rejection_reason: string | null
+          space_id: string | null
+          status: Database["public"]["Enums"]["expense_status"]
+          updated_at: string
+          vendor_id: string | null
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          asset_id?: string | null
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          created_by?: string | null
+          description: string
+          expense_date?: string
+          expense_number?: string | null
+          id?: string
+          invoice_attachment_url?: string | null
+          maintenance_request_id?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          rejection_reason?: string | null
+          space_id?: string | null
+          status?: Database["public"]["Enums"]["expense_status"]
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          asset_id?: string | null
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          expense_date?: string
+          expense_number?: string | null
+          id?: string
+          invoice_attachment_url?: string | null
+          maintenance_request_id?: string | null
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          rejection_reason?: string | null
+          space_id?: string | null
+          status?: Database["public"]["Enums"]["expense_status"]
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_maintenance_request_id_fkey"
+            columns: ["maintenance_request_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guard_attendance: {
         Row: {
           attendance_date: string
@@ -2494,6 +2595,79 @@ export type Database = {
           },
         ]
       }
+      vendor_payments: {
+        Row: {
+          amount: number
+          attachment_url: string | null
+          created_at: string
+          created_by: string | null
+          expense_id: string | null
+          id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          payment_number: string | null
+          reference_number: string | null
+          updated_at: string
+          vendor_contract_id: string | null
+          vendor_id: string
+        }
+        Insert: {
+          amount: number
+          attachment_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          expense_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          payment_number?: string | null
+          reference_number?: string | null
+          updated_at?: string
+          vendor_contract_id?: string | null
+          vendor_id: string
+        }
+        Update: {
+          amount?: number
+          attachment_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          expense_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          payment_number?: string | null
+          reference_number?: string | null
+          updated_at?: string
+          vendor_contract_id?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_payments_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_payments_vendor_contract_id_fkey"
+            columns: ["vendor_contract_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_payments_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendors: {
         Row: {
           activity: string | null
@@ -2850,6 +3024,20 @@ export type Database = {
         | "أخرى"
       doc_entity_type: "tenant" | "contract" | "asset" | "vendor" | "building"
       evaluation_type: "شهري" | "ربع سنوي"
+      expense_category:
+        | "صيانة"
+        | "نظافة"
+        | "أمن"
+        | "كهرباء"
+        | "مياه"
+        | "مكتبية"
+        | "مرافق"
+        | "مقاولين"
+        | "رواتب"
+        | "تأمين"
+        | "ضرائب ورسوم"
+        | "أخرى"
+      expense_status: "معلّق" | "معتمد" | "مرفوض" | "مدفوع"
       incident_status: "مفتوح" | "مغلق"
       inspection_frequency: "يومي" | "أسبوعي" | "شهري"
       inspection_item_result: "سليم" | "يحتاج إجراء"
@@ -3084,6 +3272,21 @@ export const Constants = {
       ],
       doc_entity_type: ["tenant", "contract", "asset", "vendor", "building"],
       evaluation_type: ["شهري", "ربع سنوي"],
+      expense_category: [
+        "صيانة",
+        "نظافة",
+        "أمن",
+        "كهرباء",
+        "مياه",
+        "مكتبية",
+        "مرافق",
+        "مقاولين",
+        "رواتب",
+        "تأمين",
+        "ضرائب ورسوم",
+        "أخرى",
+      ],
+      expense_status: ["معلّق", "معتمد", "مرفوض", "مدفوع"],
       incident_status: ["مفتوح", "مغلق"],
       inspection_frequency: ["يومي", "أسبوعي", "شهري"],
       inspection_item_result: ["سليم", "يحتاج إجراء"],

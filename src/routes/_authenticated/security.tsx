@@ -420,6 +420,7 @@ function PatrolDialog({
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
     const { data: p, error } = await supabase.from("patrols").insert({
+      patrol_number: "",
       guard_id: guardId || null,
       start_time: new Date(startTime).toISOString(),
       end_time: endTime ? new Date(endTime).toISOString() : null,

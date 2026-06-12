@@ -1390,6 +1390,203 @@ export type Database = {
         }
         Relationships: []
       }
+      parking_cleaning_logs: {
+        Row: {
+          after_photo_url: string | null
+          before_photo_url: string | null
+          cleaning_date: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          responsible: string | null
+          updated_at: string
+        }
+        Insert: {
+          after_photo_url?: string | null
+          before_photo_url?: string | null
+          cleaning_date?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          responsible?: string | null
+          updated_at?: string
+        }
+        Update: {
+          after_photo_url?: string | null
+          before_photo_url?: string | null
+          cleaning_date?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          responsible?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      parking_maintenance_checks: {
+        Row: {
+          bumpers_status: Database["public"]["Enums"]["parking_check_status"]
+          check_date: string
+          created_at: string
+          created_by: string | null
+          fire_hoses_status: Database["public"]["Enums"]["parking_check_status"]
+          fire_pipes_status: Database["public"]["Enums"]["parking_check_status"]
+          floors_status: Database["public"]["Enums"]["parking_check_status"]
+          gates_status: Database["public"]["Enums"]["parking_check_status"]
+          id: string
+          next_check_date: string | null
+          notes: string | null
+          paint_status: Database["public"]["Enums"]["parking_check_status"]
+          signage_status: Database["public"]["Enums"]["parking_check_status"]
+          updated_at: string
+        }
+        Insert: {
+          bumpers_status?: Database["public"]["Enums"]["parking_check_status"]
+          check_date?: string
+          created_at?: string
+          created_by?: string | null
+          fire_hoses_status?: Database["public"]["Enums"]["parking_check_status"]
+          fire_pipes_status?: Database["public"]["Enums"]["parking_check_status"]
+          floors_status?: Database["public"]["Enums"]["parking_check_status"]
+          gates_status?: Database["public"]["Enums"]["parking_check_status"]
+          id?: string
+          next_check_date?: string | null
+          notes?: string | null
+          paint_status?: Database["public"]["Enums"]["parking_check_status"]
+          signage_status?: Database["public"]["Enums"]["parking_check_status"]
+          updated_at?: string
+        }
+        Update: {
+          bumpers_status?: Database["public"]["Enums"]["parking_check_status"]
+          check_date?: string
+          created_at?: string
+          created_by?: string | null
+          fire_hoses_status?: Database["public"]["Enums"]["parking_check_status"]
+          fire_pipes_status?: Database["public"]["Enums"]["parking_check_status"]
+          floors_status?: Database["public"]["Enums"]["parking_check_status"]
+          gates_status?: Database["public"]["Enums"]["parking_check_status"]
+          id?: string
+          next_check_date?: string | null
+          notes?: string | null
+          paint_status?: Database["public"]["Enums"]["parking_check_status"]
+          signage_status?: Database["public"]["Enums"]["parking_check_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      parking_spots: {
+        Row: {
+          camera_id: string | null
+          coverage_notes: string | null
+          created_at: string
+          floor: string
+          id: string
+          location_description: string | null
+          notes: string | null
+          office_id: string | null
+          spot_number: string
+          spot_type: Database["public"]["Enums"]["parking_spot_type"]
+          status: Database["public"]["Enums"]["parking_spot_status"]
+          updated_at: string
+        }
+        Insert: {
+          camera_id?: string | null
+          coverage_notes?: string | null
+          created_at?: string
+          floor: string
+          id?: string
+          location_description?: string | null
+          notes?: string | null
+          office_id?: string | null
+          spot_number: string
+          spot_type?: Database["public"]["Enums"]["parking_spot_type"]
+          status?: Database["public"]["Enums"]["parking_spot_status"]
+          updated_at?: string
+        }
+        Update: {
+          camera_id?: string | null
+          coverage_notes?: string | null
+          created_at?: string
+          floor?: string
+          id?: string
+          location_description?: string | null
+          notes?: string | null
+          office_id?: string | null
+          spot_number?: string
+          spot_type?: Database["public"]["Enums"]["parking_spot_type"]
+          status?: Database["public"]["Enums"]["parking_spot_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parking_spots_camera_id_fkey"
+            columns: ["camera_id"]
+            isOneToOne: false
+            referencedRelation: "cameras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parking_spots_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parking_violations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          photo_urls: string[] | null
+          resolved_at: string | null
+          spot_id: string | null
+          status: Database["public"]["Enums"]["parking_violation_status"]
+          updated_at: string
+          violation_date: string
+          violation_type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          photo_urls?: string[] | null
+          resolved_at?: string | null
+          spot_id?: string | null
+          status?: Database["public"]["Enums"]["parking_violation_status"]
+          updated_at?: string
+          violation_date?: string
+          violation_type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          photo_urls?: string[] | null
+          resolved_at?: string | null
+          spot_id?: string | null
+          status?: Database["public"]["Enums"]["parking_violation_status"]
+          updated_at?: string
+          violation_date?: string
+          violation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parking_violations_spot_id_fkey"
+            columns: ["spot_id"]
+            isOneToOne: false
+            referencedRelation: "parking_spots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patrol_checkpoints: {
         Row: {
           checkpoint_name: string
@@ -1917,6 +2114,10 @@ export type Database = {
         | "بانتظار قطع غيار"
         | "مغلق"
       office_status: "متاح" | "محجوز" | "مؤجر" | "تحت الصيانة" | "غير متاح"
+      parking_check_status: "سليم" | "يحتاج صيانة"
+      parking_spot_status: "متاح" | "مخصص" | "مشغول" | "صيانة"
+      parking_spot_type: "عادي" | "VIP" | "ذوي احتياجات"
+      parking_violation_status: "مفتوحة" | "محلولة"
       payment_method: "نقدي" | "تحويل بنكي" | "شيك"
       penalty_reward_type: "مخالفة" | "إنذار" | "مكافأة"
       shift_type: "صباحي" | "مسائي" | "ليلي"
@@ -2089,6 +2290,10 @@ export const Constants = {
         "مغلق",
       ],
       office_status: ["متاح", "محجوز", "مؤجر", "تحت الصيانة", "غير متاح"],
+      parking_check_status: ["سليم", "يحتاج صيانة"],
+      parking_spot_status: ["متاح", "مخصص", "مشغول", "صيانة"],
+      parking_spot_type: ["عادي", "VIP", "ذوي احتياجات"],
+      parking_violation_status: ["مفتوحة", "محلولة"],
       payment_method: ["نقدي", "تحويل بنكي", "شيك"],
       penalty_reward_type: ["مخالفة", "إنذار", "مكافأة"],
       shift_type: ["صباحي", "مسائي", "ليلي"],

@@ -59,7 +59,8 @@ const NAV: { label: string; items: NavItem[] }[] = [
     items: [
       { title: "التشغيل", url: "/operations", icon: Cog },
       { title: "الأمن", url: "/security", icon: Shield, roles: ["super_admin", "security_supervisor", "owner"] },
-      { title: "الأصول والصيانة", url: "/assets", icon: Wrench, roles: ["super_admin", "maintenance_supervisor", "owner"] },
+      { title: "الأصول", url: "/assets", icon: Wrench, roles: ["super_admin", "maintenance_supervisor", "owner"] },
+      { title: "طلبات الصيانة", url: "/maintenance", icon: Wrench },
       { title: "الموردون", url: "/vendors", icon: Truck, roles: ["super_admin", "accountant", "maintenance_supervisor", "owner"] },
       { title: "المواقف", url: "/parking", icon: Car, roles: ["super_admin", "security_supervisor", "owner"] },
     ],

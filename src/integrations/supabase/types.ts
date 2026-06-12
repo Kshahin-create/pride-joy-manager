@@ -1813,6 +1813,88 @@ export type Database = {
         }
         Relationships: []
       }
+      tickets: {
+        Row: {
+          assigned_to: string | null
+          category: string | null
+          closed_at: string | null
+          closed_by: string | null
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          maintenance_request_id: string | null
+          office_id: string | null
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          resolution_notes: string | null
+          status: Database["public"]["Enums"]["ticket_status"]
+          ticket_number: string | null
+          ticket_type: Database["public"]["Enums"]["ticket_type"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          maintenance_request_id?: string | null
+          office_id?: string | null
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          resolution_notes?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          ticket_number?: string | null
+          ticket_type: Database["public"]["Enums"]["ticket_type"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          maintenance_request_id?: string | null
+          office_id?: string | null
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          resolution_notes?: string | null
+          status?: Database["public"]["Enums"]["ticket_status"]
+          ticket_number?: string | null
+          ticket_type?: Database["public"]["Enums"]["ticket_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_maintenance_request_id_fkey"
+            columns: ["maintenance_request_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -2121,6 +2203,9 @@ export type Database = {
       payment_method: "نقدي" | "تحويل بنكي" | "شيك"
       penalty_reward_type: "مخالفة" | "إنذار" | "مكافأة"
       shift_type: "صباحي" | "مسائي" | "ليلي"
+      ticket_priority: "منخفضة" | "متوسطة" | "عالية" | "طارئة"
+      ticket_status: "جديد" | "جاري المعالجة" | "مغلق"
+      ticket_type: "شكوى" | "صيانة" | "نظافة" | "أمن" | "استفسار"
       training_type: "أمن" | "سلامة" | "إسعافات أولية"
     }
     CompositeTypes: {
@@ -2297,6 +2382,9 @@ export const Constants = {
       payment_method: ["نقدي", "تحويل بنكي", "شيك"],
       penalty_reward_type: ["مخالفة", "إنذار", "مكافأة"],
       shift_type: ["صباحي", "مسائي", "ليلي"],
+      ticket_priority: ["منخفضة", "متوسطة", "عالية", "طارئة"],
+      ticket_status: ["جديد", "جاري المعالجة", "مغلق"],
+      ticket_type: ["شكوى", "صيانة", "نظافة", "أمن", "استفسار"],
       training_type: ["أمن", "سلامة", "إسعافات أولية"],
     },
   },

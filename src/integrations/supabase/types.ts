@@ -711,6 +711,336 @@ export type Database = {
           },
         ]
       }
+      guard_attendance: {
+        Row: {
+          attendance_date: string
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          created_by: string | null
+          guard_id: string
+          id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          attendance_date?: string
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          created_by?: string | null
+          guard_id: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attendance_date?: string
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          created_by?: string | null
+          guard_id?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guard_attendance_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_attendance_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guard_evaluations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          evaluation_date: string
+          evaluation_type: Database["public"]["Enums"]["evaluation_type"]
+          guard_id: string
+          id: string
+          notes: string | null
+          score: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          evaluation_date?: string
+          evaluation_type: Database["public"]["Enums"]["evaluation_type"]
+          guard_id: string
+          id?: string
+          notes?: string | null
+          score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          evaluation_date?: string
+          evaluation_type?: Database["public"]["Enums"]["evaluation_type"]
+          guard_id?: string
+          id?: string
+          notes?: string | null
+          score?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guard_evaluations_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_evaluations_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guard_leaves: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          from_date: string
+          guard_id: string
+          id: string
+          leave_type: string
+          notes: string | null
+          status: Database["public"]["Enums"]["leave_status"]
+          to_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          from_date: string
+          guard_id: string
+          id?: string
+          leave_type: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["leave_status"]
+          to_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          from_date?: string
+          guard_id?: string
+          id?: string
+          leave_type?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["leave_status"]
+          to_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guard_leaves_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_leaves_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guard_penalties_rewards: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          details: string | null
+          guard_id: string
+          id: string
+          pr_date: string
+          pr_type: Database["public"]["Enums"]["penalty_reward_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          guard_id: string
+          id?: string
+          pr_date?: string
+          pr_type: Database["public"]["Enums"]["penalty_reward_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          details?: string | null
+          guard_id?: string
+          id?: string
+          pr_date?: string
+          pr_type?: Database["public"]["Enums"]["penalty_reward_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guard_penalties_rewards_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_penalties_rewards_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guard_trainings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expiry_date: string | null
+          guard_id: string
+          id: string
+          issue_date: string | null
+          notes: string | null
+          training_type: Database["public"]["Enums"]["training_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expiry_date?: string | null
+          guard_id: string
+          id?: string
+          issue_date?: string | null
+          notes?: string | null
+          training_type: Database["public"]["Enums"]["training_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expiry_date?: string | null
+          guard_id?: string
+          id?: string
+          issue_date?: string | null
+          notes?: string | null
+          training_type?: Database["public"]["Enums"]["training_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guard_trainings_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guard_trainings_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guards: {
+        Row: {
+          address: string | null
+          birth_date: string | null
+          contract_end_date: string | null
+          created_at: string
+          created_by: string | null
+          direct_supervisor: string | null
+          employee_number: string | null
+          full_name: string
+          id: string
+          job_title: string | null
+          mobile: string | null
+          national_id: string | null
+          nationality: string | null
+          notes: string | null
+          photo_url: string | null
+          salary: number | null
+          security_company: string | null
+          shift_type: Database["public"]["Enums"]["shift_type"] | null
+          start_date: string | null
+          updated_at: string
+          working_days: string | null
+          working_hours: string | null
+        }
+        Insert: {
+          address?: string | null
+          birth_date?: string | null
+          contract_end_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          direct_supervisor?: string | null
+          employee_number?: string | null
+          full_name: string
+          id?: string
+          job_title?: string | null
+          mobile?: string | null
+          national_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          photo_url?: string | null
+          salary?: number | null
+          security_company?: string | null
+          shift_type?: Database["public"]["Enums"]["shift_type"] | null
+          start_date?: string | null
+          updated_at?: string
+          working_days?: string | null
+          working_hours?: string | null
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string | null
+          contract_end_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          direct_supervisor?: string | null
+          employee_number?: string | null
+          full_name?: string
+          id?: string
+          job_title?: string | null
+          mobile?: string | null
+          national_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          photo_url?: string | null
+          salary?: number | null
+          security_company?: string | null
+          shift_type?: Database["public"]["Enums"]["shift_type"] | null
+          start_date?: string | null
+          updated_at?: string
+          working_days?: string | null
+          working_hours?: string | null
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount_due: number
@@ -919,6 +1249,98 @@ export type Database = {
         }
         Relationships: []
       }
+      patrol_checkpoints: {
+        Row: {
+          checkpoint_name: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          patrol_id: string
+          photo_path: string | null
+          visit_time: string
+        }
+        Insert: {
+          checkpoint_name: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          patrol_id: string
+          photo_path?: string | null
+          visit_time?: string
+        }
+        Update: {
+          checkpoint_name?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          patrol_id?: string
+          photo_path?: string | null
+          visit_time?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patrol_checkpoints_patrol_id_fkey"
+            columns: ["patrol_id"]
+            isOneToOne: false
+            referencedRelation: "patrols"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patrols: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          end_time: string | null
+          guard_id: string | null
+          id: string
+          notes: string | null
+          patrol_number: string
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          end_time?: string | null
+          guard_id?: string | null
+          id?: string
+          notes?: string | null
+          patrol_number: string
+          start_time?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          end_time?: string | null
+          guard_id?: string | null
+          id?: string
+          notes?: string | null
+          patrol_number?: string
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patrols_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patrols_guard_id_fkey"
+            columns: ["guard_id"]
+            isOneToOne: false
+            referencedRelation: "guards_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount_paid: number
@@ -999,6 +1421,60 @@ export type Database = {
         }
         Relationships: []
       }
+      security_incidents: {
+        Row: {
+          actions_taken: string | null
+          closed_at: string | null
+          closed_by: string | null
+          closure_report: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          incident_date: string
+          incident_number: string
+          incident_type: string
+          location: string
+          photos: Json
+          status: Database["public"]["Enums"]["incident_status"]
+          updated_at: string
+        }
+        Insert: {
+          actions_taken?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closure_report?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          incident_date?: string
+          incident_number: string
+          incident_type: string
+          location: string
+          photos?: Json
+          status?: Database["public"]["Enums"]["incident_status"]
+          updated_at?: string
+        }
+        Update: {
+          actions_taken?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closure_report?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          incident_date?: string
+          incident_number?: string
+          incident_type?: string
+          location?: string
+          photos?: Json
+          status?: Database["public"]["Enums"]["incident_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1025,9 +1501,78 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      guards_safe: {
+        Row: {
+          address: string | null
+          birth_date: string | null
+          contract_end_date: string | null
+          created_at: string | null
+          direct_supervisor: string | null
+          employee_number: string | null
+          full_name: string | null
+          id: string | null
+          job_title: string | null
+          mobile: string | null
+          national_id: string | null
+          nationality: string | null
+          notes: string | null
+          photo_url: string | null
+          security_company: string | null
+          shift_type: Database["public"]["Enums"]["shift_type"] | null
+          start_date: string | null
+          updated_at: string | null
+          working_days: string | null
+          working_hours: string | null
+        }
+        Insert: {
+          address?: string | null
+          birth_date?: string | null
+          contract_end_date?: string | null
+          created_at?: string | null
+          direct_supervisor?: string | null
+          employee_number?: string | null
+          full_name?: string | null
+          id?: string | null
+          job_title?: string | null
+          mobile?: string | null
+          national_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          photo_url?: string | null
+          security_company?: string | null
+          shift_type?: Database["public"]["Enums"]["shift_type"] | null
+          start_date?: string | null
+          updated_at?: string | null
+          working_days?: string | null
+          working_hours?: string | null
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string | null
+          contract_end_date?: string | null
+          created_at?: string | null
+          direct_supervisor?: string | null
+          employee_number?: string | null
+          full_name?: string | null
+          id?: string | null
+          job_title?: string | null
+          mobile?: string | null
+          national_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          photo_url?: string | null
+          security_company?: string | null
+          shift_type?: Database["public"]["Enums"]["shift_type"] | null
+          start_date?: string | null
+          updated_at?: string | null
+          working_days?: string | null
+          working_hours?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      can_manage_security: { Args: { _uid: string }; Returns: boolean }
       get_my_roles: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]
@@ -1079,11 +1624,17 @@ export type Database = {
         | "السجل التجاري"
         | "سند دفع"
       contract_status: "ساري" | "منتهي" | "مجدد" | "ملغي"
+      evaluation_type: "شهري" | "ربع سنوي"
+      incident_status: "مفتوح" | "مغلق"
       interaction_type: "مكالمة" | "زيارة" | "ملاحظة"
       invoice_status: "مستحق" | "مدفوع جزئي" | "مدفوع" | "متأخر"
       invoice_type: "إيجار" | "تأمين" | "رسوم تشغيل" | "رسوم خدمات" | "غرامات"
+      leave_status: "قيد المراجعة" | "معتمدة" | "مرفوضة"
       office_status: "متاح" | "محجوز" | "مؤجر" | "تحت الصيانة" | "غير متاح"
       payment_method: "نقدي" | "تحويل بنكي" | "شيك"
+      penalty_reward_type: "مخالفة" | "إنذار" | "مكافأة"
+      shift_type: "صباحي" | "مسائي" | "ليلي"
+      training_type: "أمن" | "سلامة" | "إسعافات أولية"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1238,11 +1789,17 @@ export const Constants = {
         "سند دفع",
       ],
       contract_status: ["ساري", "منتهي", "مجدد", "ملغي"],
+      evaluation_type: ["شهري", "ربع سنوي"],
+      incident_status: ["مفتوح", "مغلق"],
       interaction_type: ["مكالمة", "زيارة", "ملاحظة"],
       invoice_status: ["مستحق", "مدفوع جزئي", "مدفوع", "متأخر"],
       invoice_type: ["إيجار", "تأمين", "رسوم تشغيل", "رسوم خدمات", "غرامات"],
+      leave_status: ["قيد المراجعة", "معتمدة", "مرفوضة"],
       office_status: ["متاح", "محجوز", "مؤجر", "تحت الصيانة", "غير متاح"],
       payment_method: ["نقدي", "تحويل بنكي", "شيك"],
+      penalty_reward_type: ["مخالفة", "إنذار", "مكافأة"],
+      shift_type: ["صباحي", "مسائي", "ليلي"],
+      training_type: ["أمن", "سلامة", "إسعافات أولية"],
     },
   },
 } as const

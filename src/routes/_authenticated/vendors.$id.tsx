@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+import { DocumentsTab } from "@/components/documents-tab";
 import { ArrowRight, Plus, Star, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/vendors/$id")({

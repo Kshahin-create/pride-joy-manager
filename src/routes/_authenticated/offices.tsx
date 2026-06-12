@@ -445,13 +445,14 @@ function StatCard({
   label: string;
   value: number | string;
   hint?: string;
-  tone: "primary" | "success" | "warning" | "gold";
+  tone: "primary" | "success" | "warning" | "gold" | "info";
 }) {
   const toneClass = {
     primary: "border-t-primary text-primary",
     success: "border-t-success text-success",
     warning: "border-t-warning text-[oklch(0.55_0.15_75)]",
     gold: "border-t-gold text-[oklch(0.45_0.13_85)]",
+    info: "border-t-info text-info",
   }[tone];
   return (
     <Card className={`border-t-4 ${toneClass}`}>

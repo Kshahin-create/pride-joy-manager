@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
@@ -45,18 +45,10 @@ function AuthPage() {
         </div>
 
         <div className="bg-card text-card-foreground rounded-2xl shadow-2xl p-6">
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid grid-cols-2 w-full mb-4">
-              <TabsTrigger value="signin">تسجيل الدخول</TabsTrigger>
-              <TabsTrigger value="signup">إنشاء حساب</TabsTrigger>
-            </TabsList>
-            <TabsContent value="signin">
-              <SignInForm onSuccess={() => navigate({ to: "/dashboard" })} />
-            </TabsContent>
-            <TabsContent value="signup">
-              <SignUpForm onSuccess={() => navigate({ to: "/dashboard" })} />
-            </TabsContent>
-          </Tabs>
+          <SignInForm onSuccess={() => navigate({ to: "/dashboard" })} />
+          <p className="text-xs text-muted-foreground text-center mt-4">
+            الحسابات تُنشأ من قِبل المدير العام فقط.
+          </p>
         </div>
 
         <p className="text-center text-primary-foreground/60 text-xs mt-6">

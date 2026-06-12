@@ -28,6 +28,7 @@ import { Route as AuthenticatedContractsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedComplaintsRouteImport } from './routes/_authenticated/complaints'
 import { Route as AuthenticatedBuildingLogRouteImport } from './routes/_authenticated/building-log'
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
+import { Route as AuthenticatedVendorsIdRouteImport } from './routes/_authenticated/vendors.$id'
 import { Route as AuthenticatedTenantsIdRouteImport } from './routes/_authenticated/tenants.$id'
 import { Route as AuthenticatedOfficesIdRouteImport } from './routes/_authenticated/offices.$id'
 import { Route as AuthenticatedContractsIdRouteImport } from './routes/_authenticated/contracts.$id'
@@ -131,6 +132,11 @@ const AuthenticatedAssetsRoute = AuthenticatedAssetsRouteImport.update({
   path: '/assets',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedVendorsIdRoute = AuthenticatedVendorsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedVendorsRoute,
+} as any)
 const AuthenticatedTenantsIdRoute = AuthenticatedTenantsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -177,11 +183,12 @@ export interface FileRoutesByFullPath {
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/users': typeof AuthenticatedUsersRoute
-  '/vendors': typeof AuthenticatedVendorsRoute
+  '/vendors': typeof AuthenticatedVendorsRouteWithChildren
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/contracts/$id': typeof AuthenticatedContractsIdRoute
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
+  '/vendors/$id': typeof AuthenticatedVendorsIdRoute
   '/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
 }
 export interface FileRoutesByTo {
@@ -202,11 +209,12 @@ export interface FileRoutesByTo {
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/users': typeof AuthenticatedUsersRoute
-  '/vendors': typeof AuthenticatedVendorsRoute
+  '/vendors': typeof AuthenticatedVendorsRouteWithChildren
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/contracts/$id': typeof AuthenticatedContractsIdRoute
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
+  '/vendors/$id': typeof AuthenticatedVendorsIdRoute
   '/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
 }
 export interface FileRoutesById {
@@ -229,11 +237,12 @@ export interface FileRoutesById {
   '/_authenticated/security': typeof AuthenticatedSecurityRouteWithChildren
   '/_authenticated/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/_authenticated/users': typeof AuthenticatedUsersRoute
-  '/_authenticated/vendors': typeof AuthenticatedVendorsRoute
+  '/_authenticated/vendors': typeof AuthenticatedVendorsRouteWithChildren
   '/_authenticated/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/_authenticated/contracts/$id': typeof AuthenticatedContractsIdRoute
   '/_authenticated/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/_authenticated/tenants/$id': typeof AuthenticatedTenantsIdRoute
+  '/_authenticated/vendors/$id': typeof AuthenticatedVendorsIdRoute
   '/_authenticated/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
 }
 export interface FileRouteTypes {
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/contracts/$id'
     | '/offices/$id'
     | '/tenants/$id'
+    | '/vendors/$id'
     | '/security/guards/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/contracts/$id'
     | '/offices/$id'
     | '/tenants/$id'
+    | '/vendors/$id'
     | '/security/guards/$id'
   id:
     | '__root__'
@@ -312,6 +323,7 @@ export interface FileRouteTypes {
     | '/_authenticated/contracts/$id'
     | '/_authenticated/offices/$id'
     | '/_authenticated/tenants/$id'
+    | '/_authenticated/vendors/$id'
     | '/_authenticated/security/guards/$id'
   fileRoutesById: FileRoutesById
 }
@@ -456,6 +468,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssetsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/vendors/$id': {
+      id: '/_authenticated/vendors/$id'
+      path: '/$id'
+      fullPath: '/vendors/$id'
+      preLoaderRoute: typeof AuthenticatedVendorsIdRouteImport
+      parentRoute: typeof AuthenticatedVendorsRoute
+    }
     '/_authenticated/tenants/$id': {
       id: '/_authenticated/tenants/$id'
       path: '/$id'
@@ -554,6 +573,17 @@ const AuthenticatedTenantsRouteChildren: AuthenticatedTenantsRouteChildren = {
 const AuthenticatedTenantsRouteWithChildren =
   AuthenticatedTenantsRoute._addFileChildren(AuthenticatedTenantsRouteChildren)
 
+interface AuthenticatedVendorsRouteChildren {
+  AuthenticatedVendorsIdRoute: typeof AuthenticatedVendorsIdRoute
+}
+
+const AuthenticatedVendorsRouteChildren: AuthenticatedVendorsRouteChildren = {
+  AuthenticatedVendorsIdRoute: AuthenticatedVendorsIdRoute,
+}
+
+const AuthenticatedVendorsRouteWithChildren =
+  AuthenticatedVendorsRoute._addFileChildren(AuthenticatedVendorsRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRouteWithChildren
   AuthenticatedBuildingLogRoute: typeof AuthenticatedBuildingLogRoute
@@ -570,7 +600,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
   AuthenticatedTenantsRoute: typeof AuthenticatedTenantsRouteWithChildren
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
-  AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRoute
+  AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -589,7 +619,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSecurityRoute: AuthenticatedSecurityRouteWithChildren,
   AuthenticatedTenantsRoute: AuthenticatedTenantsRouteWithChildren,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
-  AuthenticatedVendorsRoute: AuthenticatedVendorsRoute,
+  AuthenticatedVendorsRoute: AuthenticatedVendorsRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -603,3 +633,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

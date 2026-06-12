@@ -16,6 +16,7 @@ import { Route as AuthenticatedVisitorsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedVendorsRouteImport } from './routes/_authenticated/vendors'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedTenantsRouteImport } from './routes/_authenticated/tenants'
+import { Route as AuthenticatedTelegramRouteImport } from './routes/_authenticated/telegram'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedPmPlansRouteImport } from './routes/_authenticated/pm-plans'
 import { Route as AuthenticatedPermissionsRouteImport } from './routes/_authenticated/permissions'
@@ -41,6 +42,9 @@ import { Route as AuthenticatedOfficesIdRouteImport } from './routes/_authentica
 import { Route as AuthenticatedContractsIdRouteImport } from './routes/_authenticated/contracts.$id'
 import { Route as AuthenticatedComplaintsIdRouteImport } from './routes/_authenticated/complaints.$id'
 import { Route as AuthenticatedAssetsIdRouteImport } from './routes/_authenticated/assets.$id'
+import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
+import { Route as ApiPublicTelegramNotifyRouteImport } from './routes/api/public/telegram/notify'
+import { Route as ApiPublicTelegramDailyReportRouteImport } from './routes/api/public/telegram/daily-report'
 import { Route as AuthenticatedSecurityGuardsIdRouteImport } from './routes/_authenticated/security.guards.$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -75,6 +79,11 @@ const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
 const AuthenticatedTenantsRoute = AuthenticatedTenantsRouteImport.update({
   id: '/tenants',
   path: '/tenants',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTelegramRoute = AuthenticatedTelegramRouteImport.update({
+  id: '/telegram',
+  path: '/telegram',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
@@ -210,6 +219,23 @@ const AuthenticatedAssetsIdRoute = AuthenticatedAssetsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AuthenticatedAssetsRoute,
 } as any)
+const ApiPublicTelegramWebhookRoute =
+  ApiPublicTelegramWebhookRouteImport.update({
+    id: '/api/public/telegram/webhook',
+    path: '/api/public/telegram/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicTelegramNotifyRoute = ApiPublicTelegramNotifyRouteImport.update({
+  id: '/api/public/telegram/notify',
+  path: '/api/public/telegram/notify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTelegramDailyReportRoute =
+  ApiPublicTelegramDailyReportRouteImport.update({
+    id: '/api/public/telegram/daily-report',
+    path: '/api/public/telegram/daily-report',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedSecurityGuardsIdRoute =
   AuthenticatedSecurityGuardsIdRouteImport.update({
     id: '/guards/$id',
@@ -239,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/permissions': typeof AuthenticatedPermissionsRoute
   '/pm-plans': typeof AuthenticatedPmPlansRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
+  '/telegram': typeof AuthenticatedTelegramRoute
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/users': typeof AuthenticatedUsersRoute
   '/vendors': typeof AuthenticatedVendorsRouteWithChildren
@@ -250,6 +277,9 @@ export interface FileRoutesByFullPath {
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/vendors/$id': typeof AuthenticatedVendorsIdRoute
   '/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
+  '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
+  '/api/public/telegram/notify': typeof ApiPublicTelegramNotifyRoute
+  '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -273,6 +303,7 @@ export interface FileRoutesByTo {
   '/permissions': typeof AuthenticatedPermissionsRoute
   '/pm-plans': typeof AuthenticatedPmPlansRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
+  '/telegram': typeof AuthenticatedTelegramRoute
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/users': typeof AuthenticatedUsersRoute
   '/vendors': typeof AuthenticatedVendorsRouteWithChildren
@@ -284,6 +315,9 @@ export interface FileRoutesByTo {
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/vendors/$id': typeof AuthenticatedVendorsIdRoute
   '/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
+  '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
+  '/api/public/telegram/notify': typeof ApiPublicTelegramNotifyRoute
+  '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -309,6 +343,7 @@ export interface FileRoutesById {
   '/_authenticated/permissions': typeof AuthenticatedPermissionsRoute
   '/_authenticated/pm-plans': typeof AuthenticatedPmPlansRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRouteWithChildren
+  '/_authenticated/telegram': typeof AuthenticatedTelegramRoute
   '/_authenticated/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/vendors': typeof AuthenticatedVendorsRouteWithChildren
@@ -320,6 +355,9 @@ export interface FileRoutesById {
   '/_authenticated/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/_authenticated/vendors/$id': typeof AuthenticatedVendorsIdRoute
   '/_authenticated/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
+  '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
+  '/api/public/telegram/notify': typeof ApiPublicTelegramNotifyRoute
+  '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -345,6 +383,7 @@ export interface FileRouteTypes {
     | '/permissions'
     | '/pm-plans'
     | '/security'
+    | '/telegram'
     | '/tenants'
     | '/users'
     | '/vendors'
@@ -356,6 +395,9 @@ export interface FileRouteTypes {
     | '/tenants/$id'
     | '/vendors/$id'
     | '/security/guards/$id'
+    | '/api/public/telegram/daily-report'
+    | '/api/public/telegram/notify'
+    | '/api/public/telegram/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -379,6 +421,7 @@ export interface FileRouteTypes {
     | '/permissions'
     | '/pm-plans'
     | '/security'
+    | '/telegram'
     | '/tenants'
     | '/users'
     | '/vendors'
@@ -390,6 +433,9 @@ export interface FileRouteTypes {
     | '/tenants/$id'
     | '/vendors/$id'
     | '/security/guards/$id'
+    | '/api/public/telegram/daily-report'
+    | '/api/public/telegram/notify'
+    | '/api/public/telegram/webhook'
   id:
     | '__root__'
     | '/'
@@ -414,6 +460,7 @@ export interface FileRouteTypes {
     | '/_authenticated/permissions'
     | '/_authenticated/pm-plans'
     | '/_authenticated/security'
+    | '/_authenticated/telegram'
     | '/_authenticated/tenants'
     | '/_authenticated/users'
     | '/_authenticated/vendors'
@@ -425,12 +472,18 @@ export interface FileRouteTypes {
     | '/_authenticated/tenants/$id'
     | '/_authenticated/vendors/$id'
     | '/_authenticated/security/guards/$id'
+    | '/api/public/telegram/daily-report'
+    | '/api/public/telegram/notify'
+    | '/api/public/telegram/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicTelegramDailyReportRoute: typeof ApiPublicTelegramDailyReportRoute
+  ApiPublicTelegramNotifyRoute: typeof ApiPublicTelegramNotifyRoute
+  ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -482,6 +535,13 @@ declare module '@tanstack/react-router' {
       path: '/tenants'
       fullPath: '/tenants'
       preLoaderRoute: typeof AuthenticatedTenantsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/telegram': {
+      id: '/_authenticated/telegram'
+      path: '/telegram'
+      fullPath: '/telegram'
+      preLoaderRoute: typeof AuthenticatedTelegramRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/security': {
@@ -659,6 +719,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssetsIdRouteImport
       parentRoute: typeof AuthenticatedAssetsRoute
     }
+    '/api/public/telegram/webhook': {
+      id: '/api/public/telegram/webhook'
+      path: '/api/public/telegram/webhook'
+      fullPath: '/api/public/telegram/webhook'
+      preLoaderRoute: typeof ApiPublicTelegramWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/telegram/notify': {
+      id: '/api/public/telegram/notify'
+      path: '/api/public/telegram/notify'
+      fullPath: '/api/public/telegram/notify'
+      preLoaderRoute: typeof ApiPublicTelegramNotifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/telegram/daily-report': {
+      id: '/api/public/telegram/daily-report'
+      path: '/api/public/telegram/daily-report'
+      fullPath: '/api/public/telegram/daily-report'
+      preLoaderRoute: typeof ApiPublicTelegramDailyReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/security/guards/$id': {
       id: '/_authenticated/security/guards/$id'
       path: '/guards/$id'
@@ -774,6 +855,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPermissionsRoute: typeof AuthenticatedPermissionsRoute
   AuthenticatedPmPlansRoute: typeof AuthenticatedPmPlansRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
+  AuthenticatedTelegramRoute: typeof AuthenticatedTelegramRoute
   AuthenticatedTenantsRoute: typeof AuthenticatedTenantsRouteWithChildren
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRouteWithChildren
@@ -800,6 +882,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPermissionsRoute: AuthenticatedPermissionsRoute,
   AuthenticatedPmPlansRoute: AuthenticatedPmPlansRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRouteWithChildren,
+  AuthenticatedTelegramRoute: AuthenticatedTelegramRoute,
   AuthenticatedTenantsRoute: AuthenticatedTenantsRouteWithChildren,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedVendorsRoute: AuthenticatedVendorsRouteWithChildren,
@@ -813,6 +896,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicTelegramDailyReportRoute: ApiPublicTelegramDailyReportRoute,
+  ApiPublicTelegramNotifyRoute: ApiPublicTelegramNotifyRoute,
+  ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

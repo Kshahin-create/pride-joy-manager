@@ -19,6 +19,7 @@ import {
   UserPlus,
   FileText,
   Building,
+  Send,
 } from "lucide-react";
 
 import {
@@ -88,6 +89,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { title: "المستخدمون", url: "/users", icon: UserCog, roles: ["super_admin"] },
       { title: "هوية البرج", url: "/identity", icon: Building, roles: ["super_admin", "owner"] },
       { title: "مصفوفة الصلاحيات", url: "/permissions", icon: Shield, roles: ["super_admin", "owner"] },
+      { title: "بوت تيليجرام", url: "/telegram", icon: Send },
     ],
   },
 ];

@@ -2445,6 +2445,72 @@ export type Database = {
           },
         ]
       }
+      telegram_link_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      telegram_subscribers: {
+        Row: {
+          chat_id: number
+          created_at: string
+          enabled: boolean
+          id: string
+          last_seen_at: string | null
+          linked_at: string
+          quiet_hours: boolean
+          tg_first_name: string | null
+          tg_username: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_id: number
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_seen_at?: string | null
+          linked_at?: string
+          quiet_hours?: boolean
+          tg_first_name?: string | null
+          tg_username?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: number
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          last_seen_at?: string | null
+          linked_at?: string
+          quiet_hours?: boolean
+          tg_first_name?: string | null
+          tg_username?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tickets: {
         Row: {
           assigned_to: string | null
@@ -2998,6 +3064,7 @@ export type Database = {
     }
     Functions: {
       can_manage_security: { Args: { _uid: string }; Returns: boolean }
+      create_telegram_link_code: { Args: never; Returns: string }
       generate_daily_notifications: { Args: never; Returns: undefined }
       generate_due_pm_work_orders: { Args: never; Returns: number }
       get_daily_report: { Args: { _date?: string }; Returns: Json }

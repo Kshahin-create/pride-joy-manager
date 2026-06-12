@@ -18,6 +18,7 @@ import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedTenantsRouteImport } from './routes/_authenticated/tenants'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedPmPlansRouteImport } from './routes/_authenticated/pm-plans'
+import { Route as AuthenticatedPermissionsRouteImport } from './routes/_authenticated/permissions'
 import { Route as AuthenticatedParkingRouteImport } from './routes/_authenticated/parking'
 import { Route as AuthenticatedOperationsRouteImport } from './routes/_authenticated/operations'
 import { Route as AuthenticatedOfficesRouteImport } from './routes/_authenticated/offices'
@@ -84,6 +85,12 @@ const AuthenticatedPmPlansRoute = AuthenticatedPmPlansRouteImport.update({
   path: '/pm-plans',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPermissionsRoute =
+  AuthenticatedPermissionsRouteImport.update({
+    id: '/permissions',
+    path: '/permissions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedParkingRoute = AuthenticatedParkingRouteImport.update({
   id: '/parking',
   path: '/parking',
@@ -214,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/offices': typeof AuthenticatedOfficesRouteWithChildren
   '/operations': typeof AuthenticatedOperationsRoute
   '/parking': typeof AuthenticatedParkingRoute
+  '/permissions': typeof AuthenticatedPermissionsRoute
   '/pm-plans': typeof AuthenticatedPmPlansRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
@@ -245,6 +253,7 @@ export interface FileRoutesByTo {
   '/offices': typeof AuthenticatedOfficesRouteWithChildren
   '/operations': typeof AuthenticatedOperationsRoute
   '/parking': typeof AuthenticatedParkingRoute
+  '/permissions': typeof AuthenticatedPermissionsRoute
   '/pm-plans': typeof AuthenticatedPmPlansRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
@@ -278,6 +287,7 @@ export interface FileRoutesById {
   '/_authenticated/offices': typeof AuthenticatedOfficesRouteWithChildren
   '/_authenticated/operations': typeof AuthenticatedOperationsRoute
   '/_authenticated/parking': typeof AuthenticatedParkingRoute
+  '/_authenticated/permissions': typeof AuthenticatedPermissionsRoute
   '/_authenticated/pm-plans': typeof AuthenticatedPmPlansRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRouteWithChildren
   '/_authenticated/tenants': typeof AuthenticatedTenantsRouteWithChildren
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/offices'
     | '/operations'
     | '/parking'
+    | '/permissions'
     | '/pm-plans'
     | '/security'
     | '/tenants'
@@ -342,6 +353,7 @@ export interface FileRouteTypes {
     | '/offices'
     | '/operations'
     | '/parking'
+    | '/permissions'
     | '/pm-plans'
     | '/security'
     | '/tenants'
@@ -374,6 +386,7 @@ export interface FileRouteTypes {
     | '/_authenticated/offices'
     | '/_authenticated/operations'
     | '/_authenticated/parking'
+    | '/_authenticated/permissions'
     | '/_authenticated/pm-plans'
     | '/_authenticated/security'
     | '/_authenticated/tenants'
@@ -458,6 +471,13 @@ declare module '@tanstack/react-router' {
       path: '/pm-plans'
       fullPath: '/pm-plans'
       preLoaderRoute: typeof AuthenticatedPmPlansRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/permissions': {
+      id: '/_authenticated/permissions'
+      path: '/permissions'
+      fullPath: '/permissions'
+      preLoaderRoute: typeof AuthenticatedPermissionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/parking': {
@@ -710,6 +730,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOfficesRoute: typeof AuthenticatedOfficesRouteWithChildren
   AuthenticatedOperationsRoute: typeof AuthenticatedOperationsRoute
   AuthenticatedParkingRoute: typeof AuthenticatedParkingRoute
+  AuthenticatedPermissionsRoute: typeof AuthenticatedPermissionsRoute
   AuthenticatedPmPlansRoute: typeof AuthenticatedPmPlansRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
   AuthenticatedTenantsRoute: typeof AuthenticatedTenantsRouteWithChildren
@@ -733,6 +754,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOfficesRoute: AuthenticatedOfficesRouteWithChildren,
   AuthenticatedOperationsRoute: AuthenticatedOperationsRoute,
   AuthenticatedParkingRoute: AuthenticatedParkingRoute,
+  AuthenticatedPermissionsRoute: AuthenticatedPermissionsRoute,
   AuthenticatedPmPlansRoute: AuthenticatedPmPlansRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRouteWithChildren,
   AuthenticatedTenantsRoute: AuthenticatedTenantsRouteWithChildren,
@@ -752,3 +774,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

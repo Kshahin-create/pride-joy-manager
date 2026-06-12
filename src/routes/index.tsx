@@ -129,85 +129,219 @@ function Hero3DScene() {
 }
 
 function Tower3D() {
-  const floors = Array.from({ length: 9 });
+  // Tapered tower — wider at the base, narrower near the crown
+  const sections = [
+    { floors: 3, width: 240, accent: false },
+    { floors: 4, width: 220, accent: true },
+    { floors: 4, width: 200, accent: false },
+    { floors: 4, width: 180, accent: true },
+    { floors: 3, width: 160, accent: false },
+  ];
   const orbiters = [
-    { icon: Cctv, label: "أمن 24/7", x: -160, y: -120, delay: 0 },
-    { icon: Wrench, label: "صيانة", x: 170, y: -90, delay: 0.4 },
-    { icon: Car, label: "مواقف", x: 190, y: 80, delay: 0.8 },
-    { icon: Sparkles, label: "نظافة", x: -180, y: 60, delay: 1.2 },
+    { icon: Cctv, label: "أمن 24/7", x: -180, y: -160, delay: 0 },
+    { icon: Wrench, label: "صيانة فورية", x: 190, y: -110, delay: 0.5 },
+    { icon: Car, label: "مواقف ذكية", x: 210, y: 90, delay: 1 },
+    { icon: Sparkles, label: "نظافة يومية", x: -200, y: 70, delay: 1.5 },
   ];
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.9, delay: 0.2 }}
-      className="relative h-[520px] sm:h-[600px] flex items-center justify-center"
-      style={{ perspective: "1400px" }}
+      transition={{ duration: 1, delay: 0.2 }}
+      className="relative h-[560px] sm:h-[660px] flex items-end justify-center"
+      style={{ perspective: "1600px", perspectiveOrigin: "50% 40%" }}
     >
-      <div className="absolute bottom-10 h-16 w-72 rounded-[50%] bg-gradient-to-br from-primary/30 to-transparent blur-2xl" aria-hidden />
+      {/* Sky beams */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <motion.div
+          className="absolute -top-10 left-1/2 -translate-x-1/2 h-[420px] w-[260px] rounded-full bg-gold/20 blur-3xl"
+          animate={{ opacity: [0.4, 0.7, 0.4], scale: [1, 1.08, 1] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-20 right-10 h-2 w-2 rounded-full bg-gold shadow-[0_0_20px_6px_rgba(201,162,39,0.6)]"
+          animate={{ opacity: [0, 1, 0], y: [0, -30, -60] }}
+          transition={{ duration: 4, repeat: Infinity, delay: 1 }}
+        />
+        <motion.div
+          className="absolute top-40 left-16 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_15px_5px_rgba(30,58,95,0.5)]"
+          animate={{ opacity: [0, 1, 0], y: [0, -40, -80] }}
+          transition={{ duration: 5, repeat: Infinity, delay: 2 }}
+        />
+      </div>
 
+      {/* Ground glow + reflection plate */}
+      <div className="absolute bottom-6 h-24 w-[380px] rounded-[50%] bg-gradient-radial from-primary/40 via-primary/10 to-transparent blur-2xl" aria-hidden />
+      <div className="absolute bottom-4 h-3 w-[300px] rounded-full bg-gold/30 blur-md" aria-hidden />
+
+      {/* TOWER — flexbox column from base up, full 3D */}
       <motion.div
-        animate={{ rotateY: [0, 6, -6, 0], rotateX: [8, 10, 8] }}
-        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ rotateY: [-8, 8, -8], rotateX: [6, 8, 6] }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
         style={{ transformStyle: "preserve-3d" }}
-        className="relative"
+        className="relative flex flex-col items-center justify-end"
       >
-        <div className="relative w-44 sm:w-52 rounded-t-3xl bg-gradient-to-b from-primary via-primary/90 to-primary/70 shadow-[0_50px_100px_-20px_rgba(30,58,95,0.5)] border border-primary/40 overflow-hidden">
-          <div className="h-3 bg-gradient-to-b from-gold to-gold/60" />
-          <div className="absolute top-0 inset-x-10 h-8 -mt-6 flex justify-center">
-            <div className="w-1.5 h-12 bg-gold shadow-lg shadow-gold/50 rounded-full" />
-          </div>
+        {/* Antenna + beacon */}
+        <div className="flex flex-col items-center" style={{ transform: "translateZ(20px)" }}>
+          <motion.div
+            className="h-3 w-3 rounded-full bg-red-500 shadow-[0_0_18px_4px_rgba(239,68,68,0.7)]"
+            animate={{ opacity: [1, 0.3, 1] }}
+            transition={{ duration: 1.2, repeat: Infinity }}
+          />
+          <div className="w-[3px] h-14 bg-gradient-to-b from-gold via-gold/70 to-primary shadow-md" />
+          <div className="w-2 h-2 rounded-full bg-gold mb-1" />
+        </div>
 
-          <div className="p-3 space-y-2">
-            {floors.map((_, i) => (
-              <div key={i} className="grid grid-cols-4 gap-1.5">
-                {Array.from({ length: 4 }).map((__, j) => {
-                  const lit = (i + j) % 3 !== 0;
+        {/* Crown */}
+        <div
+          className="relative w-32 h-8 rounded-t-2xl bg-gradient-to-b from-gold via-gold/80 to-gold/40 shadow-[0_0_30px_rgba(201,162,39,0.5)] border-t border-x border-gold/60"
+          style={{ transform: "translateZ(10px)" }}
+        >
+          <div className="absolute inset-x-3 top-1.5 h-1 rounded-full bg-white/40" />
+        </div>
+
+        {/* Stacked tapered sections */}
+        {sections.map((sec, sIdx) => {
+          const globalOffset = sections.slice(0, sIdx).reduce((a, b) => a + b.floors, 0);
+          return (
+            <div
+              key={sIdx}
+              className="relative border-x border-t border-primary/40 backdrop-blur-sm overflow-hidden"
+              style={{
+                width: sec.width,
+                background:
+                  "linear-gradient(180deg, rgba(30,58,95,0.95) 0%, rgba(30,58,95,0.85) 50%, rgba(30,58,95,0.95) 100%)",
+                boxShadow:
+                  "inset 0 0 0 1px rgba(255,255,255,0.08), 0 30px 60px -20px rgba(30,58,95,0.4)",
+              }}
+            >
+              {/* Mullions / vertical glass divider strip */}
+              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-gradient-to-b from-gold/0 via-gold/40 to-gold/0" />
+              {/* Side highlights — fake light from the right */}
+              <div className="absolute inset-y-0 right-0 w-2 bg-gradient-to-l from-white/20 to-transparent pointer-events-none" />
+              <div className="absolute inset-y-0 left-0 w-2 bg-gradient-to-r from-black/30 to-transparent pointer-events-none" />
+
+              {/* Gold accent band on alternate sections */}
+              {sec.accent && (
+                <div className="h-1.5 w-full bg-gradient-to-r from-gold/30 via-gold to-gold/30 shadow-[0_0_10px_rgba(201,162,39,0.6)]" />
+              )}
+
+              {/* Floor windows */}
+              <div className="px-2.5 py-2 space-y-1.5">
+                {Array.from({ length: sec.floors }).map((_, i) => {
+                  const floorIdx = globalOffset + i;
                   return (
-                    <motion.div
-                      key={j}
-                      className="h-5 rounded-sm border border-white/10"
-                      animate={lit ? { opacity: [0.9, 1, 0.85] } : { opacity: 0.25 }}
-                      transition={{ duration: 2 + ((i + j) % 4), repeat: Infinity, ease: "easeInOut", delay: (i * 0.1 + j * 0.07) % 2 }}
-                      style={{
-                        background: lit
-                          ? "linear-gradient(180deg, #fde68a 0%, #C9A227 100%)"
-                          : "rgba(255,255,255,0.06)",
-                        boxShadow: lit ? "0 0 10px rgba(201, 162, 39, 0.55)" : "none",
-                      }}
-                    />
+                    <div key={i} className="grid grid-cols-6 gap-1">
+                      {Array.from({ length: 6 }).map((__, j) => {
+                        const lit = (floorIdx * 7 + j * 3) % 4 !== 0;
+                        return (
+                          <motion.div
+                            key={j}
+                            className="h-3.5 rounded-[2px]"
+                            animate={
+                              lit
+                                ? { opacity: [0.85, 1, 0.7, 1] }
+                                : { opacity: 0.18 }
+                            }
+                            transition={{
+                              duration: 3 + ((floorIdx + j) % 5),
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                              delay: ((floorIdx * 0.13 + j * 0.09) % 2),
+                            }}
+                            style={{
+                              background: lit
+                                ? "linear-gradient(180deg, #fef3c7 0%, #fde68a 40%, #C9A227 100%)"
+                                : "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
+                              boxShadow: lit
+                                ? "0 0 8px rgba(253,224,138,0.7), inset 0 0 0 1px rgba(255,255,255,0.15)"
+                                : "inset 0 0 0 1px rgba(255,255,255,0.06)",
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
                   );
                 })}
               </div>
-            ))}
-          </div>
+            </div>
+          );
+        })}
 
-          <div className="px-6 pb-4 pt-2 flex items-end justify-center">
-            <div className="h-9 w-12 rounded-t-md bg-gold/80 border border-gold shadow-inner" />
+        {/* Plaza / podium */}
+        <div
+          className="relative w-[280px] h-12 bg-gradient-to-b from-primary/90 to-primary/60 border border-primary/50 rounded-b-md shadow-2xl"
+          style={{ transform: "translateZ(5px)" }}
+        >
+          {/* entrance arch */}
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-9 rounded-t-xl bg-gradient-to-b from-gold/90 to-gold/50 border-t border-x border-gold shadow-[0_0_20px_rgba(201,162,39,0.5)]">
+            <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-px h-7 bg-primary/40" />
+          </div>
+          {/* lobby lights */}
+          <div className="absolute top-2 inset-x-3 flex justify-between">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <motion.span
+                key={i}
+                className="h-1.5 w-1.5 rounded-full bg-gold shadow-[0_0_6px_rgba(201,162,39,0.8)]"
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity, delay: i * 0.15 }}
+              />
+            ))}
           </div>
         </div>
 
-        <div className="mx-auto mt-1 h-10 w-56 rounded-[50%] bg-gradient-to-b from-primary/20 to-transparent blur-md" />
+        {/* Reflection on glass floor */}
+        <div
+          className="mx-auto mt-1 h-24 w-[260px] opacity-30"
+          style={{
+            transform: "rotateX(180deg) translateZ(-2px)",
+            background:
+              "linear-gradient(180deg, rgba(30,58,95,0.5), transparent 70%)",
+            maskImage: "linear-gradient(180deg, rgba(0,0,0,0.6), transparent)",
+            WebkitMaskImage: "linear-gradient(180deg, rgba(0,0,0,0.6), transparent)",
+            filter: "blur(2px)",
+          }}
+        />
       </motion.div>
 
+      {/* Floating service badges */}
       {orbiters.map((o, i) => {
         const Icon = o.icon;
         return (
           <motion.div
             key={i}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: [0, -10, 0], x: [0, 5, 0] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: o.delay }}
-            className="absolute"
-            style={{ transform: `translate(${o.x}px, ${o.y}px)` }}
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: [0, -14, 0],
+              x: [0, i % 2 === 0 ? 6 : -6, 0],
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: o.delay,
+            }}
+            className="absolute top-1/2 left-1/2"
+            style={{ transform: `translate(calc(-50% + ${o.x}px), calc(-50% + ${o.y}px))` }}
           >
-            <div className="flex items-center gap-2 rounded-xl border border-border/70 bg-card/90 backdrop-blur-xl px-3 py-2 shadow-xl shadow-primary/10 hover:shadow-gold/30 transition-shadow">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-primary/70 grid place-items-center">
-                <Icon className="h-4 w-4 text-primary-foreground" />
+            <div className="group flex items-center gap-2 rounded-2xl border border-gold/30 bg-card/95 backdrop-blur-xl ps-2 pe-3.5 py-2 shadow-2xl shadow-primary/20 hover:shadow-gold/40 hover:-translate-y-0.5 transition-all">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary via-primary to-primary/60 grid place-items-center shadow-inner border border-primary/60">
+                <Icon className="h-4.5 w-4.5 text-gold" />
               </div>
-              <span className="text-xs font-semibold text-primary whitespace-nowrap">{o.label}</span>
+              <span className="text-xs font-bold text-primary whitespace-nowrap">{o.label}</span>
             </div>
+            {/* connector line to tower */}
+            <div
+              className="absolute top-1/2 h-px bg-gradient-to-r from-gold/60 to-transparent"
+              style={{
+                width: 60,
+                [o.x < 0 ? "left" : "right"]: "100%",
+                transform: "translateY(-50%)",
+              }}
+            />
           </motion.div>
         );
       })}

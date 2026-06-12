@@ -153,10 +153,7 @@ function ClientDetailsPage() {
         </TabsContent>
 
         <TabsContent value="contracts" className="mt-4">
-          <Card><CardHeader><CardTitle>العقود</CardTitle></CardHeader>
-            <CardContent className="py-10 text-center text-muted-foreground">
-              سيتم عرض عقود هذا العميل هنا بعد تنفيذ موديول العقود.
-            </CardContent></Card>
+          <CompanyContractsTab companyId={company.id} />
         </TabsContent>
       </Tabs>
 

@@ -331,6 +331,132 @@ export type Database = {
           },
         ]
       }
+      contract_attachments: {
+        Row: {
+          attachment_type: Database["public"]["Enums"]["contract_attachment_type"]
+          contract_id: string
+          created_at: string
+          created_by: string | null
+          file_name: string
+          id: string
+          mime_type: string | null
+          notes: string | null
+          size_bytes: number | null
+          storage_path: string
+          updated_at: string
+        }
+        Insert: {
+          attachment_type: Database["public"]["Enums"]["contract_attachment_type"]
+          contract_id: string
+          created_at?: string
+          created_by?: string | null
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          updated_at?: string
+        }
+        Update: {
+          attachment_type?: Database["public"]["Enums"]["contract_attachment_type"]
+          contract_id?: string
+          created_at?: string
+          created_by?: string | null
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_attachments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          company_id: string
+          contract_number: string
+          created_at: string
+          created_by: string | null
+          deposit_amount: number
+          end_date: string
+          id: string
+          notes: string | null
+          office_id: string
+          renewed_from_id: string | null
+          rent_amount: number
+          service_fees: number
+          start_date: string
+          status: Database["public"]["Enums"]["contract_status"]
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          contract_number: string
+          created_at?: string
+          created_by?: string | null
+          deposit_amount?: number
+          end_date: string
+          id?: string
+          notes?: string | null
+          office_id: string
+          renewed_from_id?: string | null
+          rent_amount?: number
+          service_fees?: number
+          start_date: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          contract_number?: string
+          created_at?: string
+          created_by?: string | null
+          deposit_amount?: number
+          end_date?: string
+          id?: string
+          notes?: string | null
+          office_id?: string
+          renewed_from_id?: string | null
+          rent_amount?: number
+          service_fees?: number
+          start_date?: string
+          status?: Database["public"]["Enums"]["contract_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_renewed_from_id_fkey"
+            columns: ["renewed_from_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       electricity_meters: {
         Row: {
           created_at: string
@@ -634,6 +760,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      renew_contract: {
+        Args: {
+          _contract_id: string
+          _new_end: string
+          _new_rent?: number
+          _new_start: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role:
@@ -651,6 +786,12 @@ export type Database = {
         | "حجز"
         | "تعاقد"
         | "غير مهتم"
+      contract_attachment_type:
+        | "نسخة العقد"
+        | "الهوية"
+        | "السجل التجاري"
+        | "سند دفع"
+      contract_status: "ساري" | "منتهي" | "مجدد" | "ملغي"
       interaction_type: "مكالمة" | "زيارة" | "ملاحظة"
       office_status: "متاح" | "محجوز" | "مؤجر" | "تحت الصيانة" | "غير متاح"
     }
@@ -797,6 +938,13 @@ export const Constants = {
         "تعاقد",
         "غير مهتم",
       ],
+      contract_attachment_type: [
+        "نسخة العقد",
+        "الهوية",
+        "السجل التجاري",
+        "سند دفع",
+      ],
+      contract_status: ["ساري", "منتهي", "مجدد", "ملغي"],
       interaction_type: ["مكالمة", "زيارة", "ملاحظة"],
       office_status: ["متاح", "محجوز", "مؤجر", "تحت الصيانة", "غير متاح"],
     },

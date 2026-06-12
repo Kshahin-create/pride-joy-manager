@@ -1379,3 +1379,9 @@ function OfficeTicketsTab({ officeId }: { officeId: string }) {
     </Card>
   );
 }
+
+function OfficeBuildingLogTab({ officeId }: { officeId: string }) {
+  const { items, loading } = useBuildingLog({ officeId });
+  if (loading) return <Card><CardContent className="py-8 text-center text-muted-foreground">جارٍ التحميل...</CardContent></Card>;
+  return <Timeline items={items} />;
+}

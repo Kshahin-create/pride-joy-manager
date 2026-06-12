@@ -145,8 +145,8 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
     } catch (e: any) { toast.error(e.message ?? "فشل الرفع"); }
   };
 
-  const signedUrl = async (path: string) => {
-    const { data, error } = await (supabase as any).storage.from("documents").createSignedUrl(path, 3600);
+  const signedUrl = async (path: string, expiresIn = 3600) => {
+    const { data, error } = await (supabase as any).storage.from("documents").createSignedUrl(path, expiresIn);
     if (error) { toast.error(error.message); return null; }
     return data?.signedUrl as string | null;
   };
@@ -161,6 +161,16 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
     const a = document.createElement("a");
     a.href = url; a.download = d.file_name ?? d.title; a.click();
   };
+  const share = async (d: DocumentRow) => {
+    const url = await signedUrl(d.file_path, 7 * 24 * 3600); // 7 days
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("تم نسخ رابط المشاركة (صالح 7 أيام)");
+    } catch {
+      window.prompt("رابط المشاركة (صالح 7 أيام):", url);
+    }
+  };
   const remove = async (d: DocumentRow) => {
     await (supabase as any).storage.from("documents").remove([d.file_path]);
     const { error } = await (supabase as any).from("documents").delete().eq("id", d.id);
@@ -169,9 +179,73 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
     void load();
   };
 
+  // Filtered list based on search
+  const filtered = items.filter((d) => {
+    if (!search.trim()) return true;
+    const s = search.trim().toLowerCase();
+    return (
+      d.title.toLowerCase().includes(s) ||
+      (d.file_name ?? "").toLowerCase().includes(s) ||
+      (d.notes ?? "").toLowerCase().includes(s) ||
+      d.category.toLowerCase().includes(s)
+    );
+  });
+
+  const downloadAllZip = async () => {
+    if (filtered.length === 0) { toast.error("لا توجد ملفات للتحميل"); return; }
+    setZipping(true);
+    const t = toast.loading(`جارٍ تحضير الأرشيف (${filtered.length} ملف)...`);
+    try {
+      const zip = new JSZip();
+      const used = new Map<string, number>();
+      for (const d of filtered) {
+        const url = await signedUrl(d.file_path);
+        if (!url) continue;
+        const res = await fetch(url);
+        const blob = await res.blob();
+        let name = d.file_name ?? `${d.title}`;
+        if (used.has(name)) {
+          const n = (used.get(name) ?? 1) + 1;
+          used.set(name, n);
+          const dot = name.lastIndexOf(".");
+          name = dot > 0 ? `${name.slice(0, dot)} (${n})${name.slice(dot)}` : `${name} (${n})`;
+        } else { used.set(name, 1); }
+        const folder = zip.folder(d.category) ?? zip;
+        folder.file(name, blob);
+      }
+      const out = await zip.generateAsync({ type: "blob" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(out);
+      a.download = `archive-${new Date().toISOString().slice(0, 10)}.zip`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast.success("تم تحضير الأرشيف", { id: t });
+    } catch (e: any) {
+      toast.error(e.message ?? "فشل تحضير الأرشيف", { id: t });
+    } finally { setZipping(false); }
+  };
+
+  const onPickFiles = (list: FileList | null) => {
+    if (!list) return;
+    setFiles((prev) => [...prev, ...Array.from(list)]);
+  };
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault(); setDragOver(false);
+    onPickFiles(e.dataTransfer.files);
+  };
+
   return (
     <div className="space-y-4" dir="rtl">
       <div className="flex flex-wrap items-center gap-2">
+        <div className="relative">
+          <Search className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="بحث في العناوين والملاحظات..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="ps-2 pe-8 w-64"
+          />
+        </div>
         <Select value={fCategory} onValueChange={setFCategory}>
           <SelectTrigger className="w-48"><SelectValue placeholder="التصنيف" /></SelectTrigger>
           <SelectContent>
@@ -179,13 +253,16 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
             {DOC_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
           </SelectContent>
         </Select>
-        <div className="ms-auto">
+        <div className="ms-auto flex gap-2">
+          <Button variant="outline" onClick={downloadAllZip} disabled={zipping || filtered.length === 0}>
+            <Archive className="h-4 w-4 ms-1" /> تحميل الكل (ZIP)
+          </Button>
           {canManage && (
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setFiles([]); }}>
               <DialogTrigger asChild>
                 <Button><Plus className="h-4 w-4 ms-1" /> رفع مستند</Button>
               </DialogTrigger>
-              <DialogContent dir="rtl">
+              <DialogContent dir="rtl" className="max-w-lg">
                 <DialogHeader><DialogTitle>رفع مستندات</DialogTitle></DialogHeader>
                 <div className="space-y-3">
                   <div>
@@ -216,19 +293,47 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
                     <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                   </div>
                   <div>
-                    <Label>الملفات (يمكن اختيار عدة ملفات)</Label>
-                    <Input type="file" multiple onChange={(e) => setFiles(e.target.files)} />
+                    <Label>الملفات</Label>
+                    <label
+                      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                      onDragLeave={() => setDragOver(false)}
+                      onDrop={onDrop}
+                      className={`mt-1 flex flex-col items-center justify-center gap-1 border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors ${dragOver ? "border-primary bg-primary/5" : "border-border hover:bg-muted/30"}`}
+                    >
+                      <UploadCloud className="h-7 w-7 text-muted-foreground" />
+                      <div className="text-sm">اسحب وأفلِت الملفات هنا أو اضغط للاختيار</div>
+                      <div className="text-xs text-muted-foreground">يمكن اختيار عدة ملفات بأي صيغة</div>
+                      <input
+                        type="file"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => { onPickFiles(e.target.files); e.target.value = ""; }}
+                      />
+                    </label>
+                    {files.length > 0 && (
+                      <ul className="mt-2 space-y-1 max-h-40 overflow-auto">
+                        {files.map((f, i) => (
+                          <li key={i} className="flex items-center justify-between text-xs bg-muted/40 rounded px-2 py-1">
+                            <span className="truncate">{f.name} <span className="text-muted-foreground">({(f.size / 1024).toFixed(1)} KB)</span></span>
+                            <button type="button" onClick={() => setFiles((p) => p.filter((_, k) => k !== i))} className="text-muted-foreground hover:text-destructive">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
-                  <Button onClick={submit}>رفع</Button>
+                  <Button onClick={submit}>رفع {files.length > 0 ? `(${files.length})` : ""}</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
           )}
         </div>
       </div>
+
 
       <Card>
         <CardContent className="p-0">

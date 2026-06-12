@@ -1484,6 +1484,54 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          dedupe_key: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          is_read: boolean
+          link: string | null
+          notification_type: Database["public"]["Enums"]["notification_type"]
+          read_at: string | null
+          target_role: Database["public"]["Enums"]["app_role"] | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          notification_type?: Database["public"]["Enums"]["notification_type"]
+          read_at?: string | null
+          target_role?: Database["public"]["Enums"]["app_role"] | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          dedupe_key?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          notification_type?: Database["public"]["Enums"]["notification_type"]
+          read_at?: string | null
+          target_role?: Database["public"]["Enums"]["app_role"] | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       office_files: {
         Row: {
           created_at: string
@@ -2252,6 +2300,33 @@ export type Database = {
       }
     }
     Views: {
+      dashboard_stats: {
+        Row: {
+          collected_this_month: number | null
+          contracts_active: number | null
+          contracts_expired: number | null
+          contracts_expiring: number | null
+          critical_failures: number | null
+          guards_count: number | null
+          incidents_open: number | null
+          offices_available: number | null
+          offices_maintenance: number | null
+          offices_rented: number | null
+          offices_reserved: number | null
+          offices_total: number | null
+          overdue_total: number | null
+          parking_available: number | null
+          parking_occupied: number | null
+          patrols_week: number | null
+          revenue_ytd: number | null
+          scheduled_week: number | null
+          tickets_closed: number | null
+          tickets_emergency: number | null
+          tickets_open: number | null
+          violations_open: number | null
+        }
+        Relationships: []
+      }
       guards_safe: {
         Row: {
           address: string | null
@@ -2321,9 +2396,17 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_revenue: {
+        Row: {
+          month: string | null
+          revenue: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_manage_security: { Args: { _uid: string }; Returns: boolean }
+      generate_daily_notifications: { Args: never; Returns: undefined }
       get_my_roles: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]
@@ -2336,6 +2419,19 @@ export type Database = {
         Returns: boolean
       }
       mark_overdue_invoices: { Args: never; Returns: undefined }
+      notify: {
+        Args: {
+          _body: string
+          _dedupe: string
+          _entity_id: string
+          _entity_type: string
+          _link: string
+          _role: Database["public"]["Enums"]["app_role"]
+          _title: string
+          _type: Database["public"]["Enums"]["notification_type"]
+        }
+        Returns: undefined
+      }
       recalc_invoice_status: {
         Args: { _invoice_id: string }
         Returns: undefined
@@ -2406,6 +2502,14 @@ export type Database = {
         | "جاري التنفيذ"
         | "بانتظار قطع غيار"
         | "مغلق"
+      notification_type:
+        | "contract_expiring"
+        | "invoice_overdue"
+        | "document_expiring"
+        | "training_expiring"
+        | "ticket_emergency"
+        | "asset_critical_failure"
+        | "generic"
       office_status: "متاح" | "محجوز" | "مؤجر" | "تحت الصيانة" | "غير متاح"
       parking_check_status: "سليم" | "يحتاج صيانة"
       parking_spot_status: "متاح" | "مخصص" | "مشغول" | "صيانة"
@@ -2604,6 +2708,15 @@ export const Constants = {
         "جاري التنفيذ",
         "بانتظار قطع غيار",
         "مغلق",
+      ],
+      notification_type: [
+        "contract_expiring",
+        "invoice_overdue",
+        "document_expiring",
+        "training_expiring",
+        "ticket_emergency",
+        "asset_critical_failure",
+        "generic",
       ],
       office_status: ["متاح", "محجوز", "مؤجر", "تحت الصيانة", "غير متاح"],
       parking_check_status: ["سليم", "يحتاج صيانة"],

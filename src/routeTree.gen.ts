@@ -16,6 +16,7 @@ import { Route as AuthenticatedVendorsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedTenantsRouteImport } from './routes/_authenticated/tenants'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
+import { Route as AuthenticatedPmPlansRouteImport } from './routes/_authenticated/pm-plans'
 import { Route as AuthenticatedParkingRouteImport } from './routes/_authenticated/parking'
 import { Route as AuthenticatedOperationsRouteImport } from './routes/_authenticated/operations'
 import { Route as AuthenticatedOfficesRouteImport } from './routes/_authenticated/offices'
@@ -69,6 +70,11 @@ const AuthenticatedTenantsRoute = AuthenticatedTenantsRouteImport.update({
 const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
   id: '/security',
   path: '/security',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPmPlansRoute = AuthenticatedPmPlansRouteImport.update({
+  id: '/pm-plans',
+  path: '/pm-plans',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedParkingRoute = AuthenticatedParkingRouteImport.update({
@@ -195,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/offices': typeof AuthenticatedOfficesRouteWithChildren
   '/operations': typeof AuthenticatedOperationsRoute
   '/parking': typeof AuthenticatedParkingRoute
+  '/pm-plans': typeof AuthenticatedPmPlansRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/users': typeof AuthenticatedUsersRoute
@@ -223,6 +230,7 @@ export interface FileRoutesByTo {
   '/offices': typeof AuthenticatedOfficesRouteWithChildren
   '/operations': typeof AuthenticatedOperationsRoute
   '/parking': typeof AuthenticatedParkingRoute
+  '/pm-plans': typeof AuthenticatedPmPlansRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/users': typeof AuthenticatedUsersRoute
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/_authenticated/offices': typeof AuthenticatedOfficesRouteWithChildren
   '/_authenticated/operations': typeof AuthenticatedOperationsRoute
   '/_authenticated/parking': typeof AuthenticatedParkingRoute
+  '/_authenticated/pm-plans': typeof AuthenticatedPmPlansRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRouteWithChildren
   '/_authenticated/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/_authenticated/users': typeof AuthenticatedUsersRoute
@@ -283,6 +292,7 @@ export interface FileRouteTypes {
     | '/offices'
     | '/operations'
     | '/parking'
+    | '/pm-plans'
     | '/security'
     | '/tenants'
     | '/users'
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/offices'
     | '/operations'
     | '/parking'
+    | '/pm-plans'
     | '/security'
     | '/tenants'
     | '/users'
@@ -340,6 +351,7 @@ export interface FileRouteTypes {
     | '/_authenticated/offices'
     | '/_authenticated/operations'
     | '/_authenticated/parking'
+    | '/_authenticated/pm-plans'
     | '/_authenticated/security'
     | '/_authenticated/tenants'
     | '/_authenticated/users'
@@ -408,6 +420,13 @@ declare module '@tanstack/react-router' {
       path: '/security'
       fullPath: '/security'
       preLoaderRoute: typeof AuthenticatedSecurityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pm-plans': {
+      id: '/_authenticated/pm-plans'
+      path: '/pm-plans'
+      fullPath: '/pm-plans'
+      preLoaderRoute: typeof AuthenticatedPmPlansRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/parking': {
@@ -652,6 +671,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOfficesRoute: typeof AuthenticatedOfficesRouteWithChildren
   AuthenticatedOperationsRoute: typeof AuthenticatedOperationsRoute
   AuthenticatedParkingRoute: typeof AuthenticatedParkingRoute
+  AuthenticatedPmPlansRoute: typeof AuthenticatedPmPlansRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
   AuthenticatedTenantsRoute: typeof AuthenticatedTenantsRouteWithChildren
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
@@ -672,6 +692,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOfficesRoute: AuthenticatedOfficesRouteWithChildren,
   AuthenticatedOperationsRoute: AuthenticatedOperationsRoute,
   AuthenticatedParkingRoute: AuthenticatedParkingRoute,
+  AuthenticatedPmPlansRoute: AuthenticatedPmPlansRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRouteWithChildren,
   AuthenticatedTenantsRoute: AuthenticatedTenantsRouteWithChildren,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,

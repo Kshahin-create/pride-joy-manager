@@ -219,13 +219,14 @@ function OfficeDetailsPage() {
       </div>
 
       <Tabs defaultValue="basic" dir="rtl">
-        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
           <TabsTrigger value="basic"><InfoIcon className="h-4 w-4 ms-1" />البيانات</TabsTrigger>
           <TabsTrigger value="electricity"><Gauge className="h-4 w-4 ms-1" />الكهرباء</TabsTrigger>
           <TabsTrigger value="ac"><Snowflake className="h-4 w-4 ms-1" />التكييف</TabsTrigger>
           <TabsTrigger value="network"><Network className="h-4 w-4 ms-1" />الشبكات</TabsTrigger>
           <TabsTrigger value="files"><FolderOpen className="h-4 w-4 ms-1" />الملفات</TabsTrigger>
           <TabsTrigger value="log"><History className="h-4 w-4 ms-1" />السجل</TabsTrigger>
+          <TabsTrigger value="tickets"><History className="h-4 w-4 ms-1" />التذاكر</TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="mt-4">
@@ -245,6 +246,9 @@ function OfficeDetailsPage() {
         </TabsContent>
         <TabsContent value="log" className="mt-4">
           <OfficeContractsLog officeId={office.id} />
+        </TabsContent>
+        <TabsContent value="tickets" className="mt-4">
+          <OfficeTicketsTab officeId={office.id} />
         </TabsContent>
       </Tabs>
 
@@ -1323,5 +1327,55 @@ function ConfirmDelete({ open, title, message, onCancel, onConfirm }: {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+function OfficeTicketsTab({ officeId }: { officeId: string }) {
+  const [items, setItems] = useState<any[]>([]);
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("tickets")
+        .select("id, ticket_number, ticket_type, priority, status, description, created_at")
+        .eq("office_id", officeId)
+        .order("created_at", { ascending: false });
+      setItems(data ?? []);
+    })();
+  }, [officeId]);
+  return (
+    <Card>
+      <CardHeader><CardTitle>تذاكر هذا المكتب</CardTitle></CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader><TableRow>
+            <TableHead>الرقم</TableHead><TableHead>النوع</TableHead><TableHead>الأولوية</TableHead>
+            <TableHead>الوصف</TableHead><TableHead>الحالة</TableHead><TableHead></TableHead>
+          </TableRow></TableHeader>
+          <TableBody>
+            {items.map((t) => (
+              <TableRow key={t.id} className={t.priority === "طارئة" && t.status !== "مغلق" ? "bg-red-500/5" : ""}>
+                <TableCell className="font-medium">{t.ticket_number}</TableCell>
+                <TableCell>{t.ticket_type}</TableCell>
+                <TableCell>
+                  {t.priority === "طارئة"
+                    ? <Badge className="bg-red-600 text-white animate-pulse">طارئة</Badge>
+                    : <Badge variant="outline">{t.priority}</Badge>}
+                </TableCell>
+                <TableCell className="max-w-xs truncate text-muted-foreground">{t.description}</TableCell>
+                <TableCell><Badge variant={t.status === "مغلق" ? "secondary" : "default"}>{t.status}</Badge></TableCell>
+                <TableCell>
+                  <Link to="/complaints/$id" params={{ id: t.id }}>
+                    <Button size="sm" variant="outline">فتح</Button>
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+            {items.length === 0 && (
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">لا توجد تذاكر.</TableCell></TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }

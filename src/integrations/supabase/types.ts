@@ -1640,6 +1640,145 @@ export type Database = {
         }
         Relationships: []
       }
+      vendor_contracts: {
+        Row: {
+          attachment_url: string | null
+          contract_number: string
+          contract_value: number
+          created_at: string
+          created_by: string | null
+          end_date: string
+          id: string
+          notes: string | null
+          start_date: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          attachment_url?: string | null
+          contract_number: string
+          contract_value?: number
+          created_at?: string
+          created_by?: string | null
+          end_date: string
+          id?: string
+          notes?: string | null
+          start_date: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          attachment_url?: string | null
+          contract_number?: string
+          contract_value?: number
+          created_at?: string
+          created_by?: string | null
+          end_date?: string
+          id?: string
+          notes?: string | null
+          start_date?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_contracts_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendor_evaluations: {
+        Row: {
+          commitment_score: number
+          created_at: string
+          created_by: string | null
+          evaluation_date: string
+          id: string
+          notes: string | null
+          quality_score: number
+          speed_score: number
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          commitment_score: number
+          created_at?: string
+          created_by?: string | null
+          evaluation_date?: string
+          id?: string
+          notes?: string | null
+          quality_score: number
+          speed_score: number
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          commitment_score?: number
+          created_at?: string
+          created_by?: string | null
+          evaluation_date?: string
+          id?: string
+          notes?: string | null
+          quality_score?: number
+          speed_score?: number
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_evaluations_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendors: {
+        Row: {
+          activity: string | null
+          address: string | null
+          company_name: string
+          contact_person: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          mobile: string | null
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          activity?: string | null
+          address?: string | null
+          company_name: string
+          contact_person?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          mobile?: string | null
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activity?: string | null
+          address?: string | null
+          company_name?: string
+          contact_person?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          mobile?: string | null
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       guards_safe: {

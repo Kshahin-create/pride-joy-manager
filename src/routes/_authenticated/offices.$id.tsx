@@ -1329,3 +1329,53 @@ function ConfirmDelete({ open, title, message, onCancel, onConfirm }: {
     </AlertDialog>
   );
 }
+
+function OfficeTicketsTab({ officeId }: { officeId: string }) {
+  const [items, setItems] = useState<any[]>([]);
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("tickets")
+        .select("id, ticket_number, ticket_type, priority, status, description, created_at")
+        .eq("office_id", officeId)
+        .order("created_at", { ascending: false });
+      setItems(data ?? []);
+    })();
+  }, [officeId]);
+  return (
+    <Card>
+      <CardHeader><CardTitle>تذاكر هذا المكتب</CardTitle></CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader><TableRow>
+            <TableHead>الرقم</TableHead><TableHead>النوع</TableHead><TableHead>الأولوية</TableHead>
+            <TableHead>الوصف</TableHead><TableHead>الحالة</TableHead><TableHead></TableHead>
+          </TableRow></TableHeader>
+          <TableBody>
+            {items.map((t) => (
+              <TableRow key={t.id} className={t.priority === "طارئة" && t.status !== "مغلق" ? "bg-red-500/5" : ""}>
+                <TableCell className="font-medium">{t.ticket_number}</TableCell>
+                <TableCell>{t.ticket_type}</TableCell>
+                <TableCell>
+                  {t.priority === "طارئة"
+                    ? <Badge className="bg-red-600 text-white animate-pulse">طارئة</Badge>
+                    : <Badge variant="outline">{t.priority}</Badge>}
+                </TableCell>
+                <TableCell className="max-w-xs truncate text-muted-foreground">{t.description}</TableCell>
+                <TableCell><Badge variant={t.status === "مغلق" ? "secondary" : "default"}>{t.status}</Badge></TableCell>
+                <TableCell>
+                  <Link to="/complaints/$id" params={{ id: t.id }}>
+                    <Button size="sm" variant="outline">فتح</Button>
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))}
+            {items.length === 0 && (
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">لا توجد تذاكر.</TableCell></TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}

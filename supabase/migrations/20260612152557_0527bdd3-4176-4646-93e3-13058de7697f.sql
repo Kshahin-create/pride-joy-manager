@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.sync_camera_next_maintenance() FROM PUBLIC, anon, authenticated;

@@ -88,10 +88,11 @@ function GuardsTab() {
   const load = useCallback(async () => {
     setLoading(true);
     // Use safe view for non-admins (no salary), full table for admins
-    const source = isAdmin ? "guards" : "guards_safe";
-    const { data, error } = await supabase.from(source).select("*").order("full_name");
-    if (error) toast.error(error.message);
-    setGuards((data as Guard[]) ?? []);
+    const q = isAdmin
+      ? await supabase.from("guards").select("*").order("full_name")
+      : await supabase.from("guards_safe").select("*").order("full_name");
+    if (q.error) toast.error(q.error.message);
+    setGuards((q.data as Guard[]) ?? []);
     setLoading(false);
   }, [isAdmin]);
   useEffect(() => { load(); }, [load]);

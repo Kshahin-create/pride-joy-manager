@@ -48,14 +48,17 @@ export function AppHeader() {
   };
 
   return (
-    <header className="h-14 border-b bg-card/80 backdrop-blur-sm flex items-center justify-between px-4 sticky top-0 z-30 supports-[backdrop-filter]:bg-card/60">
-      <div className="flex items-center gap-3">
-        <SidebarTrigger />
-        <Link to="/dashboard" className="hidden md:flex items-center gap-2">
-          <BrandLogo variant="color" className="h-8 w-8 object-contain" />
-          <span className="text-sm font-semibold text-primary">نخبة تسكين العقارية</span>
+    <header className="h-14 border-b bg-card/80 backdrop-blur-md flex items-center justify-between px-3 sm:px-4 sticky top-0 z-30 supports-[backdrop-filter]:bg-card/60">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        <SidebarTrigger className="shrink-0" />
+        <Link to="/dashboard" className="flex items-center gap-2 min-w-0">
+          <BrandLogo variant="color" className="h-7 w-7 sm:h-8 sm:w-8 object-contain shrink-0" />
+          <span className="text-sm font-semibold text-primary truncate hidden xs:inline sm:inline">
+            نخبة تسكين العقارية
+          </span>
         </Link>
       </div>
+
 
 
       <div className="flex items-center gap-1">

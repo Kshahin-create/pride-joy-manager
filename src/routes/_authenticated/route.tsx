@@ -30,9 +30,10 @@ function AuthedLayout() {
         <AppSidebar />
         <SidebarInset className="flex-1 flex flex-col min-w-0">
           <AppHeader />
-          <main className="flex-1 p-4 md:p-6">
+          <main className="flex-1 p-3 sm:p-4 md:p-6 pb-[max(env(safe-area-inset-bottom),1rem)] min-w-0">
             <Outlet />
           </main>
+
         </SidebarInset>
       </div>
     </SidebarProvider>

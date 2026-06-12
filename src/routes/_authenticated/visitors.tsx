@@ -1,0 +1,233 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
+import { Plus, LogOut, Users, UserCheck, Search } from "lucide-react";
+
+export const Route = createFileRoute("/_authenticated/visitors")({
+  component: VisitorsPage,
+});
+
+type Visitor = {
+  id: string; visitor_number: string; full_name: string; national_id: string | null;
+  phone: string | null; office_id: string | null; company_visiting: string | null;
+  host_name: string | null; visitor_type: string; purpose: string | null;
+  vehicle_plate: string | null; badge_number: string | null;
+  check_in_at: string; check_out_at: string | null;
+  status: "داخل" | "خرج" | "ملغي"; notes: string | null;
+};
+type Office = { id: string; code: string; floor: number };
+
+const TYPES = ["زائر", "مقاول", "موظف توصيل", "صيانة خارجية", "ضيف VIP", "أخرى"] as const;
+
+function VisitorsPage() {
+  const { hasAnyRole } = useAuth();
+  const canManage = hasAnyRole(["super_admin", "receptionist", "security_supervisor"]);
+  const [items, setItems] = useState<Visitor[]>([]);
+  const [offices, setOffices] = useState<Office[]>([]);
+  const [tab, setTab] = useState<"داخل" | "اليوم" | "الكل">("داخل");
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [form, setForm] = useState<any>({
+    full_name: "", national_id: "", phone: "", office_id: "", host_name: "",
+    visitor_type: "زائر", purpose: "", vehicle_plate: "", badge_number: "",
+    expected_duration_minutes: "", notes: "",
+  });
+
+  const load = async () => {
+    const [v, o] = await Promise.all([
+      supabase.from("visitors").select("*").order("check_in_at", { ascending: false }).limit(500),
+      supabase.from("offices").select("id,code,floor").order("code"),
+    ]);
+    if (v.error) toast.error(v.error.message); else setItems((v.data ?? []) as Visitor[]);
+    if (!o.error) setOffices((o.data ?? []) as Office[]);
+  };
+  useEffect(() => { load(); }, []);
+
+  const officeMap = useMemo(() => new Map(offices.map((o) => [o.id, o])), [offices]);
+
+  const filtered = useMemo(() => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    let arr = items;
+    if (tab === "داخل") arr = arr.filter((v) => v.status === "داخل");
+    else if (tab === "اليوم") arr = arr.filter((v) => new Date(v.check_in_at) >= today);
+    const s = q.trim();
+    if (s) arr = arr.filter((v) =>
+      v.full_name.includes(s) || v.visitor_number?.includes(s) ||
+      v.national_id?.includes(s) || v.phone?.includes(s) ||
+      (v.office_id && officeMap.get(v.office_id)?.code.includes(s))
+    );
+    return arr;
+  }, [items, tab, q, officeMap]);
+
+  const inside = items.filter((v) => v.status === "داخل").length;
+  const todayCount = items.filter((v) => {
+    const t = new Date(); t.setHours(0, 0, 0, 0);
+    return new Date(v.check_in_at) >= t;
+  }).length;
+
+  const checkIn = async () => {
+    if (!form.full_name) return toast.error("اسم الزائر مطلوب");
+    setBusy(true);
+    const payload: any = {
+      full_name: form.full_name,
+      national_id: form.national_id || null,
+      phone: form.phone || null,
+      office_id: form.office_id || null,
+      host_name: form.host_name || null,
+      visitor_type: form.visitor_type,
+      purpose: form.purpose || null,
+      vehicle_plate: form.vehicle_plate || null,
+      badge_number: form.badge_number || null,
+      expected_duration_minutes: form.expected_duration_minutes ? Number(form.expected_duration_minutes) : null,
+      notes: form.notes || null,
+    };
+    const { error } = await supabase.from("visitors").insert(payload);
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("تم تسجيل دخول الزائر");
+    setOpen(false);
+    setForm({
+      full_name: "", national_id: "", phone: "", office_id: "", host_name: "",
+      visitor_type: "زائر", purpose: "", vehicle_plate: "", badge_number: "",
+      expected_duration_minutes: "", notes: "",
+    });
+    await load();
+  };
+
+  const checkOut = async (id: string) => {
+    const { error } = await supabase.from("visitors").update({ status: "خرج" }).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("تم تسجيل الخروج");
+    await load();
+  };
+
+  const fmt = (s: string | null) => s ? new Date(s).toLocaleString("ar-EG", { hour12: false }) : "—";
+
+  return (
+    <div className="space-y-4 p-4" dir="rtl">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">إدارة الزوار</h1>
+          <p className="text-sm text-muted-foreground">تسجيل دخول وخروج الزوار في البرج</p>
+        </div>
+        {canManage && (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4 ml-1" /> تسجيل دخول زائر</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader><DialogTitle>تسجيل دخول زائر جديد</DialogTitle></DialogHeader>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div><Label>الاسم الكامل *</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
+                <div><Label>الرقم القومي</Label><Input value={form.national_id} onChange={(e) => setForm({ ...form, national_id: e.target.value })} /></div>
+                <div><Label>الهاتف</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+                <div>
+                  <Label>نوع الزائر</Label>
+                  <Select value={form.visitor_type} onValueChange={(v) => setForm({ ...form, visitor_type: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>{TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>المكتب المُزار</Label>
+                  <Select value={form.office_id} onValueChange={(v) => setForm({ ...form, office_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="اختر مكتباً" /></SelectTrigger>
+                    <SelectContent>{offices.map((o) => <SelectItem key={o.id} value={o.id}>{o.code} (طابق {o.floor})</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+                <div><Label>اسم المضيف</Label><Input value={form.host_name} onChange={(e) => setForm({ ...form, host_name: e.target.value })} /></div>
+                <div><Label>رقم الباج</Label><Input value={form.badge_number} onChange={(e) => setForm({ ...form, badge_number: e.target.value })} /></div>
+                <div><Label>لوحة السيارة</Label><Input value={form.vehicle_plate} onChange={(e) => setForm({ ...form, vehicle_plate: e.target.value })} /></div>
+                <div><Label>المدة المتوقعة (دقيقة)</Label><Input type="number" value={form.expected_duration_minutes} onChange={(e) => setForm({ ...form, expected_duration_minutes: e.target.value })} /></div>
+                <div className="md:col-span-2"><Label>الغرض</Label><Input value={form.purpose} onChange={(e) => setForm({ ...form, purpose: e.target.value })} /></div>
+                <div className="md:col-span-2"><Label>ملاحظات</Label><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
+                <Button onClick={checkIn} disabled={busy}>تسجيل الدخول</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><UserCheck className="h-4 w-4 text-emerald-600" /> داخل البرج الآن</CardTitle></CardHeader><CardContent className="text-2xl font-bold">{inside}</CardContent></Card>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Users className="h-4 w-4 text-blue-600" /> زوار اليوم</CardTitle></CardHeader><CardContent className="text-2xl font-bold">{todayCount}</CardContent></Card>
+        <Card><CardHeader className="pb-2"><CardTitle className="text-sm">إجمالي السجل</CardTitle></CardHeader><CardContent className="text-2xl font-bold">{items.length}</CardContent></Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex gap-1">
+              {(["داخل", "اليوم", "الكل"] as const).map((t) => (
+                <Button key={t} size="sm" variant={tab === t ? "default" : "outline"} onClick={() => setTab(t)}>{t}</Button>
+              ))}
+            </div>
+            <div className="relative w-64">
+              <Search className="h-4 w-4 absolute right-2 top-2.5 text-muted-foreground" />
+              <Input className="pr-8" placeholder="بحث بالاسم/الرقم/الهاتف" value={q} onChange={(e) => setQ(e.target.value)} />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>الرقم</TableHead>
+                <TableHead>الاسم</TableHead>
+                <TableHead>النوع</TableHead>
+                <TableHead>المكتب</TableHead>
+                <TableHead>المضيف</TableHead>
+                <TableHead>الدخول</TableHead>
+                <TableHead>الخروج</TableHead>
+                <TableHead>الحالة</TableHead>
+                <TableHead></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
+                <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">لا توجد سجلات</TableCell></TableRow>
+              ) : filtered.map((v) => (
+                <TableRow key={v.id}>
+                  <TableCell className="font-mono text-xs">{v.visitor_number}</TableCell>
+                  <TableCell className="font-medium">{v.full_name}{v.phone && <div className="text-xs text-muted-foreground">{v.phone}</div>}</TableCell>
+                  <TableCell><Badge variant="outline">{v.visitor_type}</Badge></TableCell>
+                  <TableCell>{v.office_id ? officeMap.get(v.office_id)?.code : "—"}</TableCell>
+                  <TableCell>{v.host_name || "—"}</TableCell>
+                  <TableCell className="text-xs">{fmt(v.check_in_at)}</TableCell>
+                  <TableCell className="text-xs">{fmt(v.check_out_at)}</TableCell>
+                  <TableCell>
+                    <Badge variant={v.status === "داخل" ? "default" : v.status === "خرج" ? "secondary" : "destructive"}>
+                      {v.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {v.status === "داخل" && canManage && (
+                      <Button size="sm" variant="outline" onClick={() => checkOut(v.id)}>
+                        <LogOut className="h-3 w-3 ml-1" /> خروج
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

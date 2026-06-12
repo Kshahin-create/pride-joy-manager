@@ -156,6 +156,172 @@ export type Database = {
         }
         Relationships: []
       }
+      camera_maintenance_logs: {
+        Row: {
+          camera_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          issue_description: string | null
+          maintenance_date: string
+          next_maintenance_date: string | null
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          camera_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          issue_description?: string | null
+          maintenance_date?: string
+          next_maintenance_date?: string | null
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          camera_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          issue_description?: string | null
+          maintenance_date?: string
+          next_maintenance_date?: string | null
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "camera_maintenance_logs_camera_id_fkey"
+            columns: ["camera_id"]
+            isOneToOne: false
+            referencedRelation: "cameras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cameras: {
+        Row: {
+          camera_number: string
+          camera_type: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          location: string
+          next_maintenance_date: string | null
+          notes: string | null
+          status: Database["public"]["Enums"]["camera_status"]
+          updated_at: string
+        }
+        Insert: {
+          camera_number: string
+          camera_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          location: string
+          next_maintenance_date?: string | null
+          notes?: string | null
+          status?: Database["public"]["Enums"]["camera_status"]
+          updated_at?: string
+        }
+        Update: {
+          camera_number?: string
+          camera_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          location?: string
+          next_maintenance_date?: string | null
+          notes?: string | null
+          status?: Database["public"]["Enums"]["camera_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cleaning_logs: {
+        Row: {
+          after_photo_path: string | null
+          before_photo_path: string | null
+          created_at: string
+          created_by: string | null
+          executed_by: string | null
+          execution_date: string
+          id: string
+          notes: string | null
+          plan_id: string
+          updated_at: string
+        }
+        Insert: {
+          after_photo_path?: string | null
+          before_photo_path?: string | null
+          created_at?: string
+          created_by?: string | null
+          executed_by?: string | null
+          execution_date?: string
+          id?: string
+          notes?: string | null
+          plan_id: string
+          updated_at?: string
+        }
+        Update: {
+          after_photo_path?: string | null
+          before_photo_path?: string | null
+          created_at?: string
+          created_by?: string | null
+          executed_by?: string | null
+          execution_date?: string
+          id?: string
+          notes?: string | null
+          plan_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_logs_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cleaning_plans: {
+        Row: {
+          area: string
+          contractor_company: string | null
+          created_at: string
+          created_by: string | null
+          frequency: Database["public"]["Enums"]["cleaning_frequency"]
+          id: string
+          notes: string | null
+          supervisor: string | null
+          updated_at: string
+        }
+        Insert: {
+          area: string
+          contractor_company?: string | null
+          created_at?: string
+          created_by?: string | null
+          frequency?: Database["public"]["Enums"]["cleaning_frequency"]
+          id?: string
+          notes?: string | null
+          supervisor?: string | null
+          updated_at?: string
+        }
+        Update: {
+          area?: string
+          contractor_company?: string | null
+          created_at?: string
+          created_by?: string | null
+          frequency?: Database["public"]["Enums"]["cleaning_frequency"]
+          id?: string
+          notes?: string | null
+          supervisor?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       client_interactions: {
         Row: {
           company_id: string
@@ -896,6 +1062,9 @@ export type Database = {
         | "maintenance_supervisor"
         | "receptionist"
         | "owner"
+      camera_status: "تعمل" | "معطلة" | "تحت الصيانة"
+      cleaning_frequency: "يومي" | "أسبوعي" | "شهري"
+      cleaning_photo_kind: "قبل" | "بعد"
       client_status:
         | "استفسار"
         | "مهتم"
@@ -1050,6 +1219,9 @@ export const Constants = {
         "receptionist",
         "owner",
       ],
+      camera_status: ["تعمل", "معطلة", "تحت الصيانة"],
+      cleaning_frequency: ["يومي", "أسبوعي", "شهري"],
+      cleaning_photo_kind: ["قبل", "بعد"],
       client_status: [
         "استفسار",
         "مهتم",

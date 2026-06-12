@@ -92,7 +92,7 @@ function GuardsTab() {
       ? await supabase.from("guards").select("*").order("full_name")
       : await supabase.from("guards_safe").select("*").order("full_name");
     if (q.error) toast.error(q.error.message);
-    setGuards((q.data as Guard[]) ?? []);
+    setGuards((q.data as unknown as Guard[]) ?? []);
     setLoading(false);
   }, [isAdmin]);
   useEffect(() => { load(); }, [load]);

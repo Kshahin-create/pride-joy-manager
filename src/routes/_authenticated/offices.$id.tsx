@@ -1599,3 +1599,178 @@ function ContractCard({ contract, contacts, compact }: { contract: ContractRow; 
     </Card>
   );
 }
+
+/* ===================== Finance ===================== */
+function FinanceTab({ officeId }: { officeId: string }) {
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const { data: contracts } = await supabase.from("contracts").select("id").eq("office_id", officeId);
+      const ids = (contracts ?? []).map((c: any) => c.id);
+      if (ids.length === 0) { setInvoices([]); setPayments([]); setLoading(false); return; }
+      const [inv, pay] = await Promise.all([
+        supabase.from("invoices").select("*").in("contract_id", ids).order("due_date", { ascending: false }),
+        supabase.from("payments").select("*").in("contract_id", ids).order("payment_date", { ascending: false }),
+      ]);
+      setInvoices(inv.data ?? []);
+      setPayments(pay.data ?? []);
+      setLoading(false);
+    })();
+  }, [officeId]);
+
+  if (loading) return <Card><CardContent className="p-6 flex justify-center"><Loader2 className="h-5 w-5 animate-spin" /></CardContent></Card>;
+
+  const totalDue = invoices.reduce((s, i) => s + Number(i.amount ?? 0), 0);
+  const totalPaid = payments.reduce((s, p) => s + Number(p.amount ?? 0), 0);
+  const outstanding = totalDue - totalPaid;
+  const overdue = invoices.filter((i) => i.status !== "paid" && i.due_date && new Date(i.due_date) < new Date()).length;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">إجمالي المستحق</div><div className="text-xl font-bold">{totalDue.toLocaleString()}</div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">إجمالي المحصّل</div><div className="text-xl font-bold text-green-600">{totalPaid.toLocaleString()}</div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">المتبقي</div><div className="text-xl font-bold text-amber-600">{outstanding.toLocaleString()}</div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">فواتير متأخرة</div><div className="text-xl font-bold text-red-600">{overdue}</div></CardContent></Card>
+      </div>
+
+      <Card>
+        <CardHeader><CardTitle>الفواتير</CardTitle></CardHeader>
+        <CardContent>
+          {invoices.length === 0 ? <p className="text-sm text-muted-foreground">لا توجد فواتير</p> : (
+            <Table>
+              <TableHeader><TableRow><TableHead>رقم</TableHead><TableHead>المبلغ</TableHead><TableHead>تاريخ الاستحقاق</TableHead><TableHead>الحالة</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {invoices.map((i: any) => (
+                  <TableRow key={i.id}>
+                    <TableCell>{i.invoice_number ?? i.id.slice(0, 8)}</TableCell>
+                    <TableCell>{Number(i.amount ?? 0).toLocaleString()}</TableCell>
+                    <TableCell>{i.due_date ?? "-"}</TableCell>
+                    <TableCell><Badge variant="outline">{i.status ?? "-"}</Badge></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>سندات القبض</CardTitle></CardHeader>
+        <CardContent>
+          {payments.length === 0 ? <p className="text-sm text-muted-foreground">لا توجد مدفوعات</p> : (
+            <Table>
+              <TableHeader><TableRow><TableHead>التاريخ</TableHead><TableHead>المبلغ</TableHead><TableHead>الطريقة</TableHead><TableHead>ملاحظات</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {payments.map((p: any) => (
+                  <TableRow key={p.id}>
+                    <TableCell>{p.payment_date ?? "-"}</TableCell>
+                    <TableCell className="text-green-600 font-semibold">{Number(p.amount ?? 0).toLocaleString()}</TableCell>
+                    <TableCell>{p.payment_method ?? "-"}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{p.notes ?? ""}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/* ===================== Maintenance ===================== */
+function MaintenanceTab({ officeId }: { officeId: string }) {
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const { data } = await supabase.from("maintenance_requests").select("*").eq("office_id", officeId).order("created_at", { ascending: false });
+      setItems(data ?? []);
+      setLoading(false);
+    })();
+  }, [officeId]);
+
+  if (loading) return <Card><CardContent className="p-6 flex justify-center"><Loader2 className="h-5 w-5 animate-spin" /></CardContent></Card>;
+
+  const open = items.filter((i: any) => i.status !== "completed" && i.status !== "closed").length;
+  const closed = items.length - open;
+  const totalCost = items.reduce((s, i) => s + Number(i.cost ?? 0), 0);
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-3">
+        <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">مفتوحة</div><div className="text-xl font-bold text-amber-600">{open}</div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">مغلقة</div><div className="text-xl font-bold text-green-600">{closed}</div></CardContent></Card>
+        <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">إجمالي التكلفة</div><div className="text-xl font-bold">{totalCost.toLocaleString()}</div></CardContent></Card>
+      </div>
+
+      <Card>
+        <CardHeader><CardTitle>طلبات الصيانة</CardTitle></CardHeader>
+        <CardContent>
+          {items.length === 0 ? <p className="text-sm text-muted-foreground">لا توجد طلبات</p> : (
+            <Table>
+              <TableHeader><TableRow><TableHead>التاريخ</TableHead><TableHead>الوصف</TableHead><TableHead>الأولوية</TableHead><TableHead>الحالة</TableHead><TableHead>التكلفة</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {items.map((i: any) => (
+                  <TableRow key={i.id} className={i.priority === "طارئة" || i.priority === "emergency" ? "bg-red-50 dark:bg-red-950/20" : ""}>
+                    <TableCell>{i.created_at?.slice(0, 10) ?? "-"}</TableCell>
+                    <TableCell className="max-w-xs truncate">{i.description ?? i.title ?? "-"}</TableCell>
+                    <TableCell><Badge variant={i.priority === "طارئة" || i.priority === "emergency" ? "destructive" : "outline"}>{i.priority ?? "-"}</Badge></TableCell>
+                    <TableCell><Badge variant="outline">{i.status ?? "-"}</Badge></TableCell>
+                    <TableCell>{Number(i.cost ?? 0).toLocaleString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/* ===================== Parking ===================== */
+function ParkingTab({ officeId }: { officeId: string }) {
+  const [spots, setSpots] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const { data } = await supabase.from("parking_spots").select("*").eq("office_id", officeId);
+      setSpots(data ?? []);
+      setLoading(false);
+    })();
+  }, [officeId]);
+
+  if (loading) return <Card><CardContent className="p-6 flex justify-center"><Loader2 className="h-5 w-5 animate-spin" /></CardContent></Card>;
+
+  return (
+    <Card>
+      <CardHeader><CardTitle><Car className="h-4 w-4 inline ms-1" />المواقف المخصصة ({spots.length})</CardTitle></CardHeader>
+      <CardContent>
+        {spots.length === 0 ? <p className="text-sm text-muted-foreground">لا توجد مواقف مخصصة</p> : (
+          <Table>
+            <TableHeader><TableRow><TableHead>رقم الموقف</TableHead><TableHead>الطابق</TableHead><TableHead>الحالة</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {spots.map((s: any) => (
+                <TableRow key={s.id}>
+                  <TableCell className="font-semibold">{s.spot_number ?? "-"}</TableCell>
+                  <TableCell>{s.floor ?? s.level ?? "-"}</TableCell>
+                  <TableCell><Badge variant={s.is_occupied ? "default" : "outline"}>{s.is_occupied ? "مشغول" : "متاح"}</Badge></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

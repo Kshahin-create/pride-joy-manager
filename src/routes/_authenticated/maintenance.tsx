@@ -131,7 +131,7 @@ function MaintenancePage() {
   }, [offices, spaces]);
 
   const resetForm = () => {
-    setForm({ request_date: new Date().toISOString().slice(0, 10) });
+    setForm({ request_date: new Date().toISOString().slice(0, 10), priority: "متوسطة" });
     setTargetKind("office");
     setTargetOfficeId("");
     setTargetSpaceId("");

@@ -1643,20 +1643,27 @@ export type Database = {
       maintenance_requests: {
         Row: {
           after_photo_url: string | null
+          approved_at: string | null
+          approved_by: string | null
           asset_id: string | null
           assigned_technician: string | null
+          assigned_vendor_id: string | null
           before_photo_url: string | null
           closed_at: string | null
           closed_by: string | null
+          completed_at: string | null
           completion_due_at: string | null
           cost: number | null
           created_at: string
           description: string | null
+          hold_reason: string | null
           id: string
           inspection_id: string | null
           is_overdue: boolean
           labor_cost: number
+          labor_hours: number | null
           location: string | null
+          materials_used: Json
           notes: string | null
           office_id: string | null
           parts_cost: number
@@ -1666,32 +1673,43 @@ export type Database = {
           reporter_name: string | null
           request_date: string
           request_number: string | null
+          request_source:
+            | Database["public"]["Enums"]["wo_request_source"]
+            | null
           request_type: string | null
           responded_at: string | null
           response_due_at: string | null
           sla_completion_hours: number | null
           sla_response_hours: number | null
           space_id: string | null
+          started_at: string | null
           status: Database["public"]["Enums"]["maintenance_request_status"]
           updated_at: string
           work_order_type: Database["public"]["Enums"]["work_order_type"]
         }
         Insert: {
           after_photo_url?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           asset_id?: string | null
           assigned_technician?: string | null
+          assigned_vendor_id?: string | null
           before_photo_url?: string | null
           closed_at?: string | null
           closed_by?: string | null
+          completed_at?: string | null
           completion_due_at?: string | null
           cost?: number | null
           created_at?: string
           description?: string | null
+          hold_reason?: string | null
           id?: string
           inspection_id?: string | null
           is_overdue?: boolean
           labor_cost?: number
+          labor_hours?: number | null
           location?: string | null
+          materials_used?: Json
           notes?: string | null
           office_id?: string | null
           parts_cost?: number
@@ -1701,32 +1719,43 @@ export type Database = {
           reporter_name?: string | null
           request_date?: string
           request_number?: string | null
+          request_source?:
+            | Database["public"]["Enums"]["wo_request_source"]
+            | null
           request_type?: string | null
           responded_at?: string | null
           response_due_at?: string | null
           sla_completion_hours?: number | null
           sla_response_hours?: number | null
           space_id?: string | null
+          started_at?: string | null
           status?: Database["public"]["Enums"]["maintenance_request_status"]
           updated_at?: string
           work_order_type?: Database["public"]["Enums"]["work_order_type"]
         }
         Update: {
           after_photo_url?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           asset_id?: string | null
           assigned_technician?: string | null
+          assigned_vendor_id?: string | null
           before_photo_url?: string | null
           closed_at?: string | null
           closed_by?: string | null
+          completed_at?: string | null
           completion_due_at?: string | null
           cost?: number | null
           created_at?: string
           description?: string | null
+          hold_reason?: string | null
           id?: string
           inspection_id?: string | null
           is_overdue?: boolean
           labor_cost?: number
+          labor_hours?: number | null
           location?: string | null
+          materials_used?: Json
           notes?: string | null
           office_id?: string | null
           parts_cost?: number
@@ -1736,12 +1765,16 @@ export type Database = {
           reporter_name?: string | null
           request_date?: string
           request_number?: string | null
+          request_source?:
+            | Database["public"]["Enums"]["wo_request_source"]
+            | null
           request_type?: string | null
           responded_at?: string | null
           response_due_at?: string | null
           sla_completion_hours?: number | null
           sla_response_hours?: number | null
           space_id?: string | null
+          started_at?: string | null
           status?: Database["public"]["Enums"]["maintenance_request_status"]
           updated_at?: string
           work_order_type?: Database["public"]["Enums"]["work_order_type"]
@@ -1752,6 +1785,13 @@ export type Database = {
             columns: ["asset_id"]
             isOneToOne: false
             referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_requests_assigned_vendor_id_fkey"
+            columns: ["assigned_vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
           {
@@ -3371,6 +3411,9 @@ export type Database = {
         | "جاري التنفيذ"
         | "بانتظار قطع غيار"
         | "مغلق"
+        | "معلّق للتعيين"
+        | "معلّق"
+        | "مكتمل مبدئياً"
       notification_type:
         | "contract_expiring"
         | "invoice_overdue"
@@ -3418,6 +3461,12 @@ export type Database = {
         | "ضيف VIP"
         | "أخرى"
       wo_priority: "طارئة" | "عالية" | "متوسطة" | "منخفضة"
+      wo_request_source:
+        | "مستأجر"
+        | "صيانة وقائية"
+        | "جولة تفتيش"
+        | "حادث أمني"
+        | "إدارة"
       work_order_type: "تصحيحي" | "وقائي" | "طارئ"
     }
     CompositeTypes: {
@@ -3629,6 +3678,9 @@ export const Constants = {
         "جاري التنفيذ",
         "بانتظار قطع غيار",
         "مغلق",
+        "معلّق للتعيين",
+        "معلّق",
+        "مكتمل مبدئياً",
       ],
       notification_type: [
         "contract_expiring",
@@ -3680,6 +3732,13 @@ export const Constants = {
         "أخرى",
       ],
       wo_priority: ["طارئة", "عالية", "متوسطة", "منخفضة"],
+      wo_request_source: [
+        "مستأجر",
+        "صيانة وقائية",
+        "جولة تفتيش",
+        "حادث أمني",
+        "إدارة",
+      ],
       work_order_type: ["تصحيحي", "وقائي", "طارئ"],
     },
   },

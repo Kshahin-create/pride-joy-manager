@@ -1673,33 +1673,53 @@ function ContractCard({ contract, contacts, compact }: { contract: ContractRow; 
 }
 
 /* ===================== Finance ===================== */
+const INVOICE_TYPES = ["إيجار", "تأمين", "رسوم تشغيل", "رسوم خدمات", "غرامات"] as const;
+const PAYMENT_METHODS = ["نقدي", "تحويل بنكي", "شيك"] as const;
+const INV_STATUS_STYLE: Record<string, string> = {
+  "مستحق": "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+  "مدفوع جزئي": "bg-blue-500/15 text-blue-700 dark:text-blue-300",
+  "مدفوع": "bg-success text-success-foreground",
+  "متأخر": "bg-destructive/20 text-destructive",
+};
+
 function FinanceTab({ officeId }: { officeId: string }) {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
+  const [contracts, setContracts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [invDlg, setInvDlg] = useState(false);
+  const [payDlg, setPayDlg] = useState<any | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const { data: contracts } = await supabase.from("contracts").select("id").eq("office_id", officeId);
-      const ids = (contracts ?? []).map((c: any) => c.id);
-      if (ids.length === 0) { setInvoices([]); setPayments([]); setLoading(false); return; }
-      const [inv, pay] = await Promise.all([
-        supabase.from("invoices").select("*").in("contract_id", ids).order("due_date", { ascending: false }),
-        supabase.from("payments").select("*").in("contract_id", ids).order("payment_date", { ascending: false }),
-      ]);
-      setInvoices(inv.data ?? []);
-      setPayments(pay.data ?? []);
-      setLoading(false);
-    })();
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data: ct } = await supabase
+      .from("contracts")
+      .select("id, contract_number, company_id, status, rent_amount, companies(company_name)")
+      .eq("office_id", officeId)
+      .order("created_at", { ascending: false });
+    const list = ct ?? [];
+    setContracts(list);
+    const ids = list.map((c: any) => c.id);
+    if (ids.length === 0) { setInvoices([]); setPayments([]); setLoading(false); return; }
+    const [inv, pay] = await Promise.all([
+      supabase.from("invoices").select("*").in("contract_id", ids).order("due_date", { ascending: false }),
+      supabase.from("payments").select("*, invoices!inner(invoice_number, contract_id)")
+        .in("invoices.contract_id", ids).order("payment_date", { ascending: false }),
+    ]);
+    setInvoices(inv.data ?? []);
+    setPayments(pay.data ?? []);
+    setLoading(false);
   }, [officeId]);
+
+  useEffect(() => { load(); }, [load]);
 
   if (loading) return <Card><CardContent className="p-6 flex justify-center"><Loader2 className="h-5 w-5 animate-spin" /></CardContent></Card>;
 
-  const totalDue = invoices.reduce((s, i) => s + Number(i.amount ?? 0), 0);
-  const totalPaid = payments.reduce((s, p) => s + Number(p.amount ?? 0), 0);
+  const totalDue = invoices.reduce((s, i) => s + Number(i.amount_due ?? 0), 0);
+  const totalPaid = invoices.reduce((s, i) => s + Number(i.amount_paid ?? 0), 0);
   const outstanding = totalDue - totalPaid;
-  const overdue = invoices.filter((i) => i.status !== "paid" && i.due_date && new Date(i.due_date) < new Date()).length;
+  const overdue = invoices.filter((i) => i.status === "متأخر").length;
+  const hasContract = contracts.length > 0;
 
   return (
     <div className="space-y-4">
@@ -1711,20 +1731,44 @@ function FinanceTab({ officeId }: { officeId: string }) {
       </div>
 
       <Card>
-        <CardHeader><CardTitle>الفواتير</CardTitle></CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>الفواتير</CardTitle>
+          <Button size="sm" onClick={() => setInvDlg(true)} disabled={!hasContract}>
+            <Plus className="h-4 w-4 ms-1" />فاتورة جديدة
+          </Button>
+        </CardHeader>
         <CardContent>
-          {invoices.length === 0 ? <p className="text-sm text-muted-foreground">لا توجد فواتير</p> : (
+          {!hasContract ? (
+            <p className="text-sm text-muted-foreground">يجب وجود عقد لهذا المكتب قبل إضافة فواتير</p>
+          ) : invoices.length === 0 ? <p className="text-sm text-muted-foreground">لا توجد فواتير</p> : (
             <Table>
-              <TableHeader><TableRow><TableHead>رقم</TableHead><TableHead>المبلغ</TableHead><TableHead>تاريخ الاستحقاق</TableHead><TableHead>الحالة</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow>
+                <TableHead>رقم</TableHead><TableHead>النوع</TableHead><TableHead>المستحق</TableHead>
+                <TableHead>المدفوع</TableHead><TableHead>المتبقي</TableHead>
+                <TableHead>تاريخ الاستحقاق</TableHead><TableHead>الحالة</TableHead><TableHead></TableHead>
+              </TableRow></TableHeader>
               <TableBody>
-                {invoices.map((i: any) => (
-                  <TableRow key={i.id}>
-                    <TableCell>{i.invoice_number ?? i.id.slice(0, 8)}</TableCell>
-                    <TableCell>{Number(i.amount ?? 0).toLocaleString()}</TableCell>
-                    <TableCell>{i.due_date ?? "-"}</TableCell>
-                    <TableCell><Badge variant="outline">{i.status ?? "-"}</Badge></TableCell>
-                  </TableRow>
-                ))}
+                {invoices.map((i: any) => {
+                  const rem = Number(i.amount_due) - Number(i.amount_paid);
+                  return (
+                    <TableRow key={i.id}>
+                      <TableCell className="font-mono text-xs">{i.invoice_number}</TableCell>
+                      <TableCell>{i.invoice_type}</TableCell>
+                      <TableCell>{Number(i.amount_due).toLocaleString()}</TableCell>
+                      <TableCell>{Number(i.amount_paid).toLocaleString()}</TableCell>
+                      <TableCell className={rem > 0 ? "text-destructive font-semibold" : ""}>{rem.toLocaleString()}</TableCell>
+                      <TableCell>{i.due_date}</TableCell>
+                      <TableCell><Badge className={INV_STATUS_STYLE[i.status] ?? ""}>{i.status}</Badge></TableCell>
+                      <TableCell>
+                        {i.status !== "مدفوع" && (
+                          <Button size="sm" variant="outline" onClick={() => setPayDlg(i)}>
+                            <Plus className="h-3 w-3 ms-1" />دفعة
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
@@ -1736,12 +1780,17 @@ function FinanceTab({ officeId }: { officeId: string }) {
         <CardContent>
           {payments.length === 0 ? <p className="text-sm text-muted-foreground">لا توجد مدفوعات</p> : (
             <Table>
-              <TableHeader><TableRow><TableHead>التاريخ</TableHead><TableHead>المبلغ</TableHead><TableHead>الطريقة</TableHead><TableHead>ملاحظات</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow>
+                <TableHead>رقم السند</TableHead><TableHead>الفاتورة</TableHead><TableHead>التاريخ</TableHead>
+                <TableHead>المبلغ</TableHead><TableHead>الطريقة</TableHead><TableHead>ملاحظات</TableHead>
+              </TableRow></TableHeader>
               <TableBody>
                 {payments.map((p: any) => (
                   <TableRow key={p.id}>
-                    <TableCell>{p.payment_date ?? "-"}</TableCell>
-                    <TableCell className="text-green-600 font-semibold">{Number(p.amount ?? 0).toLocaleString()}</TableCell>
+                    <TableCell className="font-mono text-xs">{p.receipt_number}</TableCell>
+                    <TableCell className="font-mono text-xs">{p.invoices?.invoice_number ?? "-"}</TableCell>
+                    <TableCell>{p.payment_date}</TableCell>
+                    <TableCell className="text-green-600 font-semibold">{Number(p.amount_paid ?? 0).toLocaleString()}</TableCell>
                     <TableCell>{p.payment_method ?? "-"}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">{p.notes ?? ""}</TableCell>
                   </TableRow>
@@ -1751,7 +1800,198 @@ function FinanceTab({ officeId }: { officeId: string }) {
           )}
         </CardContent>
       </Card>
+
+      <InvoiceDialog open={invDlg} onClose={() => setInvDlg(false)} contracts={contracts} onSaved={() => { setInvDlg(false); load(); }} />
+      <PayDialog invoice={payDlg} onClose={() => setPayDlg(null)} onSaved={() => { setPayDlg(null); load(); }} />
     </div>
+  );
+}
+
+function InvoiceDialog({ open, onClose, contracts, onSaved }: { open: boolean; onClose: () => void; contracts: any[]; onSaved: () => void }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [contractId, setContractId] = useState<string>("");
+  const [type, setType] = useState<string>("إيجار");
+  const [amount, setAmount] = useState("");
+  const [issueDate, setIssueDate] = useState(today);
+  const [dueDate, setDueDate] = useState(today);
+  const [notes, setNotes] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      const active = contracts.find((c: any) => c.status === "ساري") ?? contracts[0];
+      setContractId(active?.id ?? "");
+      setType("إيجار");
+      setAmount(active?.rent_amount ? String(active.rent_amount) : "");
+      setIssueDate(today);
+      setDueDate(today);
+      setNotes("");
+    }
+  }, [open, contracts]);
+
+  const save = async () => {
+    const ct = contracts.find((c: any) => c.id === contractId);
+    if (!ct) { toast.error("اختر عقدًا"); return; }
+    const amt = Number(amount);
+    if (!(amt > 0)) { toast.error("أدخل مبلغًا صحيحًا"); return; }
+    setBusy(true);
+    const { data: userRes } = await supabase.auth.getUser();
+    const { error } = await supabase.from("invoices").insert({
+      invoice_number: "",
+      contract_id: ct.id,
+      company_id: ct.company_id,
+      invoice_type: type as any,
+      amount_due: amt,
+      amount_paid: 0,
+      issue_date: issueDate,
+      due_date: dueDate,
+      status: "مستحق" as any,
+      notes: notes || null,
+      created_by: userRes.user?.id ?? null,
+    });
+    setBusy(false);
+    if (error) { toast.error("فشل الإنشاء: " + error.message); return; }
+    toast.success("تم إنشاء الفاتورة");
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>فاتورة جديدة</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>العقد</Label>
+            <Select value={contractId} onValueChange={setContractId}>
+              <SelectTrigger><SelectValue placeholder="اختر العقد" /></SelectTrigger>
+              <SelectContent>
+                {contracts.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.contract_number} — {c.companies?.company_name ?? ""} ({c.status})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>النوع</Label>
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {INVOICE_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>المبلغ</Label>
+              <Input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            </div>
+            <div>
+              <Label>تاريخ الإصدار</Label>
+              <Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
+            </div>
+            <div>
+              <Label>تاريخ الاستحقاق</Label>
+              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+            </div>
+          </div>
+          <div>
+            <Label>ملاحظات</Label>
+            <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>إلغاء</Button>
+          <Button onClick={save} disabled={busy}>{busy && <Loader2 className="h-4 w-4 ms-1 animate-spin" />}حفظ</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function PayDialog({ invoice, onClose, onSaved }: { invoice: any | null; onClose: () => void; onSaved: () => void }) {
+  const [amount, setAmount] = useState("");
+  const [method, setMethod] = useState<string>("نقدي");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [notes, setNotes] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (invoice) {
+      const rem = Number(invoice.amount_due) - Number(invoice.amount_paid);
+      setAmount(String(rem > 0 ? rem : ""));
+      setMethod("نقدي");
+      setDate(new Date().toISOString().slice(0, 10));
+      setNotes("");
+    }
+  }, [invoice]);
+
+  const rem = invoice ? Number(invoice.amount_due) - Number(invoice.amount_paid) : 0;
+
+  const save = async () => {
+    if (!invoice) return;
+    const amt = Number(amount);
+    if (!(amt > 0)) { toast.error("أدخل مبلغًا صحيحًا"); return; }
+    if (amt > rem + 0.001) { toast.error("المبلغ يتجاوز المتبقي"); return; }
+    setBusy(true);
+    const { data: userRes } = await supabase.auth.getUser();
+    const { error } = await supabase.from("payments").insert({
+      invoice_id: invoice.id,
+      amount_paid: amt,
+      payment_date: date,
+      payment_method: method as any,
+      receipt_number: "",
+      notes: notes || null,
+      created_by: userRes.user?.id ?? null,
+    });
+    setBusy(false);
+    if (error) { toast.error("فشل التسجيل: " + error.message); return; }
+    toast.success("تم تسجيل الدفعة");
+    onSaved();
+  };
+
+  return (
+    <Dialog open={!!invoice} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>تسجيل دفعة — {invoice?.invoice_number}</DialogTitle></DialogHeader>
+        {invoice && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3 text-sm bg-muted/40 rounded-md p-3">
+              <div><div className="text-muted-foreground text-xs">المستحق</div><div>{Number(invoice.amount_due).toLocaleString()}</div></div>
+              <div><div className="text-muted-foreground text-xs">المتبقي</div><div className="font-semibold text-destructive">{rem.toLocaleString()}</div></div>
+            </div>
+            <div>
+              <Label>المبلغ المدفوع</Label>
+              <Input type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>التاريخ</Label>
+                <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+              </div>
+              <div>
+                <Label>طريقة الدفع</Label>
+                <Select value={method} onValueChange={setMethod}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PAYMENT_METHODS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>ملاحظات</Label>
+              <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>إلغاء</Button>
+          <Button onClick={save} disabled={busy}>{busy && <Loader2 className="h-4 w-4 ms-1 animate-spin" />}حفظ</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

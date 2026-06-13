@@ -64,7 +64,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { z } from "zod";
 
-export const Route = createFileRoute("/_authenticated/offices")({
+export const Route = createFileRoute("/_authenticated/offices/")({
   component: OfficesPage,
 });
 

@@ -369,12 +369,20 @@ function MaintenancePage() {
                     {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                  <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل الأولويات</SelectItem>
+                    {PRIORITIES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>الرقم</TableHead>
                     <TableHead>التاريخ</TableHead>
+                    <TableHead>الأولوية</TableHead>
                     <TableHead>النوع</TableHead>
                     <TableHead>الموقع</TableHead>
                     <TableHead>الأصل</TableHead>

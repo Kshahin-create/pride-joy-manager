@@ -19,12 +19,31 @@ type Status = "جديد" | "جاري التنفيذ" | "بانتظار قطع غ
 const STATUSES: Status[] = ["جديد", "جاري التنفيذ", "بانتظار قطع غيار", "مغلق"];
 
 type Asset = { id: string; asset_name: string; asset_code: string; criticality: "حرج" | "عادي" };
+type Office = { id: string; code: string; floor: number; space_id: string | null };
+type Space = { id: string; space_code: string; space_name: string; space_type: string; floor: number | null };
 type MR = {
   id: string; request_number: string | null; request_date: string;
   location: string | null; request_type: string | null; description: string | null;
-  asset_id: string | null; status: Status;
+  asset_id: string | null; office_id: string | null; space_id: string | null; status: Status;
   assigned_technician: string | null; cost: number | null; notes: string | null;
 };
+
+type TargetKind = "office" | "floor" | "لوبي" | "سطح" | "موقف سيارة" | "غرفة كهرباء" | "غرفة كاميرات" | "مخزن" | "مصعد" | "سلم" | "دورة مياه" | "ممر" | "أخرى";
+const TARGET_KINDS: { value: TargetKind; label: string }[] = [
+  { value: "office", label: "مكتب" },
+  { value: "floor", label: "دور كامل" },
+  { value: "لوبي", label: "اللوبي" },
+  { value: "سطح", label: "السطح (الرووف)" },
+  { value: "موقف سيارة", label: "موقف سيارات" },
+  { value: "غرفة كهرباء", label: "غرفة كهرباء" },
+  { value: "غرفة كاميرات", label: "غرفة كاميرات" },
+  { value: "مخزن", label: "مخزن" },
+  { value: "مصعد", label: "مصعد" },
+  { value: "سلم", label: "سلم" },
+  { value: "دورة مياه", label: "دورة مياه" },
+  { value: "ممر", label: "ممر" },
+  { value: "أخرى", label: "أخرى" },
+];
 
 export const Route = createFileRoute("/_authenticated/maintenance")({
   component: MaintenancePage,
@@ -35,10 +54,18 @@ function MaintenancePage() {
   const canManage = hasAnyRole(["super_admin", "maintenance_supervisor"]);
   const [items, setItems] = useState<MR[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [offices, setOffices] = useState<Office[]>([]);
+  const [spaces, setSpaces] = useState<Space[]>([]);
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<MR>>({ request_date: new Date().toISOString().slice(0, 10) });
+
+  // target picker
+  const [targetKind, setTargetKind] = useState<TargetKind>("office");
+  const [targetOfficeId, setTargetOfficeId] = useState<string>("");
+  const [targetSpaceId, setTargetSpaceId] = useState<string>("");
+  const [targetFloor, setTargetFloor] = useState<string>("");
 
   // assign dialog
   const [assignFor, setAssignFor] = useState<MR | null>(null);
@@ -47,12 +74,16 @@ function MaintenancePage() {
   const [assignStatus, setAssignStatus] = useState<Status>("جاري التنفيذ");
 
   const load = async () => {
-    const [m, a] = await Promise.all([
+    const [m, a, o, s] = await Promise.all([
       supabase.from("maintenance_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("assets").select("id,asset_name,asset_code,criticality").order("asset_code"),
+      supabase.from("offices").select("id,code,floor,space_id").order("floor").order("code"),
+      supabase.from("spaces").select("id,space_code,space_name,space_type,floor").order("floor").order("space_code"),
     ]);
     if (m.error) toast.error(m.error.message); else setItems((m.data ?? []) as MR[]);
     if (!a.error) setAssets((a.data ?? []) as Asset[]);
+    if (!o.error) setOffices((o.data ?? []) as Office[]);
+    if (!s.error) setSpaces((s.data ?? []) as Space[]);
   };
   useEffect(() => { load(); }, []);
 
@@ -77,21 +108,61 @@ function MaintenancePage() {
     });
   }, [items, q, statusFilter, assetMap]);
 
+  const floors = useMemo(() => {
+    const set = new Set<number>();
+    offices.forEach((o) => set.add(o.floor));
+    spaces.forEach((s) => { if (s.floor != null) set.add(s.floor); });
+    return Array.from(set).sort((a, b) => a - b);
+  }, [offices, spaces]);
+
+  const resetForm = () => {
+    setForm({ request_date: new Date().toISOString().slice(0, 10) });
+    setTargetKind("office");
+    setTargetOfficeId("");
+    setTargetSpaceId("");
+    setTargetFloor("");
+  };
+
   const create = async () => {
-    if (!form.location && !form.description) return toast.error("أدخل الموقع أو الوصف");
+    let office_id: string | null = null;
+    let space_id: string | null = null;
+    let location: string | null = null;
+
+    if (targetKind === "office") {
+      if (!targetOfficeId) return toast.error("اختر المكتب");
+      const o = offices.find((x) => x.id === targetOfficeId);
+      if (!o) return toast.error("المكتب غير موجود");
+      office_id = o.id;
+      space_id = o.space_id;
+      location = `مكتب ${o.code} — دور ${o.floor}`;
+    } else if (targetKind === "floor") {
+      if (!targetFloor) return toast.error("اختر الدور");
+      location = `دور ${targetFloor}`;
+    } else {
+      if (!targetSpaceId) return toast.error("اختر الموقع");
+      const sp = spaces.find((x) => x.id === targetSpaceId);
+      if (!sp) return toast.error("الموقع غير موجود");
+      space_id = sp.id;
+      location = `${sp.space_name}${sp.floor != null ? ` — دور ${sp.floor}` : ""}`;
+    }
+
+    if (!form.description) return toast.error("أدخل وصف البلاغ");
+
     const { error } = await supabase.from("maintenance_requests").insert({
       request_date: form.request_date!,
-      location: form.location ?? null,
+      location,
       request_type: form.request_type ?? null,
       description: form.description ?? null,
       asset_id: form.asset_id || null,
+      office_id,
+      space_id,
       status: "جديد",
       reported_by: user?.id ?? null,
     });
     if (error) return toast.error(error.message);
     toast.success("تم إنشاء البلاغ");
     setOpen(false);
-    setForm({ request_date: new Date().toISOString().slice(0, 10) });
+    resetForm();
     load();
   };
 
@@ -141,7 +212,49 @@ function MaintenancePage() {
             <DialogHeader><DialogTitle>إنشاء بلاغ صيانة</DialogTitle></DialogHeader>
             <div className="grid grid-cols-2 gap-3">
               <Field label="التاريخ"><Input type="date" value={form.request_date ?? ""} onChange={(e) => setForm({ ...form, request_date: e.target.value })} /></Field>
-              <Field label="الموقع"><Input value={form.location ?? ""} onChange={(e) => setForm({ ...form, location: e.target.value })} /></Field>
+              <Field label="نوع الموقع">
+                <Select value={targetKind} onValueChange={(v) => { setTargetKind(v as TargetKind); setTargetOfficeId(""); setTargetSpaceId(""); setTargetFloor(""); }}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TARGET_KINDS.map((k) => <SelectItem key={k.value} value={k.value}>{k.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <div className="col-span-2">
+                {targetKind === "office" ? (
+                  <Field label="المكتب">
+                    <Select value={targetOfficeId} onValueChange={setTargetOfficeId}>
+                      <SelectTrigger><SelectValue placeholder="اختر المكتب" /></SelectTrigger>
+                      <SelectContent>
+                        {offices.map((o) => <SelectItem key={o.id} value={o.id}>{o.code} — دور {o.floor}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                ) : targetKind === "floor" ? (
+                  <Field label="الدور">
+                    <Select value={targetFloor} onValueChange={setTargetFloor}>
+                      <SelectTrigger><SelectValue placeholder="اختر الدور" /></SelectTrigger>
+                      <SelectContent>
+                        {floors.map((f) => <SelectItem key={f} value={String(f)}>دور {f}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                ) : (
+                  <Field label="الموقع المحدد">
+                    <Select value={targetSpaceId} onValueChange={setTargetSpaceId}>
+                      <SelectTrigger><SelectValue placeholder="اختر الموقع" /></SelectTrigger>
+                      <SelectContent>
+                        {spaces.filter((s) => s.space_type === targetKind).map((s) => (
+                          <SelectItem key={s.id} value={s.id}>{s.space_name} ({s.space_code}){s.floor != null ? ` — دور ${s.floor}` : ""}</SelectItem>
+                        ))}
+                        {spaces.filter((s) => s.space_type === targetKind).length === 0 && (
+                          <div className="px-2 py-1.5 text-xs text-muted-foreground">لا توجد مواقع من هذا النوع</div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
+              </div>
               <Field label="نوع الطلب"><Input placeholder="كهرباء، سباكة، تكييف…" value={form.request_type ?? ""} onChange={(e) => setForm({ ...form, request_type: e.target.value })} /></Field>
               <Field label="الأصل (اختياري)">
                 <Select value={form.asset_id ?? "none"} onValueChange={(v) => setForm({ ...form, asset_id: v === "none" ? null : v })}>

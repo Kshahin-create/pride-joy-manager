@@ -19,12 +19,31 @@ type Status = "جديد" | "جاري التنفيذ" | "بانتظار قطع غ
 const STATUSES: Status[] = ["جديد", "جاري التنفيذ", "بانتظار قطع غيار", "مغلق"];
 
 type Asset = { id: string; asset_name: string; asset_code: string; criticality: "حرج" | "عادي" };
+type Office = { id: string; code: string; floor: number; space_id: string | null };
+type Space = { id: string; space_code: string; space_name: string; space_type: string; floor: number | null };
 type MR = {
   id: string; request_number: string | null; request_date: string;
   location: string | null; request_type: string | null; description: string | null;
-  asset_id: string | null; status: Status;
+  asset_id: string | null; office_id: string | null; space_id: string | null; status: Status;
   assigned_technician: string | null; cost: number | null; notes: string | null;
 };
+
+type TargetKind = "office" | "floor" | "لوبي" | "سطح" | "موقف سيارة" | "غرفة كهرباء" | "غرفة كاميرات" | "مخزن" | "مصعد" | "سلم" | "دورة مياه" | "ممر" | "أخرى";
+const TARGET_KINDS: { value: TargetKind; label: string }[] = [
+  { value: "office", label: "مكتب" },
+  { value: "floor", label: "دور كامل" },
+  { value: "لوبي", label: "اللوبي" },
+  { value: "سطح", label: "السطح (الرووف)" },
+  { value: "موقف سيارة", label: "موقف سيارات" },
+  { value: "غرفة كهرباء", label: "غرفة كهرباء" },
+  { value: "غرفة كاميرات", label: "غرفة كاميرات" },
+  { value: "مخزن", label: "مخزن" },
+  { value: "مصعد", label: "مصعد" },
+  { value: "سلم", label: "سلم" },
+  { value: "دورة مياه", label: "دورة مياه" },
+  { value: "ممر", label: "ممر" },
+  { value: "أخرى", label: "أخرى" },
+];
 
 export const Route = createFileRoute("/_authenticated/maintenance")({
   component: MaintenancePage,

@@ -212,7 +212,49 @@ function MaintenancePage() {
             <DialogHeader><DialogTitle>إنشاء بلاغ صيانة</DialogTitle></DialogHeader>
             <div className="grid grid-cols-2 gap-3">
               <Field label="التاريخ"><Input type="date" value={form.request_date ?? ""} onChange={(e) => setForm({ ...form, request_date: e.target.value })} /></Field>
-              <Field label="الموقع"><Input value={form.location ?? ""} onChange={(e) => setForm({ ...form, location: e.target.value })} /></Field>
+              <Field label="نوع الموقع">
+                <Select value={targetKind} onValueChange={(v) => { setTargetKind(v as TargetKind); setTargetOfficeId(""); setTargetSpaceId(""); setTargetFloor(""); }}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TARGET_KINDS.map((k) => <SelectItem key={k.value} value={k.value}>{k.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <div className="col-span-2">
+                {targetKind === "office" ? (
+                  <Field label="المكتب">
+                    <Select value={targetOfficeId} onValueChange={setTargetOfficeId}>
+                      <SelectTrigger><SelectValue placeholder="اختر المكتب" /></SelectTrigger>
+                      <SelectContent>
+                        {offices.map((o) => <SelectItem key={o.id} value={o.id}>{o.code} — دور {o.floor}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                ) : targetKind === "floor" ? (
+                  <Field label="الدور">
+                    <Select value={targetFloor} onValueChange={setTargetFloor}>
+                      <SelectTrigger><SelectValue placeholder="اختر الدور" /></SelectTrigger>
+                      <SelectContent>
+                        {floors.map((f) => <SelectItem key={f} value={String(f)}>دور {f}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                ) : (
+                  <Field label="الموقع المحدد">
+                    <Select value={targetSpaceId} onValueChange={setTargetSpaceId}>
+                      <SelectTrigger><SelectValue placeholder="اختر الموقع" /></SelectTrigger>
+                      <SelectContent>
+                        {spaces.filter((s) => s.space_type === targetKind).map((s) => (
+                          <SelectItem key={s.id} value={s.id}>{s.space_name} ({s.space_code}){s.floor != null ? ` — دور ${s.floor}` : ""}</SelectItem>
+                        ))}
+                        {spaces.filter((s) => s.space_type === targetKind).length === 0 && (
+                          <div className="px-2 py-1.5 text-xs text-muted-foreground">لا توجد مواقع من هذا النوع</div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
+              </div>
               <Field label="نوع الطلب"><Input placeholder="كهرباء، سباكة، تكييف…" value={form.request_type ?? ""} onChange={(e) => setForm({ ...form, request_type: e.target.value })} /></Field>
               <Field label="الأصل (اختياري)">
                 <Select value={form.asset_id ?? "none"} onValueChange={(v) => setForm({ ...form, asset_id: v === "none" ? null : v })}>

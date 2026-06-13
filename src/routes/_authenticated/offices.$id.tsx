@@ -17,6 +17,11 @@ import {
   FolderOpen,
   History,
   Info as InfoIcon,
+  Building2,
+  Phone,
+  Mail,
+  Calendar,
+  Wallet,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";

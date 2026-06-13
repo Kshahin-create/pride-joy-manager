@@ -108,21 +108,61 @@ function MaintenancePage() {
     });
   }, [items, q, statusFilter, assetMap]);
 
+  const floors = useMemo(() => {
+    const set = new Set<number>();
+    offices.forEach((o) => set.add(o.floor));
+    spaces.forEach((s) => { if (s.floor != null) set.add(s.floor); });
+    return Array.from(set).sort((a, b) => a - b);
+  }, [offices, spaces]);
+
+  const resetForm = () => {
+    setForm({ request_date: new Date().toISOString().slice(0, 10) });
+    setTargetKind("office");
+    setTargetOfficeId("");
+    setTargetSpaceId("");
+    setTargetFloor("");
+  };
+
   const create = async () => {
-    if (!form.location && !form.description) return toast.error("أدخل الموقع أو الوصف");
+    let office_id: string | null = null;
+    let space_id: string | null = null;
+    let location: string | null = null;
+
+    if (targetKind === "office") {
+      if (!targetOfficeId) return toast.error("اختر المكتب");
+      const o = offices.find((x) => x.id === targetOfficeId);
+      if (!o) return toast.error("المكتب غير موجود");
+      office_id = o.id;
+      space_id = o.space_id;
+      location = `مكتب ${o.code} — دور ${o.floor}`;
+    } else if (targetKind === "floor") {
+      if (!targetFloor) return toast.error("اختر الدور");
+      location = `دور ${targetFloor}`;
+    } else {
+      if (!targetSpaceId) return toast.error("اختر الموقع");
+      const sp = spaces.find((x) => x.id === targetSpaceId);
+      if (!sp) return toast.error("الموقع غير موجود");
+      space_id = sp.id;
+      location = `${sp.space_name}${sp.floor != null ? ` — دور ${sp.floor}` : ""}`;
+    }
+
+    if (!form.description) return toast.error("أدخل وصف البلاغ");
+
     const { error } = await supabase.from("maintenance_requests").insert({
       request_date: form.request_date!,
-      location: form.location ?? null,
+      location,
       request_type: form.request_type ?? null,
       description: form.description ?? null,
       asset_id: form.asset_id || null,
+      office_id,
+      space_id,
       status: "جديد",
       reported_by: user?.id ?? null,
     });
     if (error) return toast.error(error.message);
     toast.success("تم إنشاء البلاغ");
     setOpen(false);
-    setForm({ request_date: new Date().toISOString().slice(0, 10) });
+    resetForm();
     load();
   };
 

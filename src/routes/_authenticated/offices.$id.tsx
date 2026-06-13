@@ -227,15 +227,18 @@ function OfficeDetailsPage() {
       </div>
 
       <Tabs defaultValue="basic" dir="rtl">
-        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8">
+        <TabsList className="flex flex-wrap h-auto w-full justify-start gap-1">
           <TabsTrigger value="basic"><InfoIcon className="h-4 w-4 ms-1" />البيانات</TabsTrigger>
           <TabsTrigger value="tenant"><Building2 className="h-4 w-4 ms-1" />المستأجر</TabsTrigger>
+          <TabsTrigger value="finance"><Receipt className="h-4 w-4 ms-1" />الفواتير والمدفوعات</TabsTrigger>
+          <TabsTrigger value="maintenance"><Wrench className="h-4 w-4 ms-1" />الصيانة</TabsTrigger>
+          <TabsTrigger value="parking"><Car className="h-4 w-4 ms-1" />المواقف</TabsTrigger>
           <TabsTrigger value="electricity"><Gauge className="h-4 w-4 ms-1" />الكهرباء</TabsTrigger>
           <TabsTrigger value="ac"><Snowflake className="h-4 w-4 ms-1" />التكييف</TabsTrigger>
           <TabsTrigger value="network"><Network className="h-4 w-4 ms-1" />الشبكات</TabsTrigger>
           <TabsTrigger value="files"><FolderOpen className="h-4 w-4 ms-1" />الملفات</TabsTrigger>
-          <TabsTrigger value="log"><History className="h-4 w-4 ms-1" />السجل</TabsTrigger>
           <TabsTrigger value="tickets"><History className="h-4 w-4 ms-1" />التذاكر</TabsTrigger>
+          <TabsTrigger value="log"><History className="h-4 w-4 ms-1" />السجل</TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="mt-4">
@@ -243,6 +246,15 @@ function OfficeDetailsPage() {
         </TabsContent>
         <TabsContent value="tenant" className="mt-4">
           <TenantTab officeId={office.id} />
+        </TabsContent>
+        <TabsContent value="finance" className="mt-4">
+          <FinanceTab officeId={office.id} />
+        </TabsContent>
+        <TabsContent value="maintenance" className="mt-4">
+          <MaintenanceTab officeId={office.id} />
+        </TabsContent>
+        <TabsContent value="parking" className="mt-4">
+          <ParkingTab officeId={office.id} />
         </TabsContent>
         <TabsContent value="electricity" className="mt-4">
           <ElectricityTab officeId={office.id} canEdit={canEditUtility} />

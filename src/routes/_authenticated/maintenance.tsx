@@ -272,15 +272,25 @@ function MaintenancePage() {
                 )}
               </div>
               <Field label="نوع الطلب"><Input placeholder="كهرباء، سباكة، تكييف…" value={form.request_type ?? ""} onChange={(e) => setForm({ ...form, request_type: e.target.value })} /></Field>
-              <Field label="الأصل (اختياري)">
-                <Select value={form.asset_id ?? "none"} onValueChange={(v) => setForm({ ...form, asset_id: v === "none" ? null : v })}>
+              <Field label="الأولوية">
+                <Select value={form.priority ?? "متوسطة"} onValueChange={(v) => setForm({ ...form, priority: v as Priority })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">— لا يوجد —</SelectItem>
-                    {assets.map((a) => <SelectItem key={a.id} value={a.id}>{a.asset_name} ({a.asset_code})</SelectItem>)}
+                    {PRIORITIES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </Field>
+              <div className="col-span-2">
+                <Field label="الأصل (اختياري)">
+                  <Select value={form.asset_id ?? "none"} onValueChange={(v) => setForm({ ...form, asset_id: v === "none" ? null : v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">— لا يوجد —</SelectItem>
+                      {assets.map((a) => <SelectItem key={a.id} value={a.id}>{a.asset_name} ({a.asset_code})</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
               <div className="col-span-2"><Field label="الوصف"><Textarea rows={3} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field></div>
             </div>
             <DialogFooter><Button onClick={create}>إنشاء</Button></DialogFooter>

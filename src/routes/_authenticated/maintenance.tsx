@@ -18,6 +18,16 @@ import { Plus, AlertTriangle } from "lucide-react";
 type Status = "جديد" | "جاري التنفيذ" | "بانتظار قطع غيار" | "مغلق";
 const STATUSES: Status[] = ["جديد", "جاري التنفيذ", "بانتظار قطع غيار", "مغلق"];
 
+type Priority = "طارئة" | "عالية" | "متوسطة" | "منخفضة";
+const PRIORITIES: Priority[] = ["طارئة", "عالية", "متوسطة", "منخفضة"];
+const PRIORITY_RANK: Record<Priority, number> = { "طارئة": 0, "عالية": 1, "متوسطة": 2, "منخفضة": 3 };
+const PRIORITY_STYLE: Record<Priority, string> = {
+  "طارئة": "bg-red-100 text-red-800 border-red-300 dark:bg-red-950/40 dark:text-red-300",
+  "عالية": "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950/40 dark:text-orange-300",
+  "متوسطة": "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300",
+  "منخفضة": "bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-900/40 dark:text-slate-300",
+};
+
 type Asset = { id: string; asset_name: string; asset_code: string; criticality: "حرج" | "عادي" };
 type Office = { id: string; code: string; floor: number; space_id: string | null };
 type Space = { id: string; space_code: string; space_name: string; space_type: string; floor: number | null };
@@ -26,6 +36,7 @@ type MR = {
   location: string | null; request_type: string | null; description: string | null;
   asset_id: string | null; office_id: string | null; space_id: string | null; status: Status;
   assigned_technician: string | null; cost: number | null; notes: string | null;
+  priority: Priority;
 };
 
 type TargetKind = "office" | "floor" | "لوبي" | "سطح" | "موقف سيارة" | "غرفة كهرباء" | "غرفة كاميرات" | "مخزن" | "مصعد" | "سلم" | "دورة مياه" | "ممر" | "أخرى";
@@ -58,8 +69,9 @@ function MaintenancePage() {
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<Partial<MR>>({ request_date: new Date().toISOString().slice(0, 10) });
+  const [form, setForm] = useState<Partial<MR>>({ request_date: new Date().toISOString().slice(0, 10), priority: "متوسطة" });
 
   // target picker
   const [targetKind, setTargetKind] = useState<TargetKind>("office");
@@ -92,6 +104,7 @@ function MaintenancePage() {
   const filtered = useMemo(() => {
     let arr = items;
     if (statusFilter !== "all") arr = arr.filter((r) => r.status === statusFilter);
+    if (priorityFilter !== "all") arr = arr.filter((r) => r.priority === priorityFilter);
     if (q.trim()) {
       const s = q.trim();
       arr = arr.filter((r) =>
@@ -99,14 +112,16 @@ function MaintenancePage() {
           .filter(Boolean).some((v) => String(v).includes(s))
       );
     }
-    // sort: critical assets first, then date desc
+    // sort: priority (urgent first), then critical assets, then date desc
     return [...arr].sort((a, b) => {
+      const pr = (PRIORITY_RANK[a.priority] ?? 9) - (PRIORITY_RANK[b.priority] ?? 9);
+      if (pr !== 0) return pr;
       const ac = a.asset_id && assetMap.get(a.asset_id)?.criticality === "حرج" ? 0 : 1;
       const bc = b.asset_id && assetMap.get(b.asset_id)?.criticality === "حرج" ? 0 : 1;
       if (ac !== bc) return ac - bc;
       return b.request_date.localeCompare(a.request_date);
     });
-  }, [items, q, statusFilter, assetMap]);
+  }, [items, q, statusFilter, priorityFilter, assetMap]);
 
   const floors = useMemo(() => {
     const set = new Set<number>();
@@ -116,7 +131,7 @@ function MaintenancePage() {
   }, [offices, spaces]);
 
   const resetForm = () => {
-    setForm({ request_date: new Date().toISOString().slice(0, 10) });
+    setForm({ request_date: new Date().toISOString().slice(0, 10), priority: "متوسطة" });
     setTargetKind("office");
     setTargetOfficeId("");
     setTargetSpaceId("");
@@ -157,6 +172,7 @@ function MaintenancePage() {
       office_id,
       space_id,
       status: "جديد",
+      priority: (form.priority ?? "متوسطة") as Priority,
       reported_by: user?.id ?? null,
     });
     if (error) return toast.error(error.message);
@@ -256,15 +272,25 @@ function MaintenancePage() {
                 )}
               </div>
               <Field label="نوع الطلب"><Input placeholder="كهرباء، سباكة، تكييف…" value={form.request_type ?? ""} onChange={(e) => setForm({ ...form, request_type: e.target.value })} /></Field>
-              <Field label="الأصل (اختياري)">
-                <Select value={form.asset_id ?? "none"} onValueChange={(v) => setForm({ ...form, asset_id: v === "none" ? null : v })}>
+              <Field label="الأولوية">
+                <Select value={form.priority ?? "متوسطة"} onValueChange={(v) => setForm({ ...form, priority: v as Priority })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">— لا يوجد —</SelectItem>
-                    {assets.map((a) => <SelectItem key={a.id} value={a.id}>{a.asset_name} ({a.asset_code})</SelectItem>)}
+                    {PRIORITIES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </Field>
+              <div className="col-span-2">
+                <Field label="الأصل (اختياري)">
+                  <Select value={form.asset_id ?? "none"} onValueChange={(v) => setForm({ ...form, asset_id: v === "none" ? null : v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">— لا يوجد —</SelectItem>
+                      {assets.map((a) => <SelectItem key={a.id} value={a.id}>{a.asset_name} ({a.asset_code})</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
               <div className="col-span-2"><Field label="الوصف"><Textarea rows={3} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field></div>
             </div>
             <DialogFooter><Button onClick={create}>إنشاء</Button></DialogFooter>
@@ -305,9 +331,12 @@ function MaintenancePage() {
                           onDragStart={(e) => e.dataTransfer.setData("text/plain", r.id)}
                           className={`rounded-md border p-3 text-sm bg-card ${critical ? "border-destructive" : ""} ${canManage ? "cursor-grab active:cursor-grabbing" : ""}`}
                         >
-                          <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center justify-between mb-1 gap-1">
                             <span className="font-mono text-xs text-muted-foreground">{r.request_number}</span>
-                            {critical && <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" />حرج</Badge>}
+                            <div className="flex items-center gap-1">
+                              <Badge variant="outline" className={`text-[10px] ${PRIORITY_STYLE[r.priority]}`}>{r.priority}</Badge>
+                              {critical && <Badge variant="destructive" className="gap-1 text-[10px]"><AlertTriangle className="h-3 w-3" />حرج</Badge>}
+                            </div>
                           </div>
                           <div className="font-medium">{r.request_type ?? "بلاغ"}</div>
                           <div className="text-xs text-muted-foreground">{r.location ?? "—"}</div>
@@ -340,12 +369,20 @@ function MaintenancePage() {
                     {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                  <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل الأولويات</SelectItem>
+                    {PRIORITIES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>الرقم</TableHead>
                     <TableHead>التاريخ</TableHead>
+                    <TableHead>الأولوية</TableHead>
                     <TableHead>النوع</TableHead>
                     <TableHead>الموقع</TableHead>
                     <TableHead>الأصل</TableHead>
@@ -362,6 +399,7 @@ function MaintenancePage() {
                       <TableRow key={r.id}>
                         <TableCell className="font-mono text-xs">{r.request_number}</TableCell>
                         <TableCell>{r.request_date}</TableCell>
+                        <TableCell><Badge variant="outline" className={PRIORITY_STYLE[r.priority]}>{r.priority}</Badge></TableCell>
                         <TableCell>{r.request_type ?? "—"}</TableCell>
                         <TableCell>{r.location ?? "—"}</TableCell>
                         <TableCell className="flex items-center gap-1">
@@ -378,7 +416,7 @@ function MaintenancePage() {
                     );
                   })}
                   {filtered.length === 0 && (
-                    <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">لا توجد طلبات</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-6">لا توجد طلبات</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>

@@ -416,7 +416,7 @@ function MaintenancePage() {
                     );
                   })}
                   {filtered.length === 0 && (
-                    <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">لا توجد طلبات</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-6">لا توجد طلبات</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>

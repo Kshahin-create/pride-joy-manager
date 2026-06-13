@@ -38,8 +38,10 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { X, UploadCloud } from "lucide-react";
+import { DOC_UPLOAD_CATEGORIES, type DocCategory } from "@/components/documents-tab";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -1076,16 +1078,18 @@ function NetFormDialog({ open, point, officeId, onClose, onSaved }: {
 }
 
 /* ===================== Files ===================== */
-const FILE_TYPES = ["صورة مكتب", "مخطط", "مرفق"];
+const FILE_TYPES: DocCategory[] = DOC_UPLOAD_CATEGORIES;
 
 function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean }) {
   const [files, setFiles] = useState<OfficeFile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fileType, setFileType] = useState<string>("مرفق");
-  const [uploading, setUploading] = useState(false);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [del, setDel] = useState<OfficeFile | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
+  const [defaultCategory, setDefaultCategory] = useState<DocCategory>("صورة");
+  const [fileItems, setFileItems] = useState<Array<{ file: File; title: string; category: DocCategory }>>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1093,7 +1097,6 @@ function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean })
       .select("*").eq("office_id", officeId).order("created_at", { ascending: false });
     const list = (data ?? []) as OfficeFile[];
     setFiles(list);
-    // signed urls for images
     const imgs = list.filter(f => (f.mime_type ?? "").startsWith("image/"));
     if (imgs.length) {
       const urls: Record<string, string> = {};
@@ -1107,33 +1110,47 @@ function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean })
   }, [officeId]);
   useEffect(() => { load(); }, [load]);
 
-  const onUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const list = e.target.files;
-    if (!list || !list.length) return;
+  const stripExt = (name: string) => { const i = name.lastIndexOf("."); return i > 0 ? name.slice(0, i) : name; };
+  const getExt = (name: string) => { const i = name.lastIndexOf("."); return i > 0 ? name.slice(i) : ""; };
+
+  const onPickFiles = (list: FileList | null) => {
+    if (!list) return;
+    setFileItems((prev) => [
+      ...prev,
+      ...Array.from(list).map((f) => ({ file: f, title: stripExt(f.name), category: defaultCategory })),
+    ]);
+  };
+
+  const submit = async () => {
+    if (fileItems.length === 0) { toast.error("اختر ملفًا واحدًا على الأقل"); return; }
+    for (const it of fileItems) {
+      if (!it.title.trim()) { toast.error("كل ملف يجب أن يكون له اسم"); return; }
+    }
     setUploading(true);
     let ok = 0, fail = 0;
-    for (const file of Array.from(list)) {
-      const ext = file.name.split(".").pop() ?? "bin";
-      const path = `${officeId}/${crypto.randomUUID()}.${ext}`;
-      const up = await supabase.storage.from("office-files").upload(path, file, {
-        contentType: file.type || undefined,
+    for (const it of fileItems) {
+      const ext = getExt(it.file.name) || ("." + (it.file.name.split(".").pop() ?? "bin"));
+      const path = `${officeId}/${crypto.randomUUID()}${ext}`;
+      const up = await supabase.storage.from("office-files").upload(path, it.file, {
+        contentType: it.file.type || undefined,
       });
       if (up.error) { fail++; continue; }
       const { error: insErr } = await supabase.from("office_files").insert({
         office_id: officeId,
-        file_type: fileType,
-        file_name: file.name,
+        file_type: it.category,
+        file_name: it.title.trim() + getExt(it.file.name),
         storage_path: path,
-        mime_type: file.type || null,
-        size_bytes: file.size,
+        mime_type: it.file.type || null,
+        size_bytes: it.file.size,
       });
       if (insErr) { fail++; await supabase.storage.from("office-files").remove([path]); }
       else ok++;
     }
     setUploading(false);
-    if (inputRef.current) inputRef.current.value = "";
     if (ok) toast.success(`تم رفع ${ok} ملف`);
     if (fail) toast.error(`فشل ${fail} ملف`);
+    setFileItems([]);
+    setOpen(false);
     load();
   };
 
@@ -1156,31 +1173,86 @@ function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean })
   const others = useMemo(() => files.filter(f => !(f.mime_type ?? "").startsWith("image/")), [files]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" dir="rtl">
       {canEdit && (
-        <Card>
-          <CardContent className="pt-6 flex items-end gap-3 flex-wrap">
-            <div className="space-y-1.5">
-              <Label>نوع الملف</Label>
-              <Select value={fileType} onValueChange={setFileType}>
-                <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {FILE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <input ref={inputRef} type="file" multiple onChange={onUpload} className="hidden" id="office-upload" />
-              <Button asChild className="bg-gold text-gold-foreground hover:bg-gold/90" disabled={uploading}>
-                <label htmlFor="office-upload" className="cursor-pointer">
-                  {uploading ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4 ms-1" />}
-                  رفع ملفات
-                </label>
+        <div className="flex justify-end">
+          <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setFileItems([]); }}>
+            <DialogTrigger asChild>
+              <Button className="bg-gold text-gold-foreground hover:bg-gold/90">
+                <Upload className="h-4 w-4 ms-1" /> رفع ملفات
               </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">يمكنك اختيار عدة ملفات دفعة واحدة.</p>
-          </CardContent>
-        </Card>
+            </DialogTrigger>
+            <DialogContent dir="rtl" className="max-w-2xl">
+              <DialogHeader><DialogTitle>رفع ملفات للمكتب</DialogTitle></DialogHeader>
+              <div className="space-y-3">
+                <div>
+                  <Label>التصنيف الافتراضي (يُطبَّق على الملفات الجديدة)</Label>
+                  <Select value={defaultCategory} onValueChange={(v) => setDefaultCategory(v as DocCategory)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {FILE_TYPES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>الملفات</Label>
+                  <label
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={(e) => { e.preventDefault(); setDragOver(false); onPickFiles(e.dataTransfer.files); }}
+                    className={`mt-1 flex flex-col items-center justify-center gap-1 border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors ${dragOver ? "border-primary bg-primary/5" : "border-border hover:bg-muted/30"}`}
+                  >
+                    <UploadCloud className="h-7 w-7 text-muted-foreground" />
+                    <div className="text-sm">اسحب وأفلِت الملفات هنا أو اضغط للاختيار</div>
+                    <div className="text-xs text-muted-foreground">يمكن اختيار عدة ملفات بأي صيغة</div>
+                    <input type="file" multiple className="hidden"
+                      onChange={(e) => { onPickFiles(e.target.files); e.target.value = ""; }} />
+                  </label>
+                  {fileItems.length > 0 && (
+                    <div className="mt-2 space-y-2 max-h-72 overflow-auto">
+                      {fileItems.map((it, i) => (
+                        <div key={i} className="border rounded-md p-2 bg-muted/30 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs truncate">
+                              {it.file.name} <span className="text-muted-foreground">({(it.file.size / 1024).toFixed(1)} KB)</span>
+                            </span>
+                            <button type="button" onClick={() => setFileItems((p) => p.filter((_, k) => k !== i))} className="text-muted-foreground hover:text-destructive">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Label className="text-xs">اسم الملف</Label>
+                              <Input value={it.title}
+                                onChange={(e) => setFileItems((p) => p.map((x, k) => k === i ? { ...x, title: e.target.value } : x))} />
+                            </div>
+                            <div>
+                              <Label className="text-xs">التصنيف</Label>
+                              <Select value={it.category}
+                                onValueChange={(v) => setFileItems((p) => p.map((x, k) => k === i ? { ...x, category: v as DocCategory } : x))}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {FILE_TYPES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
+                <Button onClick={submit} disabled={uploading}>
+                  {uploading ? <Loader2 className="ms-2 h-4 w-4 animate-spin" /> : null}
+                  رفع {fileItems.length > 0 ? `(${fileItems.length})` : ""}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       )}
 
       {loading ? (

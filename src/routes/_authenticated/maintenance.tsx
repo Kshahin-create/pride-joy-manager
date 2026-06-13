@@ -104,6 +104,7 @@ function MaintenancePage() {
   const filtered = useMemo(() => {
     let arr = items;
     if (statusFilter !== "all") arr = arr.filter((r) => r.status === statusFilter);
+    if (priorityFilter !== "all") arr = arr.filter((r) => r.priority === priorityFilter);
     if (q.trim()) {
       const s = q.trim();
       arr = arr.filter((r) =>
@@ -111,14 +112,16 @@ function MaintenancePage() {
           .filter(Boolean).some((v) => String(v).includes(s))
       );
     }
-    // sort: critical assets first, then date desc
+    // sort: priority (urgent first), then critical assets, then date desc
     return [...arr].sort((a, b) => {
+      const pr = (PRIORITY_RANK[a.priority] ?? 9) - (PRIORITY_RANK[b.priority] ?? 9);
+      if (pr !== 0) return pr;
       const ac = a.asset_id && assetMap.get(a.asset_id)?.criticality === "حرج" ? 0 : 1;
       const bc = b.asset_id && assetMap.get(b.asset_id)?.criticality === "حرج" ? 0 : 1;
       if (ac !== bc) return ac - bc;
       return b.request_date.localeCompare(a.request_date);
     });
-  }, [items, q, statusFilter, assetMap]);
+  }, [items, q, statusFilter, priorityFilter, assetMap]);
 
   const floors = useMemo(() => {
     const set = new Set<number>();

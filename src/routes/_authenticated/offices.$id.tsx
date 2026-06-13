@@ -1556,13 +1556,12 @@ function ContractCard({ contract, contacts, compact }: { contract: ContractRow; 
               {contacts.map((p) => (
                 <div key={p.id} className="rounded-md border border-border p-3 text-sm space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">{p.full_name}</span>
-                    {p.is_primary && <Badge variant="outline" className="text-xs">رئيسي</Badge>}
+                    <span className="font-medium">{p.name}</span>
                   </div>
                   {p.position && <div className="text-xs text-muted-foreground">{p.position}</div>}
-                  {p.phone && (
-                    <a href={`tel:${p.phone}`} className="flex items-center gap-1 text-xs text-primary hover:underline" dir="ltr">
-                      <Phone className="h-3 w-3" />{p.phone}
+                  {p.mobile && (
+                    <a href={`tel:${p.mobile}`} className="flex items-center gap-1 text-xs text-primary hover:underline" dir="ltr">
+                      <Phone className="h-3 w-3" />{p.mobile}
                     </a>
                   )}
                   {p.email && (

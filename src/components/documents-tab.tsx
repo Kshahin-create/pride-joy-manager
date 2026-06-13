@@ -25,12 +25,21 @@ import { Plus, Download, Eye, Trash2, FileText, AlertTriangle, Search, Share2, A
 import JSZip from "jszip";
 
 export const DOC_CATEGORIES = [
-  "عقد","هوية","سجل تجاري","فاتورة","سند","عقد مورد","عقد صيانة",
-  "مخطط البرج","شهادة دفاع مدني","شهادة مصعد","عقد أمن",
-  "شهادة نظام حريق","تقرير صيانة سنوي","أخرى",
+  "عقد","مخطط","شهادة","فاتورة","صورة","تقرير","أمر عمل",
+  "محضر","عرض سعر","مستند قانوني","مستند مالي",
+  // legacy values kept for backward compatibility with existing records
+  "هوية","سجل تجاري","سند","عقد مورد","عقد صيانة","مخطط البرج",
+  "شهادة دفاع مدني","شهادة مصعد","عقد أمن","شهادة نظام حريق",
+  "تقرير صيانة سنوي","أخرى",
 ] as const;
 export type DocCategory = (typeof DOC_CATEGORIES)[number];
 export type DocEntityType = "tenant" | "contract" | "asset" | "vendor" | "building";
+
+// Categories shown in the upload dialog (the user-curated short list)
+export const DOC_UPLOAD_CATEGORIES: DocCategory[] = [
+  "عقد","مخطط","شهادة","فاتورة","صورة","تقرير","أمر عمل",
+  "محضر","عرض سعر","مستند قانوني","مستند مالي","أخرى",
+];
 
 export interface DocumentRow {
   id: string;

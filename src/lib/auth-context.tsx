@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+// النظام القديم — للتوافق العكسي فقط
 export type AppRole =
   | "super_admin"
   | "accountant"
@@ -13,12 +14,21 @@ export type AppRole =
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
-  roles: AppRole[];
+  /** أسماء الأدوار اللي للمستخدم (ديناميكية الآن) */
+  roles: string[];
+  /** كل الصلاحيات المجمعة من الأدوار */
+  permissions: Set<string>;
   loading: boolean;
   signOut: () => Promise<void>;
-  hasRole: (role: AppRole) => boolean;
-  hasAnyRole: (roles: AppRole[]) => boolean;
-  refreshRoles: () => Promise<void>;
+  /** متوافق مع النظام القديم — يفحص اسم الدور */
+  hasRole: (role: AppRole | string) => boolean;
+  hasAnyRole: (roles: (AppRole | string)[]) => boolean;
+  /** الجديد — فحص صلاحية محددة */
+  hasPermission: (key: string) => boolean;
+  hasAnyPermission: (keys: string[]) => boolean;
+  /** المدير العام دايمًا له كل شيء */
+  isSuperAdmin: boolean;
+  refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -26,16 +36,29 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [roles, setRoles] = useState<AppRole[]>([]);
+  const [roles, setRoles] = useState<string[]>([]);
+  const [permissions, setPermissions] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
-  const loadRoles = async (uid: string | undefined) => {
+  const loadAccess = async (uid: string | undefined) => {
     if (!uid) {
       setRoles([]);
+      setPermissions(new Set());
       return;
     }
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-    setRoles(((data ?? []) as { role: AppRole }[]).map((r) => r.role));
+    // الأدوار: من user_role_assignments → app_roles (ديناميكية)
+    const { data: ra } = await (supabase as any)
+      .from("user_role_assignments")
+      .select("app_roles(name)")
+      .eq("user_id", uid);
+    const roleNames = ((ra ?? []) as any[])
+      .map((r) => r.app_roles?.name)
+      .filter(Boolean) as string[];
+    setRoles(roleNames);
+
+    // الصلاحيات: عن طريق RPC الديناميكي
+    const { data: perms } = await (supabase as any).rpc("get_my_permissions");
+    setPermissions(new Set(((perms ?? []) as string[])));
   };
 
   const checkActive = async (uid: string | undefined) => {
@@ -44,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (data && data.is_active === false) {
       await supabase.auth.signOut();
       setRoles([]);
+      setPermissions(new Set());
       setUser(null);
       setSession(null);
       return false;
@@ -57,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(s?.user ?? null);
       setTimeout(async () => {
         const ok = await checkActive(s?.user?.id);
-        if (ok) await loadRoles(s?.user?.id);
+        if (ok) await loadAccess(s?.user?.id);
       }, 0);
     });
 
@@ -65,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(data.session);
       setUser(data.session?.user ?? null);
       const ok = await checkActive(data.session?.user?.id);
-      if (ok) await loadRoles(data.session?.user?.id);
+      if (ok) await loadAccess(data.session?.user?.id);
       setLoading(false);
     });
 
@@ -75,17 +99,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setRoles([]);
+    setPermissions(new Set());
   };
+
+  const isSuperAdmin = roles.includes("super_admin");
 
   const value: AuthContextValue = {
     user,
     session,
     roles,
+    permissions,
     loading,
     signOut,
     hasRole: (r) => roles.includes(r),
     hasAnyRole: (rs) => rs.some((r) => roles.includes(r)),
-    refreshRoles: () => loadRoles(user?.id),
+    hasPermission: (k) => isSuperAdmin || permissions.has(k),
+    hasAnyPermission: (ks) => isSuperAdmin || ks.some((k) => permissions.has(k)),
+    isSuperAdmin,
+    refresh: () => loadAccess(user?.id),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -97,7 +128,7 @@ export function useAuth() {
   return ctx;
 }
 
-export const ROLE_LABELS: Record<AppRole, string> = {
+export const ROLE_LABELS: Record<string, string> = {
   super_admin: "مدير عام",
   accountant: "محاسب",
   security_supervisor: "مشرف أمن",
@@ -105,3 +136,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   receptionist: "موظف استقبال",
   owner: "مالك",
 };
+
+export function roleLabel(name: string): string {
+  return ROLE_LABELS[name] ?? name;
+}

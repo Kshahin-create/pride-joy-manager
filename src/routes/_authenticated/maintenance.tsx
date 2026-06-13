@@ -69,8 +69,9 @@ function MaintenancePage() {
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<Partial<MR>>({ request_date: new Date().toISOString().slice(0, 10) });
+  const [form, setForm] = useState<Partial<MR>>({ request_date: new Date().toISOString().slice(0, 10), priority: "متوسطة" });
 
   // target picker
   const [targetKind, setTargetKind] = useState<TargetKind>("office");

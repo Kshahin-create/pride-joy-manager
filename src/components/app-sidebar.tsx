@@ -126,7 +126,7 @@ export function AppSidebar() {
   }, [user]);
 
   const visible = (item: NavItem) =>
-    !item.roles || hasAnyRole(item.roles) || roles.length === 0;
+    !item.perms || isSuperAdmin || hasAnyPermission(item.perms);
 
   const initials = (fullName || user?.email || "؟").trim().slice(0, 2).toUpperCase();
   const primaryRole = roles[0];

@@ -399,6 +399,7 @@ function MaintenancePage() {
                       <TableRow key={r.id}>
                         <TableCell className="font-mono text-xs">{r.request_number}</TableCell>
                         <TableCell>{r.request_date}</TableCell>
+                        <TableCell><Badge variant="outline" className={PRIORITY_STYLE[r.priority]}>{r.priority}</Badge></TableCell>
                         <TableCell>{r.request_type ?? "—"}</TableCell>
                         <TableCell>{r.location ?? "—"}</TableCell>
                         <TableCell className="flex items-center gap-1">

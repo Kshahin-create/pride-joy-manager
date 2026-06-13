@@ -256,16 +256,17 @@ function UsersPage() {
         </select>
       </Card>
 
-      <Card className="overflow-x-auto">
-        <Table>
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+        <Table className="min-w-[680px]">
           <TableHeader>
-            <TableRow>
-              <TableHead>المستخدم</TableHead>
-              <TableHead className="hidden md:table-cell">الهاتف</TableHead>
-              <TableHead>الأدوار</TableHead>
-              <TableHead>الحالة</TableHead>
-              <TableHead className="hidden lg:table-cell">تاريخ الإضافة</TableHead>
-              <TableHead className="text-end">إجراءات</TableHead>
+            <TableRow className="bg-muted/40 hover:bg-muted/40">
+              <TableHead className="h-11 px-4">المستخدم</TableHead>
+              <TableHead className="h-11 px-4 hidden md:table-cell">الهاتف</TableHead>
+              <TableHead className="h-11 px-4">الأدوار</TableHead>
+              <TableHead className="h-11 px-4 w-[140px]">الحالة</TableHead>
+              <TableHead className="h-11 px-4 hidden lg:table-cell">تاريخ الإضافة</TableHead>
+              <TableHead className="h-11 px-4 text-end w-[80px]">إجراءات</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -283,19 +284,19 @@ function UsersPage() {
               </TableRow>
             ) : (
               filtered.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell>
+                <TableRow key={r.id} className="h-16">
+                  <TableCell className="px-4">
                     <div className="flex items-center gap-3">
-                      <Avatar>
+                      <Avatar className="h-9 w-9">
                         <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
                           {initials(r.full_name)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <div className="font-medium truncate">
-                          {r.full_name || "—"}
+                        <div className="font-medium truncate flex items-center gap-2">
+                          <span className="truncate">{r.full_name || "—"}</span>
                           {r.id === me?.id && (
-                            <Badge variant="outline" className="ms-2 text-[10px]">
+                            <Badge variant="outline" className="text-[10px] shrink-0">
                               أنت
                             </Badge>
                           )}
@@ -309,10 +310,10 @@ function UsersPage() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell dir="ltr" className="text-right hidden md:table-cell">
+                  <TableCell dir="ltr" className="px-4 text-right hidden md:table-cell text-sm">
                     {r.phone || "—"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="px-4">
                     <div className="flex flex-wrap gap-1">
                       {r.roles.length === 0 && (
                         <span className="text-xs text-muted-foreground">—</span>
@@ -324,17 +325,27 @@ function UsersPage() {
                       ))}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={r.is_active}
-                      onCheckedChange={() => toggleActive(r)}
-                      aria-label="تفعيل/تعطيل"
-                    />
+                  <TableCell className="px-4">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={r.is_active}
+                        onCheckedChange={() => toggleActive(r)}
+                        aria-label="تفعيل/تعطيل"
+                      />
+                      <span
+                        className={cn(
+                          "text-xs font-medium",
+                          r.is_active ? "text-success" : "text-muted-foreground",
+                        )}
+                      >
+                        {r.is_active ? "نشط" : "معطّل"}
+                      </span>
+                    </div>
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">
+                  <TableCell className="px-4 text-xs text-muted-foreground hidden lg:table-cell">
                     {new Date(r.created_at).toLocaleDateString("ar-EG")}
                   </TableCell>
-                  <TableCell className="text-end">
+                  <TableCell className="px-4 text-end">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button size="icon" variant="ghost">
@@ -371,6 +382,7 @@ function UsersPage() {
             )}
           </TableBody>
         </Table>
+        </div>
       </Card>
 
       <CreateUserDialog open={creating} onClose={() => setCreating(false)} onSaved={load} />

@@ -86,13 +86,11 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
   const [fCategory, setFCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [files, setFiles] = useState<File[]>([]);
+  const [fileItems, setFileItems] = useState<Array<{ file: File; title: string; category: DocCategory }>>([]);
   const [dragOver, setDragOver] = useState(false);
   const [zipping, setZipping] = useState(false);
-  const [form, setForm] = useState<Partial<DocumentRow>>({
-    category: "أخرى",
-    entity_type: entityType,
-  });
+  const [defaultCategory, setDefaultCategory] = useState<DocCategory>("عقد");
+  const [form, setForm] = useState<{ issue_date?: string; expiry_date?: string; notes?: string }>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -122,22 +120,26 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
     return path;
   };
 
+  const stripExt = (name: string) => { const i = name.lastIndexOf("."); return i > 0 ? name.slice(0, i) : name; };
+
   const submit = async () => {
-    if (!files || files.length === 0) { toast.error("اختر ملفًا واحدًا على الأقل"); return; }
-    if (!form.title?.trim()) { toast.error("العنوان مطلوب"); return; }
+    if (fileItems.length === 0) { toast.error("اختر ملفًا واحدًا على الأقل"); return; }
+    for (const it of fileItems) {
+      if (!it.title.trim()) { toast.error("كل ملف يجب أن يكون له اسم"); return; }
+    }
     try {
       const rows: any[] = [];
-      for (const f of Array.from(files)) {
-        const path = await uploadOne(f);
+      for (const it of fileItems) {
+        const path = await uploadOne(it.file);
         rows.push({
-          title: files.length > 1 ? `${form.title} - ${f.name}` : form.title,
-          category: form.category ?? "أخرى",
+          title: it.title.trim(),
+          category: it.category,
           entity_type: entityType,
           entity_id: entityId,
           file_path: path,
-          file_name: f.name,
-          mime_type: f.type || null,
-          file_size: f.size,
+          file_name: it.file.name,
+          mime_type: it.file.type || null,
+          file_size: it.file.size,
           issue_date: form.issue_date || null,
           expiry_date: form.expiry_date || null,
           notes: form.notes || null,
@@ -148,8 +150,8 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
       if (error) throw error;
       toast.success(`تم رفع ${rows.length} مستند`);
       setOpen(false);
-      setFiles([]);
-      setForm({ category: "أخرى", entity_type: entityType });
+      setFileItems([]);
+      setForm({});
       void load();
     } catch (e: any) { toast.error(e.message ?? "فشل الرفع"); }
   };

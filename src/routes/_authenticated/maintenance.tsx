@@ -172,6 +172,7 @@ function MaintenancePage() {
       office_id,
       space_id,
       status: "جديد",
+      priority: (form.priority ?? "متوسطة") as Priority,
       reported_by: user?.id ?? null,
     });
     if (error) return toast.error(error.message);

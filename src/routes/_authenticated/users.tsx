@@ -1,9 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, useCallback } from "react";
-import { Loader2, Search } from "lucide-react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  Loader2,
+  Search,
+  UserPlus,
+  KeyRound,
+  Trash2,
+  Pencil,
+  ShieldCheck,
+  Users as UsersIcon,
+  UserCheck,
+  UserX,
+  Eye,
+  EyeOff,
+  Copy,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, ROLE_LABELS, type AppRole } from "@/lib/auth-context";
+import {
+  createUser,
+  updateUserProfile,
+  resetUserPassword,
+  deleteUser,
+  setUserRoles,
+} from "@/lib/users-admin.functions";
 import {
   Table,
   TableBody,
@@ -25,8 +47,27 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/users")({
@@ -51,6 +92,20 @@ const ALL_ROLES: AppRole[] = [
   "owner",
 ];
 
+function genPassword(len = 12) {
+  const chars =
+    "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+  const arr = new Uint32Array(len);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, (n) => chars[n % chars.length]).join("");
+}
+
+function initials(name: string | null) {
+  if (!name) return "؟";
+  const parts = name.trim().split(/\s+/);
+  return (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
+}
+
 function UsersPage() {
   const { hasRole, user: me } = useAuth();
   const allowed = hasRole("super_admin");
@@ -58,7 +113,14 @@ function UsersPage() {
   const [rows, setRows] = useState<ProfileRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [editing, setEditing] = useState<ProfileRow | null>(null);
+  const [roleFilter, setRoleFilter] = useState<AppRole | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+
+  const [creating, setCreating] = useState(false);
+  const [editingRoles, setEditingRoles] = useState<ProfileRow | null>(null);
+  const [editingProfile, setEditingProfile] = useState<ProfileRow | null>(null);
+  const [resetting, setResetting] = useState<ProfileRow | null>(null);
+  const [deleting, setDeleting] = useState<ProfileRow | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -93,6 +155,12 @@ function UsersPage() {
     if (allowed) load();
   }, [allowed, load]);
 
+  const stats = useMemo(() => {
+    const active = rows.filter((r) => r.is_active).length;
+    const admins = rows.filter((r) => r.roles.includes("super_admin")).length;
+    return { total: rows.length, active, inactive: rows.length - active, admins };
+  }, [rows]);
+
   if (!allowed) {
     return (
       <Card className="p-8 text-center">
@@ -105,13 +173,18 @@ function UsersPage() {
   }
 
   const filtered = rows.filter((r) => {
-    if (!q.trim()) return true;
     const s = q.trim().toLowerCase();
-    return (
-      (r.full_name ?? "").toLowerCase().includes(s) ||
-      (r.phone ?? "").toLowerCase().includes(s) ||
-      r.id.includes(s)
-    );
+    if (s) {
+      const match =
+        (r.full_name ?? "").toLowerCase().includes(s) ||
+        (r.phone ?? "").toLowerCase().includes(s) ||
+        r.id.includes(s);
+      if (!match) return false;
+    }
+    if (roleFilter !== "all" && !r.roles.includes(roleFilter)) return false;
+    if (statusFilter === "active" && !r.is_active) return false;
+    if (statusFilter === "inactive" && r.is_active) return false;
+    return true;
   });
 
   const toggleActive = async (row: ProfileRow) => {
@@ -129,12 +202,29 @@ function UsersPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-primary">المستخدمون</h1>
+          <h1 className="text-2xl font-bold text-primary">إدارة المستخدمين</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            إدارة موظفي البرج وأدوارهم وحالة تفعيلهم.
+            أنشئ الحسابات، عدّل الصلاحيات، وتحكّم في تفعيل الموظفين.
           </p>
         </div>
-        <div className="relative w-full sm:w-72">
+        <Button
+          onClick={() => setCreating(true)}
+          className="bg-gold text-gold-foreground hover:bg-gold/90"
+        >
+          <UserPlus className="h-4 w-4" />
+          إضافة مستخدم
+        </Button>
+      </div>
+
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <StatCard icon={<UsersIcon className="h-5 w-5" />} label="الإجمالي" value={stats.total} />
+        <StatCard icon={<UserCheck className="h-5 w-5 text-success" />} label="نشط" value={stats.active} />
+        <StatCard icon={<UserX className="h-5 w-5 text-destructive" />} label="معطّل" value={stats.inactive} />
+        <StatCard icon={<ShieldCheck className="h-5 w-5 text-gold" />} label="مدير عام" value={stats.admins} />
+      </div>
+
+      <Card className="p-3 flex flex-wrap gap-2 items-center">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute top-1/2 -translate-y-1/2 start-2 h-4 w-4 text-muted-foreground" />
           <Input
             value={q}
@@ -143,17 +233,38 @@ function UsersPage() {
             className="ps-8"
           />
         </div>
-      </div>
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value as AppRole | "all")}
+          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+        >
+          <option value="all">كل الأدوار</option>
+          {ALL_ROLES.map((r) => (
+            <option key={r} value={r}>
+              {ROLE_LABELS[r]}
+            </option>
+          ))}
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+          className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+        >
+          <option value="all">كل الحالات</option>
+          <option value="active">نشط</option>
+          <option value="inactive">معطّل</option>
+        </select>
+      </Card>
 
-      <Card>
+      <Card className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>الاسم</TableHead>
-              <TableHead>الهاتف</TableHead>
+              <TableHead>المستخدم</TableHead>
+              <TableHead className="hidden md:table-cell">الهاتف</TableHead>
               <TableHead>الأدوار</TableHead>
               <TableHead>الحالة</TableHead>
-              <TableHead>تاريخ الإضافة</TableHead>
+              <TableHead className="hidden lg:table-cell">تاريخ الإضافة</TableHead>
               <TableHead className="text-end">إجراءات</TableHead>
             </TableRow>
           </TableHeader>
@@ -173,13 +284,34 @@ function UsersPage() {
             ) : (
               filtered.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell className="font-medium">
-                    {r.full_name || "—"}
-                    {r.id === me?.id && (
-                      <Badge variant="outline" className="ms-2 text-[10px]">أنت</Badge>
-                    )}
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                          {initials(r.full_name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">
+                          {r.full_name || "—"}
+                          {r.id === me?.id && (
+                            <Badge variant="outline" className="ms-2 text-[10px]">
+                              أنت
+                            </Badge>
+                          )}
+                        </div>
+                        <div
+                          className="text-xs text-muted-foreground truncate md:hidden"
+                          dir="ltr"
+                        >
+                          {r.phone || "—"}
+                        </div>
+                      </div>
+                    </div>
                   </TableCell>
-                  <TableCell dir="ltr" className="text-right">{r.phone || "—"}</TableCell>
+                  <TableCell dir="ltr" className="text-right hidden md:table-cell">
+                    {r.phone || "—"}
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {r.roles.length === 0 && (
@@ -193,26 +325,46 @@ function UsersPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {r.is_active ? (
-                      <Badge className="bg-success text-success-foreground">نشط</Badge>
-                    ) : (
-                      <Badge variant="secondary">معطّل</Badge>
-                    )}
+                    <Switch
+                      checked={r.is_active}
+                      onCheckedChange={() => toggleActive(r)}
+                      aria-label="تفعيل/تعطيل"
+                    />
                   </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
+                  <TableCell className="text-xs text-muted-foreground hidden lg:table-cell">
                     {new Date(r.created_at).toLocaleDateString("ar-EG")}
                   </TableCell>
                   <TableCell className="text-end">
-                    <div className="flex items-center justify-end gap-2">
-                      <Switch
-                        checked={r.is_active}
-                        onCheckedChange={() => toggleActive(r)}
-                        aria-label="تفعيل/تعطيل"
-                      />
-                      <Button size="sm" variant="outline" onClick={() => setEditing(r)}>
-                        تعديل الأدوار
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant="ghost">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setEditingProfile(r)}>
+                          <Pencil className="h-4 w-4" />
+                          تعديل البيانات
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setEditingRoles(r)}>
+                          <ShieldCheck className="h-4 w-4" />
+                          تعديل الأدوار
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setResetting(r)}>
+                          <KeyRound className="h-4 w-4" />
+                          إعادة تعيين كلمة المرور
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          disabled={r.id === me?.id}
+                          onClick={() => setDeleting(r)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          حذف الحساب
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
@@ -221,15 +373,224 @@ function UsersPage() {
         </Table>
       </Card>
 
+      <CreateUserDialog open={creating} onClose={() => setCreating(false)} onSaved={load} />
       <EditRolesDialog
-        user={editing}
-        onClose={() => setEditing(null)}
+        user={editingRoles}
+        onClose={() => setEditingRoles(null)}
         onSaved={() => {
-          setEditing(null);
+          setEditingRoles(null);
+          load();
+        }}
+      />
+      <EditProfileDialog
+        user={editingProfile}
+        onClose={() => setEditingProfile(null)}
+        onSaved={() => {
+          setEditingProfile(null);
+          load();
+        }}
+      />
+      <ResetPasswordDialog
+        user={resetting}
+        onClose={() => setResetting(null)}
+      />
+      <DeleteUserDialog
+        user={deleting}
+        onClose={() => setDeleting(null)}
+        onDeleted={() => {
+          setDeleting(null);
           load();
         }}
       />
     </div>
+  );
+}
+
+function StatCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+}) {
+  return (
+    <Card className="p-4 flex items-center gap-3">
+      <div className="h-10 w-10 rounded-lg bg-muted grid place-items-center">{icon}</div>
+      <div>
+        <div className="text-xs text-muted-foreground">{label}</div>
+        <div className="text-xl font-bold">{value}</div>
+      </div>
+    </Card>
+  );
+}
+
+function CreateUserDialog({
+  open,
+  onClose,
+  onSaved,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const fn = useServerFn(createUser);
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState(() => genPassword());
+  const [showPw, setShowPw] = useState(false);
+  const [roles, setRoles] = useState<Set<AppRole>>(new Set());
+  const [isActive, setIsActive] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setEmail("");
+      setFullName("");
+      setPhone("");
+      setPassword(genPassword());
+      setRoles(new Set());
+      setIsActive(true);
+      setShowPw(false);
+    }
+  }, [open]);
+
+  const toggle = (r: AppRole) => {
+    setRoles((prev) => {
+      const next = new Set(prev);
+      if (next.has(r)) next.delete(r);
+      else next.add(r);
+      return next;
+    });
+  };
+
+  const submit = async () => {
+    if (!email || !fullName || password.length < 8) {
+      toast.error("املأ كل الحقول المطلوبة (كلمة المرور 8 أحرف على الأقل)");
+      return;
+    }
+    setSaving(true);
+    try {
+      await fn({
+        data: {
+          email,
+          password,
+          full_name: fullName,
+          phone,
+          roles: [...roles],
+          is_active: isActive,
+        },
+      });
+      toast.success("تم إنشاء المستخدم");
+      onSaved();
+      onClose();
+    } catch (e: any) {
+      toast.error(e?.message || "تعذّر إنشاء المستخدم");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const copyPw = async () => {
+    await navigator.clipboard.writeText(password);
+    toast.success("تم نسخ كلمة المرور");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent dir="rtl" className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>إضافة مستخدم جديد</DialogTitle>
+          <DialogDescription>
+            سيتم إنشاء الحساب فورًا. أرسل كلمة المرور للمستخدم بعد الحفظ.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 py-2">
+          <div>
+            <Label>الاسم الكامل *</Label>
+            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          </div>
+          <div>
+            <Label>البريد الإلكتروني *</Label>
+            <Input
+              type="email"
+              dir="ltr"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>رقم الهاتف</Label>
+            <Input dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </div>
+          <div>
+            <Label>كلمة المرور *</Label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Input
+                  type={showPw ? "text" : "password"}
+                  dir="ltr"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pe-9"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw((v) => !v)}
+                  className="absolute end-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+                >
+                  {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              <Button type="button" variant="outline" size="icon" onClick={copyPw} title="نسخ">
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPassword(genPassword())}
+              >
+                توليد
+              </Button>
+            </div>
+          </div>
+          <div>
+            <Label className="mb-2 block">الأدوار</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {ALL_ROLES.map((r) => (
+                <label
+                  key={r}
+                  className="flex items-center gap-2 rounded-md border p-2 cursor-pointer hover:bg-accent text-sm"
+                >
+                  <Checkbox checked={roles.has(r)} onCheckedChange={() => toggle(r)} />
+                  {ROLE_LABELS[r]}
+                </label>
+              ))}
+            </div>
+          </div>
+          <label className="flex items-center justify-between rounded-md border p-3">
+            <span className="text-sm">تفعيل الحساب فور إنشائه</span>
+            <Switch checked={isActive} onCheckedChange={setIsActive} />
+          </label>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            إلغاء
+          </Button>
+          <Button
+            onClick={submit}
+            disabled={saving}
+            className="bg-gold text-gold-foreground hover:bg-gold/90"
+          >
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            إنشاء
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -242,6 +603,7 @@ function EditRolesDialog({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const fn = useServerFn(setUserRoles);
   const [selected, setSelected] = useState<Set<AppRole>>(new Set());
   const [saving, setSaving] = useState(false);
 
@@ -262,36 +624,15 @@ function EditRolesDialog({
 
   const save = async () => {
     setSaving(true);
-    const current = new Set(user.roles);
-    const target = selected;
-    const toAdd = [...target].filter((r) => !current.has(r));
-    const toRemove = [...current].filter((r) => !target.has(r));
-
-    if (toRemove.length) {
-      const { error } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", user.id)
-        .in("role", toRemove);
-      if (error) {
-        toast.error("تعذّر إزالة بعض الأدوار");
-        setSaving(false);
-        return;
-      }
+    try {
+      await fn({ data: { user_id: user.id, roles: [...selected] } });
+      toast.success("تم حفظ الأدوار");
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message || "تعذّر الحفظ");
+    } finally {
+      setSaving(false);
     }
-    if (toAdd.length) {
-      const { error } = await supabase
-        .from("user_roles")
-        .insert(toAdd.map((role) => ({ user_id: user.id, role })));
-      if (error) {
-        toast.error("تعذّر إضافة بعض الأدوار");
-        setSaving(false);
-        return;
-      }
-    }
-    setSaving(false);
-    toast.success("تم حفظ الأدوار");
-    onSaved();
   };
 
   return (
@@ -301,20 +642,14 @@ function EditRolesDialog({
           <DialogTitle>تعديل أدوار: {user.full_name || "—"}</DialogTitle>
           <DialogDescription>اختر دور أو أكثر لهذا المستخدم.</DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 py-2">
+        <div className="space-y-2 py-2">
           {ALL_ROLES.map((r) => (
             <label
               key={r}
               className="flex items-center gap-3 rounded-md border p-3 cursor-pointer hover:bg-accent"
             >
-              <Checkbox
-                checked={selected.has(r)}
-                onCheckedChange={() => toggle(r)}
-                id={`role-${r}`}
-              />
-              <Label htmlFor={`role-${r}`} className="cursor-pointer flex-1">
-                {ROLE_LABELS[r]}
-              </Label>
+              <Checkbox checked={selected.has(r)} onCheckedChange={() => toggle(r)} />
+              <span className="flex-1">{ROLE_LABELS[r]}</span>
             </label>
           ))}
         </div>
@@ -322,12 +657,226 @@ function EditRolesDialog({
           <Button variant="outline" onClick={onClose} disabled={saving}>
             إلغاء
           </Button>
-          <Button onClick={save} disabled={saving} className="bg-gold text-gold-foreground hover:bg-gold/90">
-            {saving && <Loader2 className="ms-2 h-4 w-4 animate-spin" />}
+          <Button
+            onClick={save}
+            disabled={saving}
+            className="bg-gold text-gold-foreground hover:bg-gold/90"
+          >
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             حفظ
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function EditProfileDialog({
+  user,
+  onClose,
+  onSaved,
+}: {
+  user: ProfileRow | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const fn = useServerFn(updateUserProfile);
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setFullName(user.full_name ?? "");
+      setPhone(user.phone ?? "");
+    }
+  }, [user]);
+
+  if (!user) return null;
+
+  const save = async () => {
+    if (!fullName.trim()) return toast.error("الاسم مطلوب");
+    setSaving(true);
+    try {
+      await fn({ data: { user_id: user.id, full_name: fullName, phone } });
+      toast.success("تم تحديث البيانات");
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message || "تعذّر الحفظ");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent dir="rtl">
+        <DialogHeader>
+          <DialogTitle>تعديل بيانات المستخدم</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 py-2">
+          <div>
+            <Label>الاسم الكامل</Label>
+            <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          </div>
+          <div>
+            <Label>الهاتف</Label>
+            <Input dir="ltr" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            إلغاء
+          </Button>
+          <Button
+            onClick={save}
+            disabled={saving}
+            className="bg-gold text-gold-foreground hover:bg-gold/90"
+          >
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            حفظ
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ResetPasswordDialog({
+  user,
+  onClose,
+}: {
+  user: ProfileRow | null;
+  onClose: () => void;
+}) {
+  const fn = useServerFn(resetUserPassword);
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setPassword(genPassword());
+      setShowPw(false);
+    }
+  }, [user]);
+
+  if (!user) return null;
+
+  const save = async () => {
+    if (password.length < 8) return toast.error("كلمة المرور 8 أحرف على الأقل");
+    setSaving(true);
+    try {
+      await fn({ data: { user_id: user.id, password } });
+      await navigator.clipboard.writeText(password).catch(() => {});
+      toast.success("تم تغيير كلمة المرور (تم نسخها للحافظة)");
+      onClose();
+    } catch (e: any) {
+      toast.error(e?.message || "تعذّر تغيير كلمة المرور");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent dir="rtl">
+        <DialogHeader>
+          <DialogTitle>إعادة تعيين كلمة المرور</DialogTitle>
+          <DialogDescription>
+            {user.full_name || "—"} — احفظ كلمة المرور وأرسلها للمستخدم.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3 py-2">
+          <Label>كلمة المرور الجديدة</Label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Input
+                type={showPw ? "text" : "password"}
+                dir="ltr"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pe-9"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw((v) => !v)}
+                className="absolute end-2 top-1/2 -translate-y-1/2 text-muted-foreground"
+              >
+                {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setPassword(genPassword())}>
+              توليد
+            </Button>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            إلغاء
+          </Button>
+          <Button
+            onClick={save}
+            disabled={saving}
+            className="bg-gold text-gold-foreground hover:bg-gold/90"
+          >
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            حفظ
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DeleteUserDialog({
+  user,
+  onClose,
+  onDeleted,
+}: {
+  user: ProfileRow | null;
+  onClose: () => void;
+  onDeleted: () => void;
+}) {
+  const fn = useServerFn(deleteUser);
+  const [saving, setSaving] = useState(false);
+
+  if (!user) return null;
+
+  const submit = async () => {
+    setSaving(true);
+    try {
+      await fn({ data: { user_id: user.id } });
+      toast.success("تم حذف الحساب");
+      onDeleted();
+    } catch (e: any) {
+      toast.error(e?.message || "تعذّر الحذف");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <AlertDialog open={!!user} onOpenChange={(o) => !o && onClose()}>
+      <AlertDialogContent dir="rtl">
+        <AlertDialogHeader>
+          <AlertDialogTitle>حذف حساب المستخدم؟</AlertDialogTitle>
+          <AlertDialogDescription>
+            سيتم حذف {user.full_name || "هذا المستخدم"} نهائيًا مع كل صلاحياته. لا يمكن التراجع.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={saving}>إلغاء</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={submit}
+            disabled={saving}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            حذف
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

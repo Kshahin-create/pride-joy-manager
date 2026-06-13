@@ -26,7 +26,6 @@ import { Route as AuthenticatedPmPlansRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedPermissionsRouteImport } from './routes/_authenticated/permissions'
 import { Route as AuthenticatedParkingRouteImport } from './routes/_authenticated/parking'
 import { Route as AuthenticatedOperationsRouteImport } from './routes/_authenticated/operations'
-import { Route as AuthenticatedOfficesRouteImport } from './routes/_authenticated/offices'
 import { Route as AuthenticatedMaintenanceRouteImport } from './routes/_authenticated/maintenance'
 import { Route as AuthenticatedInspectionsRouteImport } from './routes/_authenticated/inspections'
 import { Route as AuthenticatedIdentityRouteImport } from './routes/_authenticated/identity'
@@ -41,6 +40,7 @@ import { Route as AuthenticatedBuildingMapRouteImport } from './routes/_authenti
 import { Route as AuthenticatedBuildingLogRouteImport } from './routes/_authenticated/building-log'
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedApiDocsRouteImport } from './routes/_authenticated/api-docs'
+import { Route as AuthenticatedOfficesIndexRouteImport } from './routes/_authenticated/offices.index'
 import { Route as AuthenticatedVendorsIdRouteImport } from './routes/_authenticated/vendors.$id'
 import { Route as AuthenticatedTenantsIdRouteImport } from './routes/_authenticated/tenants.$id'
 import { Route as AuthenticatedOfficesIdRouteImport } from './routes/_authenticated/offices.$id'
@@ -138,11 +138,6 @@ const AuthenticatedOperationsRoute = AuthenticatedOperationsRouteImport.update({
   path: '/operations',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedOfficesRoute = AuthenticatedOfficesRouteImport.update({
-  id: '/offices',
-  path: '/offices',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedMaintenanceRoute =
   AuthenticatedMaintenanceRouteImport.update({
     id: '/maintenance',
@@ -218,6 +213,12 @@ const AuthenticatedApiDocsRoute = AuthenticatedApiDocsRouteImport.update({
   path: '/api-docs',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOfficesIndexRoute =
+  AuthenticatedOfficesIndexRouteImport.update({
+    id: '/offices/',
+    path: '/offices/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedVendorsIdRoute = AuthenticatedVendorsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -229,9 +230,9 @@ const AuthenticatedTenantsIdRoute = AuthenticatedTenantsIdRouteImport.update({
   getParentRoute: () => AuthenticatedTenantsRoute,
 } as any)
 const AuthenticatedOfficesIdRoute = AuthenticatedOfficesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AuthenticatedOfficesRoute,
+  id: '/offices/$id',
+  path: '/offices/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedContractsIdRoute =
   AuthenticatedContractsIdRouteImport.update({
@@ -298,7 +299,6 @@ export interface FileRoutesByFullPath {
   '/identity': typeof AuthenticatedIdentityRoute
   '/inspections': typeof AuthenticatedInspectionsRoute
   '/maintenance': typeof AuthenticatedMaintenanceRoute
-  '/offices': typeof AuthenticatedOfficesRouteWithChildren
   '/operations': typeof AuthenticatedOperationsRoute
   '/parking': typeof AuthenticatedParkingRoute
   '/permissions': typeof AuthenticatedPermissionsRoute
@@ -317,6 +317,7 @@ export interface FileRoutesByFullPath {
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/vendors/$id': typeof AuthenticatedVendorsIdRoute
+  '/offices/': typeof AuthenticatedOfficesIndexRoute
   '/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
   '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
   '/api/public/telegram/notify': typeof ApiPublicTelegramNotifyRoute
@@ -342,7 +343,6 @@ export interface FileRoutesByTo {
   '/identity': typeof AuthenticatedIdentityRoute
   '/inspections': typeof AuthenticatedInspectionsRoute
   '/maintenance': typeof AuthenticatedMaintenanceRoute
-  '/offices': typeof AuthenticatedOfficesRouteWithChildren
   '/operations': typeof AuthenticatedOperationsRoute
   '/parking': typeof AuthenticatedParkingRoute
   '/permissions': typeof AuthenticatedPermissionsRoute
@@ -361,6 +361,7 @@ export interface FileRoutesByTo {
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/vendors/$id': typeof AuthenticatedVendorsIdRoute
+  '/offices': typeof AuthenticatedOfficesIndexRoute
   '/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
   '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
   '/api/public/telegram/notify': typeof ApiPublicTelegramNotifyRoute
@@ -388,7 +389,6 @@ export interface FileRoutesById {
   '/_authenticated/identity': typeof AuthenticatedIdentityRoute
   '/_authenticated/inspections': typeof AuthenticatedInspectionsRoute
   '/_authenticated/maintenance': typeof AuthenticatedMaintenanceRoute
-  '/_authenticated/offices': typeof AuthenticatedOfficesRouteWithChildren
   '/_authenticated/operations': typeof AuthenticatedOperationsRoute
   '/_authenticated/parking': typeof AuthenticatedParkingRoute
   '/_authenticated/permissions': typeof AuthenticatedPermissionsRoute
@@ -407,6 +407,7 @@ export interface FileRoutesById {
   '/_authenticated/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/_authenticated/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/_authenticated/vendors/$id': typeof AuthenticatedVendorsIdRoute
+  '/_authenticated/offices/': typeof AuthenticatedOfficesIndexRoute
   '/_authenticated/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
   '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
   '/api/public/telegram/notify': typeof ApiPublicTelegramNotifyRoute
@@ -434,7 +435,6 @@ export interface FileRouteTypes {
     | '/identity'
     | '/inspections'
     | '/maintenance'
-    | '/offices'
     | '/operations'
     | '/parking'
     | '/permissions'
@@ -453,6 +453,7 @@ export interface FileRouteTypes {
     | '/offices/$id'
     | '/tenants/$id'
     | '/vendors/$id'
+    | '/offices/'
     | '/security/guards/$id'
     | '/api/public/telegram/daily-report'
     | '/api/public/telegram/notify'
@@ -478,7 +479,6 @@ export interface FileRouteTypes {
     | '/identity'
     | '/inspections'
     | '/maintenance'
-    | '/offices'
     | '/operations'
     | '/parking'
     | '/permissions'
@@ -497,6 +497,7 @@ export interface FileRouteTypes {
     | '/offices/$id'
     | '/tenants/$id'
     | '/vendors/$id'
+    | '/offices'
     | '/security/guards/$id'
     | '/api/public/telegram/daily-report'
     | '/api/public/telegram/notify'
@@ -523,7 +524,6 @@ export interface FileRouteTypes {
     | '/_authenticated/identity'
     | '/_authenticated/inspections'
     | '/_authenticated/maintenance'
-    | '/_authenticated/offices'
     | '/_authenticated/operations'
     | '/_authenticated/parking'
     | '/_authenticated/permissions'
@@ -542,6 +542,7 @@ export interface FileRouteTypes {
     | '/_authenticated/offices/$id'
     | '/_authenticated/tenants/$id'
     | '/_authenticated/vendors/$id'
+    | '/_authenticated/offices/'
     | '/_authenticated/security/guards/$id'
     | '/api/public/telegram/daily-report'
     | '/api/public/telegram/notify'
@@ -682,13 +683,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/offices': {
-      id: '/_authenticated/offices'
-      path: '/offices'
-      fullPath: '/offices'
-      preLoaderRoute: typeof AuthenticatedOfficesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/maintenance': {
       id: '/_authenticated/maintenance'
       path: '/maintenance'
@@ -787,6 +781,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApiDocsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/offices/': {
+      id: '/_authenticated/offices/'
+      path: '/offices'
+      fullPath: '/offices/'
+      preLoaderRoute: typeof AuthenticatedOfficesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/vendors/$id': {
       id: '/_authenticated/vendors/$id'
       path: '/$id'
@@ -803,10 +804,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/offices/$id': {
       id: '/_authenticated/offices/$id'
-      path: '/$id'
+      path: '/offices/$id'
       fullPath: '/offices/$id'
       preLoaderRoute: typeof AuthenticatedOfficesIdRouteImport
-      parentRoute: typeof AuthenticatedOfficesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contracts/$id': {
       id: '/_authenticated/contracts/$id'
@@ -906,17 +907,6 @@ const AuthenticatedContractsRouteWithChildren =
     AuthenticatedContractsRouteChildren,
   )
 
-interface AuthenticatedOfficesRouteChildren {
-  AuthenticatedOfficesIdRoute: typeof AuthenticatedOfficesIdRoute
-}
-
-const AuthenticatedOfficesRouteChildren: AuthenticatedOfficesRouteChildren = {
-  AuthenticatedOfficesIdRoute: AuthenticatedOfficesIdRoute,
-}
-
-const AuthenticatedOfficesRouteWithChildren =
-  AuthenticatedOfficesRoute._addFileChildren(AuthenticatedOfficesRouteChildren)
-
 interface AuthenticatedSecurityRouteChildren {
   AuthenticatedSecurityGuardsIdRoute: typeof AuthenticatedSecurityGuardsIdRoute
 }
@@ -967,7 +957,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedIdentityRoute: typeof AuthenticatedIdentityRoute
   AuthenticatedInspectionsRoute: typeof AuthenticatedInspectionsRoute
   AuthenticatedMaintenanceRoute: typeof AuthenticatedMaintenanceRoute
-  AuthenticatedOfficesRoute: typeof AuthenticatedOfficesRouteWithChildren
   AuthenticatedOperationsRoute: typeof AuthenticatedOperationsRoute
   AuthenticatedParkingRoute: typeof AuthenticatedParkingRoute
   AuthenticatedPermissionsRoute: typeof AuthenticatedPermissionsRoute
@@ -980,6 +969,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRouteWithChildren
   AuthenticatedVisitorsRoute: typeof AuthenticatedVisitorsRoute
+  AuthenticatedOfficesIdRoute: typeof AuthenticatedOfficesIdRoute
+  AuthenticatedOfficesIndexRoute: typeof AuthenticatedOfficesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -997,7 +988,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIdentityRoute: AuthenticatedIdentityRoute,
   AuthenticatedInspectionsRoute: AuthenticatedInspectionsRoute,
   AuthenticatedMaintenanceRoute: AuthenticatedMaintenanceRoute,
-  AuthenticatedOfficesRoute: AuthenticatedOfficesRouteWithChildren,
   AuthenticatedOperationsRoute: AuthenticatedOperationsRoute,
   AuthenticatedParkingRoute: AuthenticatedParkingRoute,
   AuthenticatedPermissionsRoute: AuthenticatedPermissionsRoute,
@@ -1010,6 +1000,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedVendorsRoute: AuthenticatedVendorsRouteWithChildren,
   AuthenticatedVisitorsRoute: AuthenticatedVisitorsRoute,
+  AuthenticatedOfficesIdRoute: AuthenticatedOfficesIdRoute,
+  AuthenticatedOfficesIndexRoute: AuthenticatedOfficesIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

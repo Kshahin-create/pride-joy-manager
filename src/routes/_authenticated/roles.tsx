@@ -231,7 +231,7 @@ function RolesPage() {
               onClick={async () => {
                 if (!delRole) return;
                 try {
-                  await (useServerFn(deleteRole) as any)({ data: { role_id: delRole.id } });
+                  await (fnDelete as any)({ data: { role_id: delRole.id } });
                 } catch (e: any) {
                   toast.error(e?.message ?? "تعذّر الحذف");
                   return;

@@ -54,10 +54,18 @@ function MaintenancePage() {
   const canManage = hasAnyRole(["super_admin", "maintenance_supervisor"]);
   const [items, setItems] = useState<MR[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [offices, setOffices] = useState<Office[]>([]);
+  const [spaces, setSpaces] = useState<Space[]>([]);
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<MR>>({ request_date: new Date().toISOString().slice(0, 10) });
+
+  // target picker
+  const [targetKind, setTargetKind] = useState<TargetKind>("office");
+  const [targetOfficeId, setTargetOfficeId] = useState<string>("");
+  const [targetSpaceId, setTargetSpaceId] = useState<string>("");
+  const [targetFloor, setTargetFloor] = useState<string>("");
 
   // assign dialog
   const [assignFor, setAssignFor] = useState<MR | null>(null);
@@ -66,12 +74,16 @@ function MaintenancePage() {
   const [assignStatus, setAssignStatus] = useState<Status>("جاري التنفيذ");
 
   const load = async () => {
-    const [m, a] = await Promise.all([
+    const [m, a, o, s] = await Promise.all([
       supabase.from("maintenance_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("assets").select("id,asset_name,asset_code,criticality").order("asset_code"),
+      supabase.from("offices").select("id,code,floor,space_id").order("floor").order("code"),
+      supabase.from("spaces").select("id,space_code,space_name,space_type,floor").order("floor").order("space_code"),
     ]);
     if (m.error) toast.error(m.error.message); else setItems((m.data ?? []) as MR[]);
     if (!a.error) setAssets((a.data ?? []) as Asset[]);
+    if (!o.error) setOffices((o.data ?? []) as Office[]);
+    if (!s.error) setSpaces((s.data ?? []) as Space[]);
   };
   useEffect(() => { load(); }, []);
 

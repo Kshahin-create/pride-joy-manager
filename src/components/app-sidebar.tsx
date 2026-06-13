@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BrandLogo } from "@/components/brand-logo";
-import { useAuth, ROLE_LABELS, type AppRole } from "@/lib/auth-context";
+import { useAuth, roleLabel } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -47,58 +47,59 @@ interface NavItem {
   title: string;
   url: string;
   icon: typeof LayoutDashboard;
-  roles?: AppRole[]; // إن لم تذكر يصل الكل
+  /** الصلاحية المطلوبة لإظهار العنصر — لو متعددة، أي واحدة تكفي */
+  perms?: string[];
 }
 
 const NAV: { label: string; items: NavItem[] }[] = [
   {
     label: "عام",
     items: [
-      { title: "الرئيسية", url: "/dashboard", icon: LayoutDashboard },
-      { title: "خريطة البرج", url: "/building-map", icon: Map },
-      { title: "التقرير اليومي", url: "/daily-report", icon: FileText },
-      { title: "سجل البرج", url: "/building-log", icon: ScrollText, roles: ["super_admin", "owner"] },
+      { title: "الرئيسية", url: "/dashboard", icon: LayoutDashboard, perms: ["dashboard.view"] },
+      { title: "خريطة البرج", url: "/building-map", icon: Map, perms: ["building_map.view"] },
+      { title: "التقرير اليومي", url: "/daily-report", icon: FileText, perms: ["daily_report.view"] },
+      { title: "سجل البرج", url: "/building-log", icon: ScrollText, perms: ["building_log.view"] },
     ],
   },
   {
     label: "الإيجارات والعملاء",
     items: [
-      { title: "المكاتب", url: "/offices", icon: Building2 },
-      { title: "العملاء", url: "/tenants", icon: Users },
-      { title: "العقود", url: "/contracts", icon: FileSignature },
-      { title: "المالية", url: "/finance", icon: Wallet, roles: ["super_admin", "accountant", "owner"] },
-      { title: "المصروفات", url: "/expenses", icon: Wallet, roles: ["super_admin", "accountant", "maintenance_supervisor", "owner"] },
+      { title: "المكاتب", url: "/offices", icon: Building2, perms: ["offices.view"] },
+      { title: "العملاء", url: "/tenants", icon: Users, perms: ["tenants.view"] },
+      { title: "العقود", url: "/contracts", icon: FileSignature, perms: ["contracts.view"] },
+      { title: "المالية", url: "/finance", icon: Wallet, perms: ["invoices.view"] },
+      { title: "المصروفات", url: "/expenses", icon: Wallet, perms: ["expenses.view"] },
     ],
   },
   {
     label: "التشغيل",
     items: [
-      { title: "التشغيل", url: "/operations", icon: Cog },
-      { title: "الأمن", url: "/security", icon: Shield, roles: ["super_admin", "security_supervisor", "owner"] },
-      { title: "الأصول", url: "/assets", icon: Wrench, roles: ["super_admin", "maintenance_supervisor", "owner"] },
-      { title: "أوامر العمل", url: "/maintenance", icon: Wrench },
-      { title: "الصيانة الوقائية", url: "/pm-plans", icon: Wrench, roles: ["super_admin", "maintenance_supervisor", "owner"] },
-      { title: "الموردون", url: "/vendors", icon: Truck, roles: ["super_admin", "accountant", "maintenance_supervisor", "owner"] },
-      { title: "المواقف", url: "/parking", icon: Car, roles: ["super_admin", "security_supervisor", "owner"] },
+      { title: "التشغيل", url: "/operations", icon: Cog, perms: ["maintenance.view","cleaning.view","inspections.view"] },
+      { title: "الأمن", url: "/security", icon: Shield, perms: ["guards.view","patrols.view","incidents.view","cameras.view"] },
+      { title: "الأصول", url: "/assets", icon: Wrench, perms: ["assets.view"] },
+      { title: "أوامر العمل", url: "/maintenance", icon: Wrench, perms: ["maintenance.view"] },
+      { title: "الصيانة الوقائية", url: "/pm-plans", icon: Wrench, perms: ["pm_plans.view"] },
+      { title: "الموردون", url: "/vendors", icon: Truck, perms: ["vendors.view"] },
+      { title: "المواقف", url: "/parking", icon: Car, perms: ["parking.view"] },
     ],
   },
   {
     label: "خدمات",
     items: [
-      { title: "الشكاوى والطلبات", url: "/complaints", icon: MessageSquareWarning },
-      { title: "الزوار", url: "/visitors", icon: UserPlus, roles: ["super_admin", "receptionist", "security_supervisor", "owner"] },
-      { title: "المستندات", url: "/documents", icon: FolderArchive },
-      { title: "التفتيشات", url: "/inspections", icon: ClipboardCheck, roles: ["super_admin", "maintenance_supervisor", "security_supervisor", "owner"] },
+      { title: "الشكاوى والطلبات", url: "/complaints", icon: MessageSquareWarning, perms: ["tickets.view"] },
+      { title: "الزوار", url: "/visitors", icon: UserPlus, perms: ["visitors.view"] },
+      { title: "المستندات", url: "/documents", icon: FolderArchive, perms: ["documents.view"] },
+      { title: "التفتيشات", url: "/inspections", icon: ClipboardCheck, perms: ["inspections.view"] },
     ],
   },
   {
     label: "الإدارة",
     items: [
-      { title: "المستخدمون", url: "/users", icon: UserCog, roles: ["super_admin"] },
-      { title: "هوية البرج", url: "/identity", icon: Building, roles: ["super_admin", "owner"] },
-      { title: "مصفوفة الصلاحيات", url: "/permissions", icon: Shield, roles: ["super_admin", "owner"] },
-      { title: "بوت تيليجرام", url: "/telegram", icon: Send },
-      { title: "واجهة الـ API", url: "/api-docs", icon: Code2 },
+      { title: "المستخدمون", url: "/users", icon: UserCog, perms: ["users.view"] },
+      { title: "الأدوار والصلاحيات", url: "/roles", icon: ShieldCheck, perms: ["roles.manage"] },
+      { title: "هوية البرج", url: "/identity", icon: Building, perms: ["identity.view"] },
+      { title: "بوت تيليجرام", url: "/telegram", icon: Send, perms: ["telegram.view"] },
+      { title: "واجهة الـ API", url: "/api-docs", icon: Code2, perms: ["api_keys.view"] },
     ],
   },
 ];

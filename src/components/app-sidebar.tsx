@@ -8,6 +8,7 @@ import {
   Wallet,
   Cog,
   Shield,
+  ShieldCheck,
   Wrench,
   Truck,
   Car,

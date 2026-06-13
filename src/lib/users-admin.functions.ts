@@ -144,11 +144,22 @@ export const setUserRoles = createServerFn({ method: "POST" })
     await assertSuperAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id);
+    await supabaseAdmin.from("user_role_assignments").delete().eq("user_id", data.user_id);
     if (data.roles.length) {
       const { error } = await supabaseAdmin
         .from("user_roles")
         .insert(data.roles.map((role) => ({ user_id: data.user_id, role })));
       if (error) throw new Error(error.message);
+      // Mirror to user_role_assignments (new system)
+      const { data: roleRows } = await supabaseAdmin
+        .from("app_roles")
+        .select("id, name")
+        .in("name", data.roles as any);
+      if (roleRows && roleRows.length) {
+        await supabaseAdmin.from("user_role_assignments").insert(
+          roleRows.map((r: any) => ({ user_id: data.user_id, role_id: r.id })),
+        );
+      }
     }
     return { ok: true };
   });

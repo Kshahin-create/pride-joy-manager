@@ -193,7 +193,7 @@ export function AppSidebar() {
                   <span className="text-xs font-medium truncate">{fullName || "—"}</span>
                   {primaryRole && (
                     <span className="text-[10px] text-sidebar-foreground/70 truncate">
-                      {ROLE_LABELS[primaryRole]}
+                      {roleLabel(primaryRole)}
                     </span>
                   )}
                 </div>

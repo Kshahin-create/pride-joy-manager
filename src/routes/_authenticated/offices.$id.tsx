@@ -224,8 +224,9 @@ function OfficeDetailsPage() {
       </div>
 
       <Tabs defaultValue="basic" dir="rtl">
-        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
+        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-8">
           <TabsTrigger value="basic"><InfoIcon className="h-4 w-4 ms-1" />البيانات</TabsTrigger>
+          <TabsTrigger value="tenant"><Building2 className="h-4 w-4 ms-1" />المستأجر</TabsTrigger>
           <TabsTrigger value="electricity"><Gauge className="h-4 w-4 ms-1" />الكهرباء</TabsTrigger>
           <TabsTrigger value="ac"><Snowflake className="h-4 w-4 ms-1" />التكييف</TabsTrigger>
           <TabsTrigger value="network"><Network className="h-4 w-4 ms-1" />الشبكات</TabsTrigger>
@@ -236,6 +237,9 @@ function OfficeDetailsPage() {
 
         <TabsContent value="basic" className="mt-4">
           <BasicTab office={office} />
+        </TabsContent>
+        <TabsContent value="tenant" className="mt-4">
+          <TenantTab officeId={office.id} />
         </TabsContent>
         <TabsContent value="electricity" className="mt-4">
           <ElectricityTab officeId={office.id} canEdit={canEditUtility} />

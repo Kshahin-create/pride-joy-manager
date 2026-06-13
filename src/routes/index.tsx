@@ -4,538 +4,147 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
-  Building2, FileSignature, ShieldCheck, Wrench, Car,
-  FolderArchive, BookOpenCheck, ArrowLeft, LogIn,
-  Sparkles, Cctv, ChevronLeft, Phone, MapPin, Mail,
+  Building2, ShieldCheck, Wrench, Car, FolderArchive,
+  Users, FileSignature, Wallet, LayoutDashboard, LogIn, ArrowLeft,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Pride & Joy Tower — برج المكاتب الفاخر" },
-      { name: "description", content: "Pride & Joy Tower — برج مكتبي حديث يجمع بين الفخامة والموقع المتميز والخدمات المتكاملة لعملك." },
-      { property: "og:title", content: "Pride & Joy Tower" },
-      { property: "og:description", content: "برج مكتبي حديث بخدمات متكاملة وموقع متميز." },
+      { title: "نظام إدارة Pride & Joy Tower" },
+      { name: "description", content: "نظام داخلي لإدارة وتشغيل برج Pride & Joy Tower — العقود، الصيانة، الأمن، المواقف والمستندات." },
+      { property: "og:title", content: "نظام إدارة Pride & Joy Tower" },
+      { property: "og:description", content: "منصة موحدة لإدارة وتشغيل البرج." },
     ],
   }),
   component: LandingPage,
 });
 
-function LandingPage() {
-  return (
-    <div dir="rtl" className="min-h-screen bg-background text-foreground overflow-x-hidden font-sans">
-      <LandingNavbar />
-      <Hero3DScene />
-      <FeaturesSection />
-      <WorkflowSection />
-      <ContactSection />
-      <LandingFooter />
-    </div>
-  );
-}
+const MODULES = [
+  { icon: Building2, title: "المكاتب", desc: "إدارة كل المكاتب والأدوار والمساحات." },
+  { icon: Users, title: "العملاء", desc: "ملفات المستأجرين وبياناتهم وتواصلهم." },
+  { icon: FileSignature, title: "العقود", desc: "متابعة العقود وتواريخ التجديد والانتهاء." },
+  { icon: Wallet, title: "الفواتير والمالية", desc: "إصدار الفواتير ومتابعة المدفوعات والمصروفات." },
+  { icon: Wrench, title: "الصيانة وأوامر العمل", desc: "تذاكر الصيانة والصيانة الوقائية." },
+  { icon: ShieldCheck, title: "الأمن والمراقبة", desc: "الحراسات، الجولات، الحوادث والكاميرات." },
+  { icon: Car, title: "المواقف", desc: "تخصيص ومتابعة مواقف السيارات." },
+  { icon: FolderArchive, title: "الأرشيف والمستندات", desc: "أرشيف مركزي لكل مستندات البرج والمستأجرين." },
+];
 
-/* ---------------- NAVBAR ---------------- */
-function LandingNavbar() {
+function LandingPage() {
   const { user } = useAuth();
   return (
-    <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border/60">
-      <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 grid place-items-center shadow-lg shadow-primary/30">
-            <Building2 className="h-5 w-5 text-primary-foreground" />
+    <div dir="rtl" className="min-h-screen bg-background text-foreground flex flex-col">
+      {/* Header */}
+      <header className="border-b border-border/60 backdrop-blur-md bg-background/80 sticky top-0 z-40">
+        <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-lg bg-primary grid place-items-center shadow">
+              <Building2 className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div className="leading-tight">
+              <div className="text-sm font-bold text-primary">Pride & Joy Tower</div>
+              <div className="text-[10px] text-muted-foreground">نظام الإدارة الداخلي</div>
+            </div>
           </div>
-          <div className="leading-tight">
-            <div className="text-sm font-bold text-primary">Pride & Joy Tower</div>
-            <div className="text-[10px] text-muted-foreground">برج المكاتب الفاخر</div>
-          </div>
-        </Link>
-        <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
-          <a href="#features" className="hover:text-primary transition-colors">المميزات</a>
-          <a href="#workflow" className="hover:text-primary transition-colors">خدماتنا</a>
-          <a href="#contact" className="hover:text-primary transition-colors">تواصل معنا</a>
-        </nav>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Link to={user ? "/dashboard" : "/auth"}>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-md">
-              <LogIn className="h-4 w-4 ms-1" />
-              {user ? "لوحة التحكم" : "دخول الموظفين"}
-            </Button>
-          </Link>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-/* ---------------- HERO 3D ---------------- */
-function Hero3DScene() {
-  return (
-    <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-secondary/40" />
-        <div className="absolute top-0 start-0 h-[500px] w-[500px] rounded-full bg-primary/15 blur-[120px]" />
-        <div className="absolute bottom-0 end-0 h-[500px] w-[500px] rounded-full bg-gold/20 blur-[120px]" />
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage:
-              "linear-gradient(var(--color-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-primary) 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
-          }}
-        />
-      </div>
-
-      <div className="container mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-12 items-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="text-center lg:text-start"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/30 text-gold text-xs font-semibold mb-5">
-            <Sparkles className="h-3.5 w-3.5" />
-            وجهة الأعمال المتميزة
-          </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-[1.2] text-primary">
-            مكتب أعمالك يستحق
-            <span className="block mt-2 bg-gradient-to-l from-primary via-primary/80 to-gold bg-clip-text text-transparent">
-              Pride & Joy Tower
-            </span>
-          </h1>
-          <p className="mt-6 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0">
-            برج مكتبي عصري بتصميم فاخر، موقع متميز، وخدمات متكاملة تشمل الأمن على مدار الساعة، الصيانة، ومواقف السيارات — بيئة عمل احترافية تليق بأعمالك.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3 justify-center lg:justify-start">
-            <a href="#contact">
-              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-xl shadow-primary/25 h-12 px-7">
-                <Phone className="h-4 w-4 ms-2" />
-                احجز جولة معاينة
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link to={user ? "/dashboard" : "/auth"}>
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <LogIn className="h-4 w-4 ms-1" />
+                {user ? "لوحة التحكم" : "تسجيل الدخول"}
               </Button>
-            </a>
-            <a href="#features">
-              <Button size="lg" variant="outline" className="border-primary/30 text-primary hover:bg-primary/5 h-12 px-7">
-                تعرف على المميزات
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b border-border/60">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-secondary/40" />
+          <div className="absolute -top-32 -start-32 h-[420px] w-[420px] rounded-full bg-primary/10 blur-[120px]" />
+          <div className="absolute -bottom-32 -end-32 h-[420px] w-[420px] rounded-full bg-gold/15 blur-[120px]" />
+        </div>
+        <div className="container mx-auto px-4 sm:px-6 py-20 md:py-28 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold mb-6"
+          >
+            <LayoutDashboard className="h-3.5 w-3.5" />
+            منصة الإدارة الموحدة
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.05 }}
+            className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-primary leading-tight"
+          >
+            نظام إدارة وتشغيل برج Pride & Joy Tower
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mt-5 max-w-2xl mx-auto text-base sm:text-lg text-muted-foreground leading-relaxed"
+          >
+            منصة داخلية موحّدة لفريق الإدارة لمتابعة العقود، الصيانة، الأمن، المواقف، والمستندات في مكان واحد.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="mt-8 flex flex-wrap gap-3 justify-center"
+          >
+            <Link to={user ? "/dashboard" : "/auth"}>
+              <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 h-12 px-7">
+                {user ? "فتح لوحة التحكم" : "تسجيل الدخول"}
                 <ArrowLeft className="h-4 w-4 me-2" />
               </Button>
-            </a>
-          </div>
-        </motion.div>
-
-        <Tower3D />
-      </div>
-    </section>
-  );
-}
-
-function Tower3D() {
-  // Tapered tower — wider at the base, narrower near the crown
-  const sections = [
-    { floors: 3, width: 240, accent: false },
-    { floors: 4, width: 220, accent: true },
-    { floors: 4, width: 200, accent: false },
-    { floors: 4, width: 180, accent: true },
-    { floors: 3, width: 160, accent: false },
-  ];
-  const orbiters = [
-    { icon: Cctv, label: "أمن 24/7", x: -180, y: -160, delay: 0 },
-    { icon: Wrench, label: "صيانة فورية", x: 190, y: -110, delay: 0.5 },
-    { icon: Car, label: "مواقف ذكية", x: 210, y: 90, delay: 1 },
-    { icon: Sparkles, label: "نظافة يومية", x: -200, y: 70, delay: 1.5 },
-  ];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 1, delay: 0.2 }}
-      className="relative h-[560px] sm:h-[660px] flex items-end justify-center"
-      style={{ perspective: "1600px", perspectiveOrigin: "50% 40%" }}
-    >
-      {/* Sky beams */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <motion.div
-          className="absolute -top-10 left-1/2 -translate-x-1/2 h-[420px] w-[260px] rounded-full bg-gold/20 blur-3xl"
-          animate={{ opacity: [0.4, 0.7, 0.4], scale: [1, 1.08, 1] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute top-20 right-10 h-2 w-2 rounded-full bg-gold shadow-[0_0_20px_6px_rgba(201,162,39,0.6)]"
-          animate={{ opacity: [0, 1, 0], y: [0, -30, -60] }}
-          transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-        />
-        <motion.div
-          className="absolute top-40 left-16 h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_15px_5px_rgba(30,58,95,0.5)]"
-          animate={{ opacity: [0, 1, 0], y: [0, -40, -80] }}
-          transition={{ duration: 5, repeat: Infinity, delay: 2 }}
-        />
-      </div>
-
-      {/* Ground glow + reflection plate */}
-      <div className="absolute bottom-6 h-24 w-[380px] rounded-[50%] bg-gradient-radial from-primary/40 via-primary/10 to-transparent blur-2xl" aria-hidden />
-      <div className="absolute bottom-4 h-3 w-[300px] rounded-full bg-gold/30 blur-md" aria-hidden />
-
-      {/* TOWER — flexbox column from base up, full 3D */}
-      <motion.div
-        animate={{ rotateY: [-8, 8, -8], rotateX: [6, 8, 6] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-        style={{ transformStyle: "preserve-3d" }}
-        className="relative flex flex-col items-center justify-end"
-      >
-        {/* Antenna + beacon */}
-        <div className="flex flex-col items-center" style={{ transform: "translateZ(20px)" }}>
-          <motion.div
-            className="h-3 w-3 rounded-full bg-red-500 shadow-[0_0_18px_4px_rgba(239,68,68,0.7)]"
-            animate={{ opacity: [1, 0.3, 1] }}
-            transition={{ duration: 1.2, repeat: Infinity }}
-          />
-          <div className="w-[3px] h-14 bg-gradient-to-b from-gold via-gold/70 to-primary shadow-md" />
-          <div className="w-2 h-2 rounded-full bg-gold mb-1" />
+            </Link>
+          </motion.div>
         </div>
+      </section>
 
-        {/* Crown */}
-        <div
-          className="relative w-32 h-8 rounded-t-2xl bg-gradient-to-b from-gold via-gold/80 to-gold/40 shadow-[0_0_30px_rgba(201,162,39,0.5)] border-t border-x border-gold/60"
-          style={{ transform: "translateZ(10px)" }}
-        >
-          <div className="absolute inset-x-3 top-1.5 h-1 rounded-full bg-white/40" />
-        </div>
-
-        {/* Stacked tapered sections */}
-        {sections.map((sec, sIdx) => {
-          const globalOffset = sections.slice(0, sIdx).reduce((a, b) => a + b.floors, 0);
-          return (
-            <div
-              key={sIdx}
-              className="relative border-x border-t border-primary/40 backdrop-blur-sm overflow-hidden"
-              style={{
-                width: sec.width,
-                background:
-                  "linear-gradient(180deg, rgba(30,58,95,0.95) 0%, rgba(30,58,95,0.85) 50%, rgba(30,58,95,0.95) 100%)",
-                boxShadow:
-                  "inset 0 0 0 1px rgba(255,255,255,0.08), 0 30px 60px -20px rgba(30,58,95,0.4)",
-              }}
-            >
-              {/* Mullions / vertical glass divider strip */}
-              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-px bg-gradient-to-b from-gold/0 via-gold/40 to-gold/0" />
-              {/* Side highlights — fake light from the right */}
-              <div className="absolute inset-y-0 right-0 w-2 bg-gradient-to-l from-white/20 to-transparent pointer-events-none" />
-              <div className="absolute inset-y-0 left-0 w-2 bg-gradient-to-r from-black/30 to-transparent pointer-events-none" />
-
-              {/* Gold accent band on alternate sections */}
-              {sec.accent && (
-                <div className="h-1.5 w-full bg-gradient-to-r from-gold/30 via-gold to-gold/30 shadow-[0_0_10px_rgba(201,162,39,0.6)]" />
-              )}
-
-              {/* Floor windows */}
-              <div className="px-2.5 py-2 space-y-1.5">
-                {Array.from({ length: sec.floors }).map((_, i) => {
-                  const floorIdx = globalOffset + i;
-                  return (
-                    <div key={i} className="grid grid-cols-6 gap-1">
-                      {Array.from({ length: 6 }).map((__, j) => {
-                        const lit = (floorIdx * 7 + j * 3) % 4 !== 0;
-                        return (
-                          <motion.div
-                            key={j}
-                            className="h-3.5 rounded-[2px]"
-                            animate={
-                              lit
-                                ? { opacity: [0.85, 1, 0.7, 1] }
-                                : { opacity: 0.18 }
-                            }
-                            transition={{
-                              duration: 3 + ((floorIdx + j) % 5),
-                              repeat: Infinity,
-                              ease: "easeInOut",
-                              delay: ((floorIdx * 0.13 + j * 0.09) % 2),
-                            }}
-                            style={{
-                              background: lit
-                                ? "linear-gradient(180deg, #fef3c7 0%, #fde68a 40%, #C9A227 100%)"
-                                : "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
-                              boxShadow: lit
-                                ? "0 0 8px rgba(253,224,138,0.7), inset 0 0 0 1px rgba(255,255,255,0.15)"
-                                : "inset 0 0 0 1px rgba(255,255,255,0.06)",
-                            }}
-                          />
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Plaza / podium */}
-        <div
-          className="relative w-[280px] h-12 bg-gradient-to-b from-primary/90 to-primary/60 border border-primary/50 rounded-b-md shadow-2xl"
-          style={{ transform: "translateZ(5px)" }}
-        >
-          {/* entrance arch */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-9 rounded-t-xl bg-gradient-to-b from-gold/90 to-gold/50 border-t border-x border-gold shadow-[0_0_20px_rgba(201,162,39,0.5)]">
-            <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-px h-7 bg-primary/40" />
+      {/* Modules */}
+      <section className="py-16 md:py-20 flex-1">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="text-2xl sm:text-3xl font-bold text-primary">وحدات النظام</h2>
+            <p className="mt-3 text-muted-foreground">
+              كل ما يحتاجه فريق إدارة البرج لتشغيل يومي منظم وشفاف.
+            </p>
           </div>
-          {/* lobby lights */}
-          <div className="absolute top-2 inset-x-3 flex justify-between">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <motion.span
-                key={i}
-                className="h-1.5 w-1.5 rounded-full bg-gold shadow-[0_0_6px_rgba(201,162,39,0.8)]"
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 2, repeat: Infinity, delay: i * 0.15 }}
-              />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {MODULES.map((m, i) => (
+              <motion.div
+                key={m.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.04 }}
+                className="group rounded-xl border border-border bg-card p-5 hover:border-primary/40 hover:shadow-md transition-all"
+              >
+                <div className="h-10 w-10 rounded-lg bg-primary/10 grid place-items-center text-primary mb-3 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                  <m.icon className="h-5 w-5" />
+                </div>
+                <h3 className="font-bold text-sm text-foreground">{m.title}</h3>
+                <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{m.desc}</p>
+              </motion.div>
             ))}
           </div>
         </div>
+      </section>
 
-        {/* Reflection on glass floor */}
-        <div
-          className="mx-auto mt-1 h-24 w-[260px] opacity-30"
-          style={{
-            transform: "rotateX(180deg) translateZ(-2px)",
-            background:
-              "linear-gradient(180deg, rgba(30,58,95,0.5), transparent 70%)",
-            maskImage: "linear-gradient(180deg, rgba(0,0,0,0.6), transparent)",
-            WebkitMaskImage: "linear-gradient(180deg, rgba(0,0,0,0.6), transparent)",
-            filter: "blur(2px)",
-          }}
-        />
-      </motion.div>
-
-      {/* Floating service badges */}
-      {orbiters.map((o, i) => {
-        const Icon = o.icon;
-        return (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, scale: 0.7 }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              y: [0, -14, 0],
-              x: [0, i % 2 === 0 ? 6 : -6, 0],
-            }}
-            transition={{
-              duration: 6,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: o.delay,
-            }}
-            className="absolute top-1/2 left-1/2"
-            style={{ transform: `translate(calc(-50% + ${o.x}px), calc(-50% + ${o.y}px))` }}
-          >
-            <div className="group flex items-center gap-2 rounded-2xl border border-gold/30 bg-card/95 backdrop-blur-xl ps-2 pe-3.5 py-2 shadow-2xl shadow-primary/20 hover:shadow-gold/40 hover:-translate-y-0.5 transition-all">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary via-primary to-primary/60 grid place-items-center shadow-inner border border-primary/60">
-                <Icon className="h-4.5 w-4.5 text-gold" />
-              </div>
-              <span className="text-xs font-bold text-primary whitespace-nowrap">{o.label}</span>
-            </div>
-            {/* connector line to tower */}
-            <div
-              className="absolute top-1/2 h-px bg-gradient-to-r from-gold/60 to-transparent"
-              style={{
-                width: 60,
-                [o.x < 0 ? "left" : "right"]: "100%",
-                transform: "translateY(-50%)",
-              }}
-            />
-          </motion.div>
-        );
-      })}
-    </motion.div>
-  );
-}
-
-/* ---------------- FEATURES ---------------- */
-const FEATURES = [
-  { icon: Building2, title: "تصميم عصري", desc: "مكاتب بمساحات مرنة وتشطيبات فاخرة جاهزة لاستقبال أعمالك." },
-  { icon: ShieldCheck, title: "أمن على مدار الساعة", desc: "حراسة احترافية ومراقبة مستمرة لراحة بالك وأمان أعمالك." },
-  { icon: Wrench, title: "صيانة سريعة", desc: "فريق صيانة جاهز للاستجابة لطلباتك بأسرع وقت ممكن." },
-  { icon: Car, title: "مواقف واسعة", desc: "مواقف سيارات منظمة للمستأجرين والزوار في موقع البرج." },
-  { icon: Sparkles, title: "خدمات استقبال", desc: "موظفو استقبال محترفون لاستقبال زوارك بأرقى أسلوب." },
-  { icon: FolderArchive, title: "مرافق متكاملة", desc: "بنية تحتية حديثة تشمل الكهرباء، التكييف، والاتصالات." },
-];
-
-function FeaturesSection() {
-  return (
-    <section id="features" className="py-20 md:py-28 relative">
-      <div className="container mx-auto px-4 sm:px-6">
-        <SectionHeading
-          eyebrow="لماذا Pride & Joy Tower"
-          title="بيئة عمل تليق بأعمالك"
-          subtitle="كل ما تحتاجه من خدمات ومرافق في مكان واحد، ليتفرغ فريقك لما يهم فعلًا."
-        />
-        <div className="mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {FEATURES.map((f, i) => (
-            <FeatureCard3D key={f.title} feature={f} index={i} />
-          ))}
+      {/* Footer */}
+      <footer className="border-t border-border/60 py-6">
+        <div className="container mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
+          <div>© {new Date().getFullYear()} Pride & Joy Tower — جميع الحقوق محفوظة.</div>
+          <div>نظام داخلي للاستخدام من قِبل فريق الإدارة فقط.</div>
         </div>
-      </div>
-    </section>
-  );
-}
-
-function FeatureCard3D({ feature, index }: { feature: typeof FEATURES[number]; index: number }) {
-  const Icon = feature.icon;
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-50px" }}
-      transition={{ duration: 0.5, delay: (index % 3) * 0.06 }}
-      whileHover={{ rotateX: -6, rotateY: 6, translateY: -4 }}
-      style={{ transformStyle: "preserve-3d", perspective: "1000px" }}
-      className="group relative rounded-2xl border border-border/70 bg-card/80 backdrop-blur-xl p-6 shadow-md shadow-primary/5 hover:shadow-2xl hover:shadow-gold/20 transition-shadow"
-    >
-      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-gold/10 via-transparent to-primary/10 pointer-events-none" />
-      <div className="h-14 w-14 rounded-xl grid place-items-center bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/30 group-hover:shadow-gold/40 transition-shadow">
-        <Icon className="h-7 w-7 text-primary-foreground" />
-      </div>
-      <h3 className="mt-5 font-bold text-primary text-lg">{feature.title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.desc}</p>
-    </motion.div>
-  );
-}
-
-/* ---------------- WORKFLOW ---------------- */
-const WORKFLOW = [
-  { icon: Phone, label: "تواصل معنا", desc: "اطلب جولة معاينة" },
-  { icon: Building2, label: "اختر مكتبك", desc: "تشكيلة من المساحات" },
-  { icon: FileSignature, label: "وقّع العقد", desc: "إجراءات مبسطة" },
-  { icon: BookOpenCheck, label: "ابدأ العمل", desc: "تسليم جاهز" },
-];
-
-function WorkflowSection() {
-  return (
-    <section id="workflow" className="py-20 md:py-28 bg-gradient-to-b from-primary/[0.04] via-secondary/30 to-background relative overflow-hidden">
-      <div className="container mx-auto px-4 sm:px-6">
-        <SectionHeading
-          eyebrow="خطوات بسيطة"
-          title="من المعاينة إلى تسليم المكتب"
-          subtitle="رحلة سلسة من أول اتصال حتى استلام مفاتيح مكتبك الجديد."
-        />
-        <div className="mt-16 relative">
-          <div className="hidden md:block absolute top-12 inset-x-8 h-px bg-gradient-to-l from-transparent via-gold/60 to-transparent" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 relative">
-            {WORKFLOW.map((step, i) => {
-              const Icon = step.icon;
-              return (
-                <motion.div
-                  key={step.label}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="flex flex-col items-center text-center relative"
-                >
-                  <div className="relative h-24 w-24 rounded-2xl bg-card border-2 border-gold/40 grid place-items-center shadow-xl shadow-primary/10">
-                    <Icon className="h-9 w-9 text-primary" />
-                    <span className="absolute -top-2 -end-2 h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold grid place-items-center shadow-lg">
-                      {i + 1}
-                    </span>
-                  </div>
-                  <div className="mt-4 font-bold text-primary">{step.label}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{step.desc}</div>
-                  {i < WORKFLOW.length - 1 && (
-                    <ChevronLeft className="hidden md:block absolute h-6 w-6 text-gold/70 top-9 -start-3" />
-                  )}
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------------- CONTACT ---------------- */
-function ContactSection() {
-  return (
-    <section id="contact" className="py-20 md:py-28">
-      <div className="container mx-auto px-4 sm:px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="relative rounded-3xl overflow-hidden text-center bg-card border border-border p-10 md:p-16 shadow-2xl shadow-primary/10"
-        >
-          <div className="absolute inset-0 -z-10">
-            <div className="absolute inset-0 bg-gradient-to-br from-secondary/40 via-card to-card" />
-            <div className="absolute -top-20 -start-20 h-72 w-72 rounded-full bg-primary/15 blur-3xl" />
-            <div className="absolute -bottom-20 -end-20 h-72 w-72 rounded-full bg-gold/25 blur-3xl" />
-          </div>
-          <h2 className="text-3xl md:text-5xl font-extrabold text-primary leading-tight">
-            جاهزون لاستقبالك في Pride & Joy Tower
-          </h2>
-          <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-            تواصل مع فريق الإدارة لحجز موعد معاينة أو الاستفسار عن المكاتب المتاحة وخدمات البرج.
-          </p>
-          <div className="mt-10 grid sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-start">
-            <ContactCard icon={Phone} title="اتصل بنا" value="إدارة البرج" />
-            <ContactCard icon={Mail} title="البريد الإلكتروني" value="info@pride-joy-tower" />
-            <ContactCard icon={MapPin} title="الموقع" value="Pride & Joy Tower" />
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-function ContactCard({ icon: Icon, title, value }: { icon: typeof Phone; title: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-border bg-background/60 backdrop-blur p-5 flex items-start gap-3">
-      <div className="h-11 w-11 rounded-xl bg-primary/10 grid place-items-center text-primary border border-primary/20 shrink-0">
-        <Icon className="h-5 w-5" />
-      </div>
-      <div className="min-w-0">
-        <div className="text-xs text-muted-foreground">{title}</div>
-        <div className="mt-0.5 font-semibold text-primary truncate">{value}</div>
-      </div>
+      </footer>
     </div>
   );
 }
-
-/* ---------------- FOOTER ---------------- */
-function LandingFooter() {
-  return (
-    <footer className="border-t border-border bg-primary text-primary-foreground">
-      <div className="container mx-auto px-4 sm:px-6 py-10 grid sm:grid-cols-3 gap-6 items-start">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl bg-gold grid place-items-center">
-              <Building2 className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <div className="font-bold">Pride & Joy Tower</div>
-              <div className="text-xs text-primary-foreground/70">برج المكاتب الفاخر</div>
-            </div>
-          </div>
-        </div>
-        <div className="text-sm text-primary-foreground/80 leading-relaxed">
-          برج مكتبي حديث بخدمات متكاملة وموقع متميز — بيئة عمل احترافية لأعمالك.
-        </div>
-        <div className="text-xs text-primary-foreground/70 sm:text-end">
-          © {new Date().getFullYear()} Pride & Joy Tower — جميع الحقوق محفوظة.
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-/* ---------------- SHARED ---------------- */
-function SectionHeading({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle: string }) {
-  return (
-    <div className="text-center max-w-2xl mx-auto">
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-        {eyebrow}
-      </div>
-      <h2 className="mt-4 text-3xl md:text-4xl font-extrabold text-primary leading-tight">{title}</h2>
-      <p className="mt-3 text-muted-foreground">{subtitle}</p>
-    </div>
-  );
-}
-

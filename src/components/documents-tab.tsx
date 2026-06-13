@@ -272,23 +272,19 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
             <Archive className="h-4 w-4 ms-1" /> تحميل الكل (ZIP)
           </Button>
           {canManage && (
-            <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setFiles([]); }}>
+            <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setFileItems([]); }}>
               <DialogTrigger asChild>
                 <Button><Plus className="h-4 w-4 ms-1" /> رفع مستند</Button>
               </DialogTrigger>
-              <DialogContent dir="rtl" className="max-w-lg">
+              <DialogContent dir="rtl" className="max-w-2xl">
                 <DialogHeader><DialogTitle>رفع مستندات</DialogTitle></DialogHeader>
                 <div className="space-y-3">
                   <div>
-                    <Label>العنوان *</Label>
-                    <Input value={form.title ?? ""} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-                  </div>
-                  <div>
-                    <Label>التصنيف</Label>
-                    <Select value={form.category ?? "أخرى"} onValueChange={(v) => setForm({ ...form, category: v as DocCategory })}>
+                    <Label>التصنيف الافتراضي (يُطبَّق على الملفات الجديدة)</Label>
+                    <Select value={defaultCategory} onValueChange={(v) => setDefaultCategory(v as DocCategory)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {DOC_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        {DOC_UPLOAD_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -324,23 +320,52 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
                         onChange={(e) => { onPickFiles(e.target.files); e.target.value = ""; }}
                       />
                     </label>
-                    {files.length > 0 && (
-                      <ul className="mt-2 space-y-1 max-h-40 overflow-auto">
-                        {files.map((f, i) => (
-                          <li key={i} className="flex items-center justify-between text-xs bg-muted/40 rounded px-2 py-1">
-                            <span className="truncate">{f.name} <span className="text-muted-foreground">({(f.size / 1024).toFixed(1)} KB)</span></span>
-                            <button type="button" onClick={() => setFiles((p) => p.filter((_, k) => k !== i))} className="text-muted-foreground hover:text-destructive">
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          </li>
+                    {fileItems.length > 0 && (
+                      <div className="mt-2 space-y-2 max-h-72 overflow-auto">
+                        {fileItems.map((it, i) => (
+                          <div key={i} className="border rounded-md p-2 bg-muted/30 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs truncate">
+                                {it.file.name} <span className="text-muted-foreground">({(it.file.size / 1024).toFixed(1)} KB)</span>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setFileItems((p) => p.filter((_, k) => k !== i))}
+                                className="text-muted-foreground hover:text-destructive"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label className="text-xs">اسم المستند</Label>
+                                <Input
+                                  value={it.title}
+                                  onChange={(e) => setFileItems((p) => p.map((x, k) => k === i ? { ...x, title: e.target.value } : x))}
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs">التصنيف</Label>
+                                <Select
+                                  value={it.category}
+                                  onValueChange={(v) => setFileItems((p) => p.map((x, k) => k === i ? { ...x, category: v as DocCategory } : x))}
+                                >
+                                  <SelectTrigger><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    {DOC_UPLOAD_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     )}
                   </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
-                  <Button onClick={submit}>رفع {files.length > 0 ? `(${files.length})` : ""}</Button>
+                  <Button onClick={submit}>رفع {fileItems.length > 0 ? `(${fileItems.length})` : ""}</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>

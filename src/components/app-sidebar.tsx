@@ -106,7 +106,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
 ];
 
 export function AppSidebar() {
-  const { hasAnyRole, roles, user, signOut } = useAuth();
+  const { hasAnyPermission, roles, user, signOut, isSuperAdmin } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");

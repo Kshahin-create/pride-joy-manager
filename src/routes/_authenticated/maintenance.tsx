@@ -331,9 +331,12 @@ function MaintenancePage() {
                           onDragStart={(e) => e.dataTransfer.setData("text/plain", r.id)}
                           className={`rounded-md border p-3 text-sm bg-card ${critical ? "border-destructive" : ""} ${canManage ? "cursor-grab active:cursor-grabbing" : ""}`}
                         >
-                          <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center justify-between mb-1 gap-1">
                             <span className="font-mono text-xs text-muted-foreground">{r.request_number}</span>
-                            {critical && <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" />حرج</Badge>}
+                            <div className="flex items-center gap-1">
+                              <Badge variant="outline" className={`text-[10px] ${PRIORITY_STYLE[r.priority]}`}>{r.priority}</Badge>
+                              {critical && <Badge variant="destructive" className="gap-1 text-[10px]"><AlertTriangle className="h-3 w-3" />حرج</Badge>}
+                            </div>
                           </div>
                           <div className="font-medium">{r.request_type ?? "بلاغ"}</div>
                           <div className="text-xs text-muted-foreground">{r.location ?? "—"}</div>

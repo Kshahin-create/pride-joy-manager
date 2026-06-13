@@ -1418,11 +1418,10 @@ interface ContractRow {
 }
 interface ContactRow {
   id: string;
-  full_name: string;
+  name: string;
   position: string | null;
-  phone: string | null;
+  mobile: string | null;
   email: string | null;
-  is_primary: boolean;
 }
 
 const CONTRACT_BADGE: Record<string, string> = {

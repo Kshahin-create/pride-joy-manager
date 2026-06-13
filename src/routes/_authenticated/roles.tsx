@@ -61,6 +61,7 @@ function RolesPage() {
 
   const fnList = useServerFn(listRoles);
   const fnPerms = useServerFn(listPermissions);
+  const fnDelete = useServerFn(deleteRole);
 
   const load = useCallback(async () => {
     setLoading(true);

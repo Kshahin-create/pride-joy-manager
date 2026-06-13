@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Plus, AlertTriangle, Upload, Play, Pause, CheckCircle2, ShieldCheck, RotateCcw, Trash2 } from "lucide-react";
+import { Plus, AlertTriangle, Play, Pause, CheckCircle2, ShieldCheck, RotateCcw, Trash2 } from "lucide-react";
 
 type Status =
   | "جديد"

@@ -1455,7 +1455,7 @@ function TenantTab({ officeId }: { officeId: string }) {
       if (companyIds.length) {
         const { data: cps } = await (supabase as any)
           .from("contact_persons")
-          .select("id, company_id, full_name, position, phone, email, is_primary")
+          .select("id, company_id, name, position, mobile, email")
           .in("company_id", companyIds);
         const map: Record<string, ContactRow[]> = {};
         ((cps ?? []) as any[]).forEach((c) => {

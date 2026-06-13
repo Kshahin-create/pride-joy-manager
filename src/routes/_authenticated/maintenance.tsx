@@ -18,6 +18,16 @@ import { Plus, AlertTriangle } from "lucide-react";
 type Status = "جديد" | "جاري التنفيذ" | "بانتظار قطع غيار" | "مغلق";
 const STATUSES: Status[] = ["جديد", "جاري التنفيذ", "بانتظار قطع غيار", "مغلق"];
 
+type Priority = "طارئة" | "عالية" | "متوسطة" | "منخفضة";
+const PRIORITIES: Priority[] = ["طارئة", "عالية", "متوسطة", "منخفضة"];
+const PRIORITY_RANK: Record<Priority, number> = { "طارئة": 0, "عالية": 1, "متوسطة": 2, "منخفضة": 3 };
+const PRIORITY_STYLE: Record<Priority, string> = {
+  "طارئة": "bg-red-100 text-red-800 border-red-300 dark:bg-red-950/40 dark:text-red-300",
+  "عالية": "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-950/40 dark:text-orange-300",
+  "متوسطة": "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/40 dark:text-blue-300",
+  "منخفضة": "bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-900/40 dark:text-slate-300",
+};
+
 type Asset = { id: string; asset_name: string; asset_code: string; criticality: "حرج" | "عادي" };
 type Office = { id: string; code: string; floor: number; space_id: string | null };
 type Space = { id: string; space_code: string; space_name: string; space_type: string; floor: number | null };
@@ -26,6 +36,7 @@ type MR = {
   location: string | null; request_type: string | null; description: string | null;
   asset_id: string | null; office_id: string | null; space_id: string | null; status: Status;
   assigned_technician: string | null; cost: number | null; notes: string | null;
+  priority: Priority;
 };
 
 type TargetKind = "office" | "floor" | "لوبي" | "سطح" | "موقف سيارة" | "غرفة كهرباء" | "غرفة كاميرات" | "مخزن" | "مصعد" | "سلم" | "دورة مياه" | "ممر" | "أخرى";

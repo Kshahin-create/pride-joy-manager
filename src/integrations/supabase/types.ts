@@ -3333,6 +3333,15 @@ export type Database = {
         | "شهادة نظام حريق"
         | "تقرير صيانة سنوي"
         | "أخرى"
+        | "مخطط"
+        | "شهادة"
+        | "صورة"
+        | "تقرير"
+        | "أمر عمل"
+        | "محضر"
+        | "عرض سعر"
+        | "مستند قانوني"
+        | "مستند مالي"
       doc_entity_type: "tenant" | "contract" | "asset" | "vendor" | "building"
       evaluation_type: "شهري" | "ربع سنوي"
       expense_category:
@@ -3580,6 +3589,15 @@ export const Constants = {
         "شهادة نظام حريق",
         "تقرير صيانة سنوي",
         "أخرى",
+        "مخطط",
+        "شهادة",
+        "صورة",
+        "تقرير",
+        "أمر عمل",
+        "محضر",
+        "عرض سعر",
+        "مستند قانوني",
+        "مستند مالي",
       ],
       doc_entity_type: ["tenant", "contract", "asset", "vendor", "building"],
       evaluation_type: ["شهري", "ربع سنوي"],

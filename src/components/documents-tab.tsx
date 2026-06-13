@@ -25,12 +25,21 @@ import { Plus, Download, Eye, Trash2, FileText, AlertTriangle, Search, Share2, A
 import JSZip from "jszip";
 
 export const DOC_CATEGORIES = [
-  "عقد","هوية","سجل تجاري","فاتورة","سند","عقد مورد","عقد صيانة",
-  "مخطط البرج","شهادة دفاع مدني","شهادة مصعد","عقد أمن",
-  "شهادة نظام حريق","تقرير صيانة سنوي","أخرى",
+  "عقد","مخطط","شهادة","فاتورة","صورة","تقرير","أمر عمل",
+  "محضر","عرض سعر","مستند قانوني","مستند مالي",
+  // legacy values kept for backward compatibility with existing records
+  "هوية","سجل تجاري","سند","عقد مورد","عقد صيانة","مخطط البرج",
+  "شهادة دفاع مدني","شهادة مصعد","عقد أمن","شهادة نظام حريق",
+  "تقرير صيانة سنوي","أخرى",
 ] as const;
 export type DocCategory = (typeof DOC_CATEGORIES)[number];
 export type DocEntityType = "tenant" | "contract" | "asset" | "vendor" | "building";
+
+// Categories shown in the upload dialog (the user-curated short list)
+export const DOC_UPLOAD_CATEGORIES: DocCategory[] = [
+  "عقد","مخطط","شهادة","فاتورة","صورة","تقرير","أمر عمل",
+  "محضر","عرض سعر","مستند قانوني","مستند مالي","أخرى",
+];
 
 export interface DocumentRow {
   id: string;
@@ -77,13 +86,11 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
   const [fCategory, setFCategory] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
-  const [files, setFiles] = useState<File[]>([]);
+  const [fileItems, setFileItems] = useState<Array<{ file: File; title: string; category: DocCategory }>>([]);
   const [dragOver, setDragOver] = useState(false);
   const [zipping, setZipping] = useState(false);
-  const [form, setForm] = useState<Partial<DocumentRow>>({
-    category: "أخرى",
-    entity_type: entityType,
-  });
+  const [defaultCategory, setDefaultCategory] = useState<DocCategory>("عقد");
+  const [form, setForm] = useState<{ issue_date?: string; expiry_date?: string; notes?: string }>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -113,22 +120,26 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
     return path;
   };
 
+  const stripExt = (name: string) => { const i = name.lastIndexOf("."); return i > 0 ? name.slice(0, i) : name; };
+
   const submit = async () => {
-    if (!files || files.length === 0) { toast.error("اختر ملفًا واحدًا على الأقل"); return; }
-    if (!form.title?.trim()) { toast.error("العنوان مطلوب"); return; }
+    if (fileItems.length === 0) { toast.error("اختر ملفًا واحدًا على الأقل"); return; }
+    for (const it of fileItems) {
+      if (!it.title.trim()) { toast.error("كل ملف يجب أن يكون له اسم"); return; }
+    }
     try {
       const rows: any[] = [];
-      for (const f of Array.from(files)) {
-        const path = await uploadOne(f);
+      for (const it of fileItems) {
+        const path = await uploadOne(it.file);
         rows.push({
-          title: files.length > 1 ? `${form.title} - ${f.name}` : form.title,
-          category: form.category ?? "أخرى",
+          title: it.title.trim(),
+          category: it.category,
           entity_type: entityType,
           entity_id: entityId,
           file_path: path,
-          file_name: f.name,
-          mime_type: f.type || null,
-          file_size: f.size,
+          file_name: it.file.name,
+          mime_type: it.file.type || null,
+          file_size: it.file.size,
           issue_date: form.issue_date || null,
           expiry_date: form.expiry_date || null,
           notes: form.notes || null,
@@ -139,8 +150,8 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
       if (error) throw error;
       toast.success(`تم رفع ${rows.length} مستند`);
       setOpen(false);
-      setFiles([]);
-      setForm({ category: "أخرى", entity_type: entityType });
+      setFileItems([]);
+      setForm({});
       void load();
     } catch (e: any) { toast.error(e.message ?? "فشل الرفع"); }
   };
@@ -227,7 +238,10 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
 
   const onPickFiles = (list: FileList | null) => {
     if (!list) return;
-    setFiles((prev) => [...prev, ...Array.from(list)]);
+    setFileItems((prev) => [
+      ...prev,
+      ...Array.from(list).map((f) => ({ file: f, title: stripExt(f.name), category: defaultCategory })),
+    ]);
   };
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault(); setDragOver(false);
@@ -258,23 +272,19 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
             <Archive className="h-4 w-4 ms-1" /> تحميل الكل (ZIP)
           </Button>
           {canManage && (
-            <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setFiles([]); }}>
+            <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setFileItems([]); }}>
               <DialogTrigger asChild>
                 <Button><Plus className="h-4 w-4 ms-1" /> رفع مستند</Button>
               </DialogTrigger>
-              <DialogContent dir="rtl" className="max-w-lg">
+              <DialogContent dir="rtl" className="max-w-2xl">
                 <DialogHeader><DialogTitle>رفع مستندات</DialogTitle></DialogHeader>
                 <div className="space-y-3">
                   <div>
-                    <Label>العنوان *</Label>
-                    <Input value={form.title ?? ""} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-                  </div>
-                  <div>
-                    <Label>التصنيف</Label>
-                    <Select value={form.category ?? "أخرى"} onValueChange={(v) => setForm({ ...form, category: v as DocCategory })}>
+                    <Label>التصنيف الافتراضي (يُطبَّق على الملفات الجديدة)</Label>
+                    <Select value={defaultCategory} onValueChange={(v) => setDefaultCategory(v as DocCategory)}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {DOC_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        {DOC_UPLOAD_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
@@ -310,23 +320,52 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
                         onChange={(e) => { onPickFiles(e.target.files); e.target.value = ""; }}
                       />
                     </label>
-                    {files.length > 0 && (
-                      <ul className="mt-2 space-y-1 max-h-40 overflow-auto">
-                        {files.map((f, i) => (
-                          <li key={i} className="flex items-center justify-between text-xs bg-muted/40 rounded px-2 py-1">
-                            <span className="truncate">{f.name} <span className="text-muted-foreground">({(f.size / 1024).toFixed(1)} KB)</span></span>
-                            <button type="button" onClick={() => setFiles((p) => p.filter((_, k) => k !== i))} className="text-muted-foreground hover:text-destructive">
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          </li>
+                    {fileItems.length > 0 && (
+                      <div className="mt-2 space-y-2 max-h-72 overflow-auto">
+                        {fileItems.map((it, i) => (
+                          <div key={i} className="border rounded-md p-2 bg-muted/30 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs truncate">
+                                {it.file.name} <span className="text-muted-foreground">({(it.file.size / 1024).toFixed(1)} KB)</span>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setFileItems((p) => p.filter((_, k) => k !== i))}
+                                className="text-muted-foreground hover:text-destructive"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label className="text-xs">اسم المستند</Label>
+                                <Input
+                                  value={it.title}
+                                  onChange={(e) => setFileItems((p) => p.map((x, k) => k === i ? { ...x, title: e.target.value } : x))}
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs">التصنيف</Label>
+                                <Select
+                                  value={it.category}
+                                  onValueChange={(v) => setFileItems((p) => p.map((x, k) => k === i ? { ...x, category: v as DocCategory } : x))}
+                                >
+                                  <SelectTrigger><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    {DOC_UPLOAD_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     )}
                   </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
-                  <Button onClick={submit}>رفع {files.length > 0 ? `(${files.length})` : ""}</Button>
+                  <Button onClick={submit}>رفع {fileItems.length > 0 ? `(${fileItems.length})` : ""}</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>

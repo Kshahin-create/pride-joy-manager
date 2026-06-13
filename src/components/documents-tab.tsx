@@ -238,7 +238,10 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
 
   const onPickFiles = (list: FileList | null) => {
     if (!list) return;
-    setFiles((prev) => [...prev, ...Array.from(list)]);
+    setFileItems((prev) => [
+      ...prev,
+      ...Array.from(list).map((f) => ({ file: f, title: stripExt(f.name), category: defaultCategory })),
+    ]);
   };
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault(); setDragOver(false);

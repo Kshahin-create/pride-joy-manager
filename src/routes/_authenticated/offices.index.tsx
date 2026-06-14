@@ -143,11 +143,15 @@ function OfficesPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    let q = supabase
       .from("offices")
       .select("*")
       .order("floor", { ascending: true })
       .order("office_number", { ascending: true });
+    if (activePropertyId && activePropertyId !== "all") {
+      q = q.eq("property_id", activePropertyId);
+    }
+    const { data, error } = await q;
     if (error) {
       toast.error("تعذّر تحميل المكاتب");
       setLoading(false);
@@ -155,7 +159,7 @@ function OfficesPage() {
     }
     setOffices((data ?? []) as Office[]);
     setLoading(false);
-  }, []);
+  }, [activePropertyId]);
 
   useEffect(() => {
     load();

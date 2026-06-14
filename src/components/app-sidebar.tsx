@@ -163,6 +163,9 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
+      <PropertySwitcher />
+
+
       <SidebarContent>
         {NAV.map((group) => {
           const items = group.items.filter(visible);

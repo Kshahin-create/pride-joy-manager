@@ -80,6 +80,7 @@ function SecurityPage() {
 /* ============================== GUARDS ============================== */
 
 function GuardsTab() {
+  const { activePropertyId } = useActiveProperty();
   const { hasRole } = useAuth();
   const canManage = hasRole("super_admin") || hasRole("security_supervisor");
   const isAdmin = hasRole("super_admin");
@@ -92,7 +93,7 @@ function GuardsTab() {
     setLoading(true);
     // Use safe view for non-admins (no salary), full table for admins
     const q = isAdmin
-      ? await scoped(supabase.from("guards").select("*"), activePropertyId).order("full_name")
+      ? scoped(await supabase.from("guards").select("*"), activePropertyId).order("full_name")
       : await supabase.from("guards_safe").select("*").order("full_name");
     if (q.error) toast.error(q.error.message);
     setGuards((q.data as unknown as Guard[]) ?? []);
@@ -313,6 +314,7 @@ interface Checkpoint {
 }
 
 function PatrolsTab() {
+  const { activePropertyId } = useActiveProperty();
   const { hasRole } = useAuth();
   const canManage = hasRole("super_admin") || hasRole("security_supervisor");
   const [patrols, setPatrols] = useState<Patrol[]>([]);
@@ -331,7 +333,7 @@ function PatrolsTab() {
     setGuards((g.data as Guard[]) ?? []);
     const ids = (p.data ?? []).map((x: { id: string }) => x.id);
     if (ids.length > 0) {
-      const { data: ch } = await scoped(supabase.from("patrol_checkpoints").select("*"), activePropertyId).in("patrol_id", ids).order("visit_time");
+      const { data: ch } = scoped(await supabase.from("patrol_checkpoints").select("*"), activePropertyId).in("patrol_id", ids).order("visit_time");
       const map: Record<string, Checkpoint[]> = {};
       (ch as Checkpoint[] ?? []).forEach(c => {
         (map[c.patrol_id] ??= []).push(c);
@@ -511,6 +513,7 @@ interface Incident {
 }
 
 function IncidentsTab() {
+  const { activePropertyId } = useActiveProperty();
   const { hasRole } = useAuth();
   const canManage = hasRole("super_admin") || hasRole("security_supervisor");
   const [items, setItems] = useState<Incident[]>([]);
@@ -520,7 +523,7 @@ function IncidentsTab() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await scoped(supabase.from("security_incidents")
+    const { data, error } = scoped(await supabase.from("security_incidents")
       .select("*"), activePropertyId).order("incident_date", { ascending: false });
     if (error) toast.error(error.message);
     setItems((data as Incident[]) ?? []);

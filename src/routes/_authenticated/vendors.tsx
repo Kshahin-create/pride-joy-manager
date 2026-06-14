@@ -31,7 +31,6 @@ type Vendor = {
 };
 
 function StarRating({ value }: { value: number }) {
-  const { activePropertyId } = useActiveProperty();
   const full = Math.round(value);
   return (
     <span className="inline-flex items-center gap-0.5">
@@ -47,6 +46,7 @@ function StarRating({ value }: { value: number }) {
 }
 
 function VendorsPage() {
+  const { activePropertyId } = useActiveProperty();
   const { hasRole } = useAuth();
   const canManage = hasRole("super_admin");
   const [items, setItems] = useState<Vendor[]>([]);

@@ -75,6 +75,7 @@ interface CleaningLog {
 }
 
 function CleaningTab() {
+  const { activePropertyId } = useActiveProperty();
   const { hasRole } = useAuth();
   const canManage = hasRole("super_admin") || hasRole("maintenance_supervisor");
   const [plans, setPlans] = useState<CleaningPlan[]>([]);
@@ -366,6 +367,7 @@ interface MaintLog {
 }
 
 function CamerasTab() {
+  const { activePropertyId } = useActiveProperty();
   const { hasRole } = useAuth();
   const canManage = hasRole("super_admin") || hasRole("security_supervisor");
   const [cameras, setCameras] = useState<CameraRow[]>([]);

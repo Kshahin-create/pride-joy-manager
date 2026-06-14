@@ -269,8 +269,9 @@ function MaintenancePage() {
     if (target === "مكتمل مبدئياً") { openComplete(r); return; }
     if (target === "مغلق") { openApprove(r); return; }
     // جديد (re-open) — super_admin only enforced by trigger
-    const { error } = await supabase.from("maintenance_requests").update({ status: target }).eq("id", r.id);
+    const { data, error } = await supabase.from("maintenance_requests").update({ status: target }).eq("id", r.id).select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) return toast.error("لا تملك صلاحية تغيير حالة هذا الطلب");
     load();
   };
 
@@ -285,13 +286,14 @@ function MaintenancePage() {
   const saveAssign = async () => {
     if (!assignFor) return;
     if (!assignTech && assignVendor === "none") return toast.error("اختر فني أو مورد");
-    const { error } = await supabase.from("maintenance_requests").update({
+    const { data, error } = await supabase.from("maintenance_requests").update({
       assigned_technician: assignTech || null,
       assigned_vendor_id: assignVendor === "none" ? null : assignVendor,
       priority: assignPriority,
       status: assignStart ? "جاري التنفيذ" : "معلّق للتعيين",
-    }).eq("id", assignFor.id);
+    }).eq("id", assignFor.id).select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) return toast.error("لا تملك صلاحية تعديل هذا الطلب");
     toast.success("تم الحفظ");
     setAssignFor(null); load();
   };
@@ -301,10 +303,11 @@ function MaintenancePage() {
   const saveHold = async () => {
     if (!holdFor) return;
     if (!holdReason.trim()) return toast.error("اكتب سبب التعليق");
-    const { error } = await supabase.from("maintenance_requests").update({
+    const { data, error } = await supabase.from("maintenance_requests").update({
       status: "معلّق", hold_reason: holdReason.trim(),
-    }).eq("id", holdFor.id);
+    }).eq("id", holdFor.id).select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) return toast.error("لا تملك صلاحية تعديل هذا الطلب");
     toast.success("تم التعليق");
     setHoldFor(null); load();
   };
@@ -341,7 +344,7 @@ function MaintenancePage() {
     const labor_cost = Number(completeLaborCost || 0);
     if (partsCost + labor_cost <= 0) return toast.error("أدخل تكلفة مواد أو عمالة");
 
-    const { error } = await supabase.from("maintenance_requests").update({
+    const { data, error } = await supabase.from("maintenance_requests").update({
       status: "مكتمل مبدئياً",
       after_photo_url: after,
       materials_used: completeMaterials,
@@ -349,8 +352,9 @@ function MaintenancePage() {
       labor_cost,
       labor_hours: completeLaborHours ? Number(completeLaborHours) : null,
       notes: completeNotes.trim(),
-    } as any).eq("id", completeFor.id);
+    } as any).eq("id", completeFor.id).select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) return toast.error("لا تملك صلاحية تعديل هذا الطلب");
     toast.success("تم تسجيل الإنجاز — بانتظار الاعتماد");
     setCompleteFor(null); load();
   };
@@ -364,8 +368,9 @@ function MaintenancePage() {
   };
   const saveApprove = async () => {
     if (!approveFor) return;
-    const { error } = await supabase.from("maintenance_requests").update({ status: "مغلق" }).eq("id", approveFor.id);
+    const { data, error } = await supabase.from("maintenance_requests").update({ status: "مغلق" }).eq("id", approveFor.id).select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) return toast.error("لا تملك صلاحية اعتماد هذا الطلب");
     toast.success("تم الاعتماد والإغلاق");
     setApproveFor(null); load();
   };
@@ -373,10 +378,11 @@ function MaintenancePage() {
     if (!approveFor) return;
     if (!approveNote.trim()) return toast.error("اكتب سبب الإرجاع");
     const newNotes = `${approveFor.notes ?? ""}\n\n[إرجاع من المشرف]: ${approveNote.trim()}`.trim();
-    const { error } = await supabase.from("maintenance_requests").update({
+    const { data, error } = await supabase.from("maintenance_requests").update({
       status: "جاري التنفيذ", notes: newNotes,
-    }).eq("id", approveFor.id);
+    }).eq("id", approveFor.id).select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) return toast.error("لا تملك صلاحية تعديل هذا الطلب");
     toast.success("تم إرجاع الأمر للفني");
     setApproveFor(null); load();
   };

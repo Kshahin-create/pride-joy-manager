@@ -14,6 +14,195 @@ export type Database = {
   }
   public: {
     Tables: {
+      ac_contract_attachments: {
+        Row: {
+          category: string | null
+          contract_id: string
+          created_at: string
+          file_name: string
+          file_type: string | null
+          file_url: string
+          id: string
+          property_id: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          category?: string | null
+          contract_id: string
+          created_at?: string
+          file_name: string
+          file_type?: string | null
+          file_url: string
+          id?: string
+          property_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: string | null
+          contract_id?: string
+          created_at?: string
+          file_name?: string
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          property_id?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ac_contract_attachments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "ac_contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ac_contract_attachments_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ac_contracts: {
+        Row: {
+          alert_thresholds_days: number[] | null
+          contract_name: string
+          contract_number: string | null
+          contract_type: string
+          contract_value: number | null
+          covered_ac_unit_ids: string[] | null
+          created_at: string
+          created_by: string | null
+          duration_months: number | null
+          end_date: string | null
+          first_party_name: string | null
+          id: string
+          includes_corrective: boolean | null
+          includes_emergency: boolean | null
+          includes_preventive: boolean | null
+          notes: string | null
+          notice_period_days: number | null
+          payment_frequency: string | null
+          payment_method: string | null
+          pm_frequency: string | null
+          property_id: string | null
+          sla_critical_response_hours: number | null
+          sla_normal_response_hours: number | null
+          spare_parts_included: boolean | null
+          spare_parts_notes: string | null
+          start_date: string | null
+          status: string
+          tax_included: boolean | null
+          tax_percentage: number | null
+          updated_at: string
+          vendor_contact_name: string | null
+          vendor_cr: string | null
+          vendor_email: string | null
+          vendor_id: string | null
+          vendor_name: string | null
+          vendor_phone: string | null
+          vendor_tax_number: string | null
+        }
+        Insert: {
+          alert_thresholds_days?: number[] | null
+          contract_name: string
+          contract_number?: string | null
+          contract_type?: string
+          contract_value?: number | null
+          covered_ac_unit_ids?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          duration_months?: number | null
+          end_date?: string | null
+          first_party_name?: string | null
+          id?: string
+          includes_corrective?: boolean | null
+          includes_emergency?: boolean | null
+          includes_preventive?: boolean | null
+          notes?: string | null
+          notice_period_days?: number | null
+          payment_frequency?: string | null
+          payment_method?: string | null
+          pm_frequency?: string | null
+          property_id?: string | null
+          sla_critical_response_hours?: number | null
+          sla_normal_response_hours?: number | null
+          spare_parts_included?: boolean | null
+          spare_parts_notes?: string | null
+          start_date?: string | null
+          status?: string
+          tax_included?: boolean | null
+          tax_percentage?: number | null
+          updated_at?: string
+          vendor_contact_name?: string | null
+          vendor_cr?: string | null
+          vendor_email?: string | null
+          vendor_id?: string | null
+          vendor_name?: string | null
+          vendor_phone?: string | null
+          vendor_tax_number?: string | null
+        }
+        Update: {
+          alert_thresholds_days?: number[] | null
+          contract_name?: string
+          contract_number?: string | null
+          contract_type?: string
+          contract_value?: number | null
+          covered_ac_unit_ids?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          duration_months?: number | null
+          end_date?: string | null
+          first_party_name?: string | null
+          id?: string
+          includes_corrective?: boolean | null
+          includes_emergency?: boolean | null
+          includes_preventive?: boolean | null
+          notes?: string | null
+          notice_period_days?: number | null
+          payment_frequency?: string | null
+          payment_method?: string | null
+          pm_frequency?: string | null
+          property_id?: string | null
+          sla_critical_response_hours?: number | null
+          sla_normal_response_hours?: number | null
+          spare_parts_included?: boolean | null
+          spare_parts_notes?: string | null
+          start_date?: string | null
+          status?: string
+          tax_included?: boolean | null
+          tax_percentage?: number | null
+          updated_at?: string
+          vendor_contact_name?: string | null
+          vendor_cr?: string | null
+          vendor_email?: string | null
+          vendor_id?: string | null
+          vendor_name?: string | null
+          vendor_phone?: string | null
+          vendor_tax_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ac_contracts_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ac_contracts_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ac_maintenance_logs: {
         Row: {
           ac_unit_id: string

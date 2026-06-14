@@ -661,8 +661,10 @@ export type Database = {
           company_name: string
           created_at: string
           created_by: string | null
+          delegate_name: string | null
           id: string
           notes: string | null
+          phone: string | null
           status: Database["public"]["Enums"]["client_status"]
           tax_number: string | null
           updated_at: string
@@ -673,8 +675,10 @@ export type Database = {
           company_name: string
           created_at?: string
           created_by?: string | null
+          delegate_name?: string | null
           id?: string
           notes?: string | null
+          phone?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           tax_number?: string | null
           updated_at?: string
@@ -685,13 +689,65 @@ export type Database = {
           company_name?: string
           created_at?: string
           created_by?: string | null
+          delegate_name?: string | null
           id?: string
           notes?: string | null
+          phone?: string | null
           status?: Database["public"]["Enums"]["client_status"]
           tax_number?: string | null
           updated_at?: string
         }
         Relationships: []
+      }
+      company_attachments: {
+        Row: {
+          attachment_type: string
+          company_id: string
+          created_at: string
+          created_by: string | null
+          file_name: string
+          id: string
+          mime_type: string | null
+          notes: string | null
+          size_bytes: number | null
+          storage_path: string
+          updated_at: string
+        }
+        Insert: {
+          attachment_type?: string
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          updated_at?: string
+        }
+        Update: {
+          attachment_type?: string
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_attachments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contact_persons: {
         Row: {

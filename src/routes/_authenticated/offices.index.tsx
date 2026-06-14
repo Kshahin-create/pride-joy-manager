@@ -768,7 +768,8 @@ function OfficeFormDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = {
+    const activePid = typeof window !== "undefined" ? localStorage.getItem("taam_active_property") : null;
+    const payload: any = {
       code: form.code.trim(),
       office_number: form.office_number.trim(),
       floor: Number(form.floor),
@@ -779,6 +780,7 @@ function OfficeFormDialog({
       management_entity: form.management_entity.trim() || null,
       notes: form.notes.trim() || null,
     };
+    if (!isEdit && activePid && activePid !== "all") payload.property_id = activePid;
     const v = officeSchema.safeParse(payload);
     if (!v.success) {
       toast.error(v.error.issues[0].message);

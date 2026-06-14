@@ -282,6 +282,15 @@ function ExpensesPage() {
                     </Select>
                   </div>
                   <div className="col-span-2"><Label>ملاحظات</Label><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+                  <div className="col-span-2">
+                    <Label className="flex items-center gap-1"><Paperclip className="h-3 w-3" /> المرفقات (فواتير، إيصالات، صور)</Label>
+                    <Input type="file" multiple onChange={(e) => setPendingFiles(Array.from(e.target.files ?? []))} />
+                    {pendingFiles.length > 0 && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {pendingFiles.length} ملف: {pendingFiles.map((f) => f.name).join("، ")}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>

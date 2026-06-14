@@ -1087,7 +1087,7 @@ function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean })
   const [del, setDel] = useState<OfficeFile | null>(null);
   const [open, setOpen] = useState(false);
   const [defaultCategory, setDefaultCategory] = useState<DocCategory>("صورة");
-  const [fileItems, setFileItems] = useState<Array<{ file: File; title: string; category: DocCategory }>>([]);
+  const [fileItems, setFileItems] = useState<Array<{ file: File; title: string; category: DocCategory; description: string }>>([]);
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -1117,7 +1117,7 @@ function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean })
     if (!list) return;
     setFileItems((prev) => [
       ...prev,
-      ...Array.from(list).map((f) => ({ file: f, title: stripExt(f.name), category: defaultCategory })),
+      ...Array.from(list).map((f) => ({ file: f, title: stripExt(f.name), category: defaultCategory, description: "" })),
     ]);
   };
 
@@ -1142,6 +1142,7 @@ function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean })
         storage_path: path,
         mime_type: it.file.type || null,
         size_bytes: it.file.size,
+        notes: it.description.trim() || null,
       });
       if (insErr) { fail++; await supabase.storage.from("office-files").remove([path]); }
       else ok++;
@@ -1235,8 +1236,16 @@ function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean })
                                   {FILE_TYPES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                                 </SelectContent>
                               </Select>
-                            </div>
                           </div>
+                          <div>
+                            <Label className="text-xs">وصف (اختياري)</Label>
+                            <Input
+                              placeholder="وصف مختصر للملف"
+                              value={it.description}
+                              onChange={(e) => setFileItems((p) => p.map((x, k) => k === i ? { ...x, description: e.target.value } : x))}
+                            />
+                          </div>
+                        </div>
                         </div>
                       ))}
                     </div>

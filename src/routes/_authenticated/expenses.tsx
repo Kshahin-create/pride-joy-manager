@@ -429,6 +429,42 @@ function ExpensesPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!attachOpen} onOpenChange={(o) => { if (!o) { setAttachOpen(null); setAttachments([]); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>مرفقات المصروف {attachOpen?.expense_number}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {canCreate && (
+              <div>
+                <Label className="flex items-center gap-1"><Paperclip className="h-3 w-3" /> إضافة ملفات</Label>
+                <Input type="file" multiple onChange={(e) => addAttachmentsToExisting(e.target.files)} disabled={busy} />
+              </div>
+            )}
+            <div className="border rounded divide-y">
+              {attachments.length === 0 ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">لا توجد مرفقات</div>
+              ) : attachments.map((a) => (
+                <div key={a.id} className="flex items-center justify-between gap-2 p-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm truncate">{a.file_name}</div>
+                    <div className="text-xs text-muted-foreground">{a.mime_type || ""} {a.size_bytes ? `· ${(a.size_bytes / 1024).toFixed(1)} KB` : ""}</div>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => downloadAttachment(a.storage_path, a.file_name)}>
+                    <Download className="h-3 w-3" />
+                  </Button>
+                  {canApprove && (
+                    <Button size="sm" variant="outline" onClick={() => deleteAttachment(a)}>
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

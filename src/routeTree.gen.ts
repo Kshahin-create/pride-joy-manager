@@ -31,6 +31,7 @@ import { Route as AuthenticatedMaintenanceRouteImport } from './routes/_authenti
 import { Route as AuthenticatedLobbyRouteImport } from './routes/_authenticated/lobby'
 import { Route as AuthenticatedInspectionsRouteImport } from './routes/_authenticated/inspections'
 import { Route as AuthenticatedIdentityRouteImport } from './routes/_authenticated/identity'
+import { Route as AuthenticatedFireContractsRouteImport } from './routes/_authenticated/fire-contracts'
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedExpensesRouteImport } from './routes/_authenticated/expenses'
 import { Route as AuthenticatedElevatorContractsRouteImport } from './routes/_authenticated/elevator-contracts'
@@ -171,6 +172,12 @@ const AuthenticatedIdentityRoute = AuthenticatedIdentityRouteImport.update({
   path: '/identity',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFireContractsRoute =
+  AuthenticatedFireContractsRouteImport.update({
+    id: '/fire-contracts',
+    path: '/fire-contracts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedFinanceRoute = AuthenticatedFinanceRouteImport.update({
   id: '/finance',
   path: '/finance',
@@ -340,6 +347,7 @@ export interface FileRoutesByFullPath {
   '/elevator-contracts': typeof AuthenticatedElevatorContractsRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/finance': typeof AuthenticatedFinanceRoute
+  '/fire-contracts': typeof AuthenticatedFireContractsRoute
   '/identity': typeof AuthenticatedIdentityRoute
   '/inspections': typeof AuthenticatedInspectionsRoute
   '/lobby': typeof AuthenticatedLobbyRoute
@@ -390,6 +398,7 @@ export interface FileRoutesByTo {
   '/elevator-contracts': typeof AuthenticatedElevatorContractsRoute
   '/expenses': typeof AuthenticatedExpensesRoute
   '/finance': typeof AuthenticatedFinanceRoute
+  '/fire-contracts': typeof AuthenticatedFireContractsRoute
   '/identity': typeof AuthenticatedIdentityRoute
   '/inspections': typeof AuthenticatedInspectionsRoute
   '/lobby': typeof AuthenticatedLobbyRoute
@@ -442,6 +451,7 @@ export interface FileRoutesById {
   '/_authenticated/elevator-contracts': typeof AuthenticatedElevatorContractsRoute
   '/_authenticated/expenses': typeof AuthenticatedExpensesRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
+  '/_authenticated/fire-contracts': typeof AuthenticatedFireContractsRoute
   '/_authenticated/identity': typeof AuthenticatedIdentityRoute
   '/_authenticated/inspections': typeof AuthenticatedInspectionsRoute
   '/_authenticated/lobby': typeof AuthenticatedLobbyRoute
@@ -494,6 +504,7 @@ export interface FileRouteTypes {
     | '/elevator-contracts'
     | '/expenses'
     | '/finance'
+    | '/fire-contracts'
     | '/identity'
     | '/inspections'
     | '/lobby'
@@ -544,6 +555,7 @@ export interface FileRouteTypes {
     | '/elevator-contracts'
     | '/expenses'
     | '/finance'
+    | '/fire-contracts'
     | '/identity'
     | '/inspections'
     | '/lobby'
@@ -595,6 +607,7 @@ export interface FileRouteTypes {
     | '/_authenticated/elevator-contracts'
     | '/_authenticated/expenses'
     | '/_authenticated/finance'
+    | '/_authenticated/fire-contracts'
     | '/_authenticated/identity'
     | '/_authenticated/inspections'
     | '/_authenticated/lobby'
@@ -793,6 +806,13 @@ declare module '@tanstack/react-router' {
       path: '/identity'
       fullPath: '/identity'
       preLoaderRoute: typeof AuthenticatedIdentityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/fire-contracts': {
+      id: '/_authenticated/fire-contracts'
+      path: '/fire-contracts'
+      fullPath: '/fire-contracts'
+      preLoaderRoute: typeof AuthenticatedFireContractsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/finance': {
@@ -1062,6 +1082,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedElevatorContractsRoute: typeof AuthenticatedElevatorContractsRoute
   AuthenticatedExpensesRoute: typeof AuthenticatedExpensesRoute
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
+  AuthenticatedFireContractsRoute: typeof AuthenticatedFireContractsRoute
   AuthenticatedIdentityRoute: typeof AuthenticatedIdentityRoute
   AuthenticatedInspectionsRoute: typeof AuthenticatedInspectionsRoute
   AuthenticatedLobbyRoute: typeof AuthenticatedLobbyRoute
@@ -1100,6 +1121,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedElevatorContractsRoute: AuthenticatedElevatorContractsRoute,
   AuthenticatedExpensesRoute: AuthenticatedExpensesRoute,
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
+  AuthenticatedFireContractsRoute: AuthenticatedFireContractsRoute,
   AuthenticatedIdentityRoute: AuthenticatedIdentityRoute,
   AuthenticatedInspectionsRoute: AuthenticatedInspectionsRoute,
   AuthenticatedLobbyRoute: AuthenticatedLobbyRoute,

@@ -2148,6 +2148,203 @@ export type Database = {
           },
         ]
       }
+      fire_contract_attachments: {
+        Row: {
+          category: string | null
+          contract_id: string
+          created_at: string
+          file_name: string
+          file_type: string | null
+          file_url: string
+          id: string
+          notes: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          category?: string | null
+          contract_id: string
+          created_at?: string
+          file_name: string
+          file_type?: string | null
+          file_url: string
+          id?: string
+          notes?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: string | null
+          contract_id?: string
+          created_at?: string
+          file_name?: string
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          notes?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fire_contract_attachments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "fire_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fire_contracts: {
+        Row: {
+          alert_thresholds_days: number[] | null
+          certification_expiry_date: string | null
+          commercial_register: string | null
+          company_name: string | null
+          contact_email: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          contract_name: string
+          contract_number: string | null
+          contract_type: string
+          contract_value: number | null
+          covered_asset_ids: string[] | null
+          covers_alarm_panels: boolean
+          covers_extinguishers: boolean
+          covers_fire_cabinets: boolean
+          covers_fire_hoses: boolean
+          covers_fire_pumps: boolean
+          covers_smoke_detectors: boolean
+          covers_sprinklers: boolean
+          created_at: string
+          created_by: string | null
+          duration_months: number | null
+          end_date: string | null
+          first_party: string | null
+          id: string
+          includes_certification_reports: boolean
+          includes_corrective: boolean
+          includes_periodic_tests: boolean
+          includes_preventive: boolean
+          includes_spare_parts: boolean
+          notes: string | null
+          payment_frequency: string | null
+          preventive_frequency: string | null
+          property_id: string | null
+          resolution_time_hours: number | null
+          response_time_hours: number | null
+          start_date: string | null
+          status: string
+          tax_included: boolean
+          tax_number: string | null
+          tax_rate: number | null
+          updated_at: string
+          vendor_id: string | null
+        }
+        Insert: {
+          alert_thresholds_days?: number[] | null
+          certification_expiry_date?: string | null
+          commercial_register?: string | null
+          company_name?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          contract_name: string
+          contract_number?: string | null
+          contract_type?: string
+          contract_value?: number | null
+          covered_asset_ids?: string[] | null
+          covers_alarm_panels?: boolean
+          covers_extinguishers?: boolean
+          covers_fire_cabinets?: boolean
+          covers_fire_hoses?: boolean
+          covers_fire_pumps?: boolean
+          covers_smoke_detectors?: boolean
+          covers_sprinklers?: boolean
+          created_at?: string
+          created_by?: string | null
+          duration_months?: number | null
+          end_date?: string | null
+          first_party?: string | null
+          id?: string
+          includes_certification_reports?: boolean
+          includes_corrective?: boolean
+          includes_periodic_tests?: boolean
+          includes_preventive?: boolean
+          includes_spare_parts?: boolean
+          notes?: string | null
+          payment_frequency?: string | null
+          preventive_frequency?: string | null
+          property_id?: string | null
+          resolution_time_hours?: number | null
+          response_time_hours?: number | null
+          start_date?: string | null
+          status?: string
+          tax_included?: boolean
+          tax_number?: string | null
+          tax_rate?: number | null
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Update: {
+          alert_thresholds_days?: number[] | null
+          certification_expiry_date?: string | null
+          commercial_register?: string | null
+          company_name?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          contract_name?: string
+          contract_number?: string | null
+          contract_type?: string
+          contract_value?: number | null
+          covered_asset_ids?: string[] | null
+          covers_alarm_panels?: boolean
+          covers_extinguishers?: boolean
+          covers_fire_cabinets?: boolean
+          covers_fire_hoses?: boolean
+          covers_fire_pumps?: boolean
+          covers_smoke_detectors?: boolean
+          covers_sprinklers?: boolean
+          created_at?: string
+          created_by?: string | null
+          duration_months?: number | null
+          end_date?: string | null
+          first_party?: string | null
+          id?: string
+          includes_certification_reports?: boolean
+          includes_corrective?: boolean
+          includes_periodic_tests?: boolean
+          includes_preventive?: boolean
+          includes_spare_parts?: boolean
+          notes?: string | null
+          payment_frequency?: string | null
+          preventive_frequency?: string | null
+          property_id?: string | null
+          resolution_time_hours?: number | null
+          response_time_hours?: number | null
+          start_date?: string | null
+          status?: string
+          tax_included?: boolean
+          tax_number?: string | null
+          tax_rate?: number | null
+          updated_at?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fire_contracts_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fire_contracts_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guard_attendance: {
         Row: {
           attendance_date: string

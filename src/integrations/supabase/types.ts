@@ -472,6 +472,205 @@ export type Database = {
         }
         Relationships: []
       }
+      cleaning_contract_attachments: {
+        Row: {
+          attachment_type: Database["public"]["Enums"]["cleaning_contract_attachment_type"]
+          cleaning_contract_id: string
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          notes: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          attachment_type?: Database["public"]["Enums"]["cleaning_contract_attachment_type"]
+          cleaning_contract_id: string
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          attachment_type?: Database["public"]["Enums"]["cleaning_contract_attachment_type"]
+          cleaning_contract_id?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          notes?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_contract_attachments_cleaning_contract_id_fkey"
+            columns: ["cleaning_contract_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cleaning_contracts: {
+        Row: {
+          alert_thresholds_days: number[] | null
+          annual_value: number | null
+          cleaning_supplies: string[] | null
+          cleaning_type: Database["public"]["Enums"]["cleaning_contract_type"]
+          contract_number: string | null
+          contract_value: number | null
+          created_at: string
+          created_by: string | null
+          day_workers: number | null
+          duration_months: number | null
+          end_date: string | null
+          first_party_name: string | null
+          hours_per_day: number | null
+          id: string
+          materials_responsibility:
+            | Database["public"]["Enums"]["materials_responsibility"]
+            | null
+          monthly_value: number | null
+          night_workers: number | null
+          notes: string | null
+          notice_period_days: number | null
+          payment_frequency:
+            | Database["public"]["Enums"]["cleaning_payment_frequency"]
+            | null
+          restroom_supplies: string[] | null
+          scope_areas: string[] | null
+          shift_end: string | null
+          shift_start: string | null
+          sla_quality_pct_target: number | null
+          sla_response_emergency_hours: number | null
+          sla_response_normal_hours: number | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["contract_status"]
+          supervisors: number | null
+          tax_inclusive: boolean | null
+          tax_pct: number | null
+          taxable: boolean | null
+          updated_at: string
+          vendor_contact_name: string | null
+          vendor_cr: string | null
+          vendor_email: string | null
+          vendor_id: string | null
+          vendor_name: string | null
+          vendor_phone: string | null
+          vendor_tax_number: string | null
+        }
+        Insert: {
+          alert_thresholds_days?: number[] | null
+          annual_value?: number | null
+          cleaning_supplies?: string[] | null
+          cleaning_type?: Database["public"]["Enums"]["cleaning_contract_type"]
+          contract_number?: string | null
+          contract_value?: number | null
+          created_at?: string
+          created_by?: string | null
+          day_workers?: number | null
+          duration_months?: number | null
+          end_date?: string | null
+          first_party_name?: string | null
+          hours_per_day?: number | null
+          id?: string
+          materials_responsibility?:
+            | Database["public"]["Enums"]["materials_responsibility"]
+            | null
+          monthly_value?: number | null
+          night_workers?: number | null
+          notes?: string | null
+          notice_period_days?: number | null
+          payment_frequency?:
+            | Database["public"]["Enums"]["cleaning_payment_frequency"]
+            | null
+          restroom_supplies?: string[] | null
+          scope_areas?: string[] | null
+          shift_end?: string | null
+          shift_start?: string | null
+          sla_quality_pct_target?: number | null
+          sla_response_emergency_hours?: number | null
+          sla_response_normal_hours?: number | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          supervisors?: number | null
+          tax_inclusive?: boolean | null
+          tax_pct?: number | null
+          taxable?: boolean | null
+          updated_at?: string
+          vendor_contact_name?: string | null
+          vendor_cr?: string | null
+          vendor_email?: string | null
+          vendor_id?: string | null
+          vendor_name?: string | null
+          vendor_phone?: string | null
+          vendor_tax_number?: string | null
+        }
+        Update: {
+          alert_thresholds_days?: number[] | null
+          annual_value?: number | null
+          cleaning_supplies?: string[] | null
+          cleaning_type?: Database["public"]["Enums"]["cleaning_contract_type"]
+          contract_number?: string | null
+          contract_value?: number | null
+          created_at?: string
+          created_by?: string | null
+          day_workers?: number | null
+          duration_months?: number | null
+          end_date?: string | null
+          first_party_name?: string | null
+          hours_per_day?: number | null
+          id?: string
+          materials_responsibility?:
+            | Database["public"]["Enums"]["materials_responsibility"]
+            | null
+          monthly_value?: number | null
+          night_workers?: number | null
+          notes?: string | null
+          notice_period_days?: number | null
+          payment_frequency?:
+            | Database["public"]["Enums"]["cleaning_payment_frequency"]
+            | null
+          restroom_supplies?: string[] | null
+          scope_areas?: string[] | null
+          shift_end?: string | null
+          shift_start?: string | null
+          sla_quality_pct_target?: number | null
+          sla_response_emergency_hours?: number | null
+          sla_response_normal_hours?: number | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          supervisors?: number | null
+          tax_inclusive?: boolean | null
+          tax_pct?: number | null
+          taxable?: boolean | null
+          updated_at?: string
+          vendor_contact_name?: string | null
+          vendor_cr?: string | null
+          vendor_email?: string | null
+          vendor_id?: string | null
+          vendor_name?: string | null
+          vendor_phone?: string | null
+          vendor_tax_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_contracts_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cleaning_logs: {
         Row: {
           after_photo_path: string | null
@@ -3702,7 +3901,19 @@ export type Database = {
         | "owner"
       asset_criticality: "حرج" | "عادي"
       camera_status: "تعمل" | "معطلة" | "تحت الصيانة"
+      cleaning_contract_attachment_type:
+        | "نسخة العقد"
+        | "السجل التجاري"
+        | "شهادات العمالة"
+        | "التأمينات"
+        | "شهادات السلامة"
+        | "أخرى"
+      cleaning_contract_type:
+        | "عقد خدمات نظافة"
+        | "عقد تشغيل نظافة متكامل"
+        | "عقد توريد عمالة نظافة"
       cleaning_frequency: "يومي" | "أسبوعي" | "شهري"
+      cleaning_payment_frequency: "شهري" | "ربع سنوي" | "نصف سنوي" | "سنوي"
       cleaning_photo_kind: "قبل" | "بعد"
       client_status:
         | "استفسار"
@@ -3798,6 +4009,7 @@ export type Database = {
         | "معلّق للتعيين"
         | "معلّق"
         | "مكتمل مبدئياً"
+      materials_responsibility: "على شركة النظافة" | "على مالك البرج" | "مشتركة"
       notification_type:
         | "contract_expiring"
         | "invoice_overdue"
@@ -3990,7 +4202,21 @@ export const Constants = {
       ],
       asset_criticality: ["حرج", "عادي"],
       camera_status: ["تعمل", "معطلة", "تحت الصيانة"],
+      cleaning_contract_attachment_type: [
+        "نسخة العقد",
+        "السجل التجاري",
+        "شهادات العمالة",
+        "التأمينات",
+        "شهادات السلامة",
+        "أخرى",
+      ],
+      cleaning_contract_type: [
+        "عقد خدمات نظافة",
+        "عقد تشغيل نظافة متكامل",
+        "عقد توريد عمالة نظافة",
+      ],
       cleaning_frequency: ["يومي", "أسبوعي", "شهري"],
+      cleaning_payment_frequency: ["شهري", "ربع سنوي", "نصف سنوي", "سنوي"],
       cleaning_photo_kind: ["قبل", "بعد"],
       client_status: [
         "استفسار",
@@ -4092,6 +4318,11 @@ export const Constants = {
         "معلّق للتعيين",
         "معلّق",
         "مكتمل مبدئياً",
+      ],
+      materials_responsibility: [
+        "على شركة النظافة",
+        "على مالك البرج",
+        "مشتركة",
       ],
       notification_type: [
         "contract_expiring",

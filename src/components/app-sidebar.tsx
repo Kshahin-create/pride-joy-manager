@@ -79,6 +79,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
     label: "التشغيل",
     items: [
       { title: "النظافة", url: "/operations", icon: Sparkles, perms: ["cleaning.view"] },
+      { title: "عقود النظافة", url: "/cleaning-contracts", icon: FileSignature, perms: ["contracts.view"] },
       { title: "الصيانة", url: "/maintenance", icon: Wrench, perms: ["maintenance.view"] },
       { title: "الأمن", url: "/security", icon: Shield, perms: ["guards.view","patrols.view","incidents.view","cameras.view"] },
       { title: "اللوبي", url: "/lobby", icon: Sofa },

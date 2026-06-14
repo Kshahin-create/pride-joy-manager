@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { CONTRACT_STATUS_STYLE, type ContractStatus, ContractFormDialog } from "./contracts.index";
+import { DelegatesCard, LinkedOfficesCard, LinkedParkingCard } from "@/components/contract-relations";
 
 export const Route = createFileRoute("/_authenticated/contracts/$id")({
   component: ContractDetailsPage,
@@ -188,6 +189,9 @@ function ContractDetailsPage() {
         </CardContent>
       </Card>
 
+      <DelegatesCard contractId={contract.id} canManage={canUpload} />
+      <LinkedOfficesCard contractId={contract.id} canManage={canUpload} />
+      <LinkedParkingCard contractId={contract.id} canManage={canUpload} />
       <AttachmentsCard contractId={contract.id} canUpload={canUpload} canDelete={isAdmin} />
 
       <Card>

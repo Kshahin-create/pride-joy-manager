@@ -14,6 +14,7 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useActiveProperty } from "@/lib/active-property-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -116,6 +117,7 @@ const STATUS_STYLES: Record<OfficeStatus, { badge: string; card: string; dot: st
 
 function OfficesPage() {
   const { hasRole } = useAuth();
+  const { activePropertyId } = useActiveProperty();
   const canEdit = hasRole("super_admin");
   const navigate = useNavigate();
   const openOffice = (o: Office) => navigate({ to: "/offices/$id", params: { id: o.id } });
@@ -141,11 +143,15 @@ function OfficesPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    let q = supabase
       .from("offices")
       .select("*")
       .order("floor", { ascending: true })
       .order("office_number", { ascending: true });
+    if (activePropertyId && activePropertyId !== "all") {
+      q = q.eq("property_id", activePropertyId);
+    }
+    const { data, error } = await q;
     if (error) {
       toast.error("تعذّر تحميل المكاتب");
       setLoading(false);
@@ -153,7 +159,7 @@ function OfficesPage() {
     }
     setOffices((data ?? []) as Office[]);
     setLoading(false);
-  }, []);
+  }, [activePropertyId]);
 
   useEffect(() => {
     load();
@@ -762,7 +768,8 @@ function OfficeFormDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = {
+    const activePid = typeof window !== "undefined" ? localStorage.getItem("taam_active_property") : null;
+    const payload: any = {
       code: form.code.trim(),
       office_number: form.office_number.trim(),
       floor: Number(form.floor),
@@ -773,6 +780,7 @@ function OfficeFormDialog({
       management_entity: form.management_entity.trim() || null,
       notes: form.notes.trim() || null,
     };
+    if (!isEdit && activePid && activePid !== "all") payload.property_id = activePid;
     const v = officeSchema.safeParse(payload);
     if (!v.success) {
       toast.error(v.error.issues[0].message);

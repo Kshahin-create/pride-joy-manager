@@ -349,6 +349,7 @@ function PaymentDialog({
   const [method, setMethod] = useState<PaymentMethod>("نقدي");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -358,6 +359,7 @@ function PaymentDialog({
       setMethod("نقدي");
       setDate(new Date().toISOString().slice(0, 10));
       setNotes("");
+      setFile(null);
     }
   }, [invoice]);
 
@@ -370,6 +372,28 @@ function PaymentDialog({
     if (amt > remaining + 0.001) { toast.error("المبلغ يتجاوز المتبقي"); return; }
     setBusy(true);
     const { data: userRes } = await supabase.auth.getUser();
+
+    let receipt_file_url: string | null = null;
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        setBusy(false);
+        toast.error("حجم الملف يتجاوز 10 ميغابايت");
+        return;
+      }
+      const ext = file.name.split(".").pop() ?? "bin";
+      const path = `${invoice.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const up = await supabase.storage.from("payment-receipts").upload(path, file, {
+        contentType: file.type || undefined,
+        upsert: false,
+      });
+      if (up.error) {
+        setBusy(false);
+        toast.error("فشل رفع الملف: " + up.error.message);
+        return;
+      }
+      receipt_file_url = up.data.path;
+    }
+
     const { error } = await supabase.from("payments").insert({
       invoice_id: invoice.id,
       amount_paid: amt,
@@ -377,6 +401,7 @@ function PaymentDialog({
       payment_method: method,
       receipt_number: "",
       notes: notes || null,
+      receipt_file_url,
       created_by: userRes.user?.id ?? null,
     });
     setBusy(false);

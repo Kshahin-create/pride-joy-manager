@@ -140,6 +140,11 @@ function ContractDetailsPage() {
               توليد الفواتير
             </Button>
           )}
+          {(isAdmin || hasRole("accountant")) && (
+            <Button variant="outline" onClick={() => setEditOpen(true)}>
+              <Pencil className="h-4 w-4 ms-1" /> تعديل
+            </Button>
+          )}
           {canManage && (
             <Button onClick={() => setRenewOpen(true)} className="bg-primary text-primary-foreground">
               <RotateCw className="h-4 w-4 ms-1" /> تجديد

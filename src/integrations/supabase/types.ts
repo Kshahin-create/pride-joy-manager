@@ -4082,6 +4082,164 @@ export type Database = {
           },
         ]
       }
+      supply_contract_attachments: {
+        Row: {
+          attachment_type: string
+          contract_id: string
+          created_at: string
+          file_name: string | null
+          file_url: string
+          id: string
+          notes: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          attachment_type?: string
+          contract_id: string
+          created_at?: string
+          file_name?: string | null
+          file_url: string
+          id?: string
+          notes?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          attachment_type?: string
+          contract_id?: string
+          created_at?: string
+          file_name?: string | null
+          file_url?: string
+          id?: string
+          notes?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supply_contract_attachments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "supply_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supply_contracts: {
+        Row: {
+          alert_thresholds_days: number[] | null
+          contract_name: string
+          contract_number: string | null
+          contract_type: string
+          contract_value: number | null
+          created_at: string
+          created_by: string | null
+          delivery_delay_alert_days: number | null
+          duration_months: number | null
+          end_date: string | null
+          first_party: string | null
+          id: string
+          notes: string | null
+          payment_frequency: string | null
+          payment_method: string | null
+          property_id: string | null
+          start_date: string | null
+          status: string
+          supply_categories: string[] | null
+          supply_items: Json | null
+          supply_schedule: string | null
+          tax_included: boolean | null
+          tax_rate: number | null
+          updated_at: string
+          vendor_commercial_registration: string | null
+          vendor_company_name: string | null
+          vendor_contact_person: string | null
+          vendor_email: string | null
+          vendor_id: string | null
+          vendor_mobile: string | null
+          vendor_tax_number: string | null
+        }
+        Insert: {
+          alert_thresholds_days?: number[] | null
+          contract_name: string
+          contract_number?: string | null
+          contract_type?: string
+          contract_value?: number | null
+          created_at?: string
+          created_by?: string | null
+          delivery_delay_alert_days?: number | null
+          duration_months?: number | null
+          end_date?: string | null
+          first_party?: string | null
+          id?: string
+          notes?: string | null
+          payment_frequency?: string | null
+          payment_method?: string | null
+          property_id?: string | null
+          start_date?: string | null
+          status?: string
+          supply_categories?: string[] | null
+          supply_items?: Json | null
+          supply_schedule?: string | null
+          tax_included?: boolean | null
+          tax_rate?: number | null
+          updated_at?: string
+          vendor_commercial_registration?: string | null
+          vendor_company_name?: string | null
+          vendor_contact_person?: string | null
+          vendor_email?: string | null
+          vendor_id?: string | null
+          vendor_mobile?: string | null
+          vendor_tax_number?: string | null
+        }
+        Update: {
+          alert_thresholds_days?: number[] | null
+          contract_name?: string
+          contract_number?: string | null
+          contract_type?: string
+          contract_value?: number | null
+          created_at?: string
+          created_by?: string | null
+          delivery_delay_alert_days?: number | null
+          duration_months?: number | null
+          end_date?: string | null
+          first_party?: string | null
+          id?: string
+          notes?: string | null
+          payment_frequency?: string | null
+          payment_method?: string | null
+          property_id?: string | null
+          start_date?: string | null
+          status?: string
+          supply_categories?: string[] | null
+          supply_items?: Json | null
+          supply_schedule?: string | null
+          tax_included?: boolean | null
+          tax_rate?: number | null
+          updated_at?: string
+          vendor_commercial_registration?: string | null
+          vendor_company_name?: string | null
+          vendor_contact_person?: string | null
+          vendor_email?: string | null
+          vendor_id?: string | null
+          vendor_mobile?: string | null
+          vendor_tax_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supply_contracts_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supply_contracts_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       telegram_link_codes: {
         Row: {
           code: string

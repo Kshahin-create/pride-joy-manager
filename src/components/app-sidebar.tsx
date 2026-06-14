@@ -84,6 +84,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { title: "عقود صيانة المصاعد", url: "/elevator-contracts", icon: FileSignature, perms: ["contracts.view"] },
       { title: "عقود صيانة التكييف", url: "/ac-contracts", icon: FileSignature, perms: ["contracts.view"] },
       { title: "عقود أنظمة الحريق", url: "/fire-contracts", icon: FileSignature, perms: ["contracts.view"] },
+      { title: "عقود التوريد", url: "/supply-contracts", icon: FileSignature, perms: ["contracts.view"] },
       { title: "الصيانة", url: "/maintenance", icon: Wrench, perms: ["maintenance.view"] },
       { title: "الأمن", url: "/security", icon: Shield, perms: ["guards.view","patrols.view","incidents.view","cameras.view"] },
       { title: "اللوبي", url: "/lobby", icon: Sofa },

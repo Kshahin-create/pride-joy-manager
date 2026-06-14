@@ -71,6 +71,7 @@ function ContractDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [renewOpen, setRenewOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
 
   const generateInvoices = async () => {

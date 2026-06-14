@@ -417,9 +417,4 @@ export function ContractFormDialog({
   );
 }
 
-interface Contract {
-  id: string; company_id: string; office_id: string;
-  start_date: string; end_date: string;
-  rent_amount: number; deposit_amount: number; service_fees: number;
-  notes: string | null;
-}
+

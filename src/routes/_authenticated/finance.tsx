@@ -309,6 +309,11 @@ function InvoicesTable({
 }
 
 function ReceiptsTable({ rows, loading }: { rows: Payment[]; loading: boolean }) {
+  const openReceipt = async (path: string) => {
+    const { data, error } = await supabase.storage.from("payment-receipts").createSignedUrl(path, 60);
+    if (error || !data) { toast.error("تعذّر فتح الملف"); return; }
+    window.open(data.signedUrl, "_blank");
+  };
   if (loading) return <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   if (rows.length === 0) return <p className="text-center text-muted-foreground py-8">لا توجد سندات قبض</p>;
   return (

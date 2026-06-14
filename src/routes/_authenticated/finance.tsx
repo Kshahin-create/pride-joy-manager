@@ -443,6 +443,19 @@ function PaymentDialog({
               <Label>ملاحظات</Label>
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
             </div>
+            <div>
+              <Label>مرفق الإيصال (اختياري)</Label>
+              <Input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
+              {file && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {file.name} — {(file.size / 1024).toFixed(0)} KB
+                </p>
+              )}
+            </div>
           </div>
         )}
         <DialogFooter>

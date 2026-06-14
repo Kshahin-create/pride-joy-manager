@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Plus, Check, X, Banknote, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { Plus, Check, X, Banknote, TrendingUp, TrendingDown, Wallet, Paperclip, Download, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/expenses")({
   component: ExpensesPage,
@@ -58,6 +58,9 @@ function ExpensesPage() {
     category: "أخرى", description: "", amount: "", vendor_id: "",
     expense_date: new Date().toISOString().slice(0, 10), payment_method: "", notes: "",
   });
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [attachOpen, setAttachOpen] = useState<Expense | null>(null);
+  const [attachments, setAttachments] = useState<any[]>([]);
   const [payForm, setPayForm] = useState<any>({
     vendor_id: "", amount: "", payment_method: "تحويل بنكي",
     reference_number: "", expense_id: "", notes: "",
@@ -89,22 +92,69 @@ function ExpensesPage() {
     all: expenses.reduce((s, e) => s + Number(e.amount), 0),
   }), [expenses]);
 
+  const uploadFilesFor = async (expenseId: string, files: File[]) => {
+    for (const f of files) {
+      const path = `${expenseId}/${Date.now()}-${f.name}`;
+      const up = await supabase.storage.from("expense-attachments").upload(path, f, { upsert: false });
+      if (up.error) { toast.error(`فشل رفع ${f.name}: ${up.error.message}`); continue; }
+      const ins = await supabase.from("expense_attachments").insert({
+        expense_id: expenseId, file_name: f.name, storage_path: path,
+        mime_type: f.type || null, size_bytes: f.size,
+      });
+      if (ins.error) toast.error(ins.error.message);
+    }
+  };
+
   const createExpense = async () => {
     if (!form.description || !form.amount) return toast.error("الوصف والمبلغ مطلوبان");
     setBusy(true);
-    const { error } = await supabase.from("expenses").insert({
+    const { data, error } = await supabase.from("expenses").insert({
       category: form.category, description: form.description, amount: Number(form.amount),
       vendor_id: form.vendor_id || null, expense_date: form.expense_date,
       payment_method: form.payment_method || null, notes: form.notes || null,
-    });
+    }).select("id").single();
+    if (error) { setBusy(false); return toast.error(error.message); }
+    if (pendingFiles.length > 0 && data?.id) {
+      await uploadFilesFor(data.id, pendingFiles);
+    }
     setBusy(false);
-    if (error) return toast.error(error.message);
     toast.success("تم تسجيل المصروف");
     setOpen(false);
+    setPendingFiles([]);
     setForm({ category: "أخرى", description: "", amount: "", vendor_id: "",
       expense_date: new Date().toISOString().slice(0, 10), payment_method: "", notes: "" });
     await load();
   };
+
+  const openAttachments = async (e: Expense) => {
+    setAttachOpen(e);
+    const { data } = await supabase.from("expense_attachments").select("*").eq("expense_id", e.id).order("created_at", { ascending: false });
+    setAttachments(data ?? []);
+  };
+
+  const addAttachmentsToExisting = async (files: FileList | null) => {
+    if (!files || !attachOpen) return;
+    setBusy(true);
+    await uploadFilesFor(attachOpen.id, Array.from(files));
+    setBusy(false);
+    await openAttachments(attachOpen);
+  };
+
+  const downloadAttachment = async (path: string, name: string) => {
+    const { data, error } = await supabase.storage.from("expense-attachments").createSignedUrl(path, 60);
+    if (error || !data) return toast.error(error?.message || "تعذّر التحميل");
+    const a = document.createElement("a");
+    a.href = data.signedUrl; a.download = name; a.target = "_blank"; a.click();
+  };
+
+  const deleteAttachment = async (att: any) => {
+    if (!confirm("حذف المرفق؟")) return;
+    await supabase.storage.from("expense-attachments").remove([att.storage_path]);
+    const { error } = await supabase.from("expense_attachments").delete().eq("id", att.id);
+    if (error) return toast.error(error.message);
+    if (attachOpen) await openAttachments(attachOpen);
+  };
+
 
   const changeStatus = async (id: string, status: string, reason?: string) => {
     const patch: any = { status };
@@ -232,6 +282,15 @@ function ExpensesPage() {
                     </Select>
                   </div>
                   <div className="col-span-2"><Label>ملاحظات</Label><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+                  <div className="col-span-2">
+                    <Label className="flex items-center gap-1"><Paperclip className="h-3 w-3" /> المرفقات (فواتير، إيصالات، صور)</Label>
+                    <Input type="file" multiple onChange={(e) => setPendingFiles(Array.from(e.target.files ?? []))} />
+                    {pendingFiles.length > 0 && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {pendingFiles.length} ملف: {pendingFiles.map((f) => f.name).join("، ")}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>
@@ -283,24 +342,29 @@ function ExpensesPage() {
                     <TableCell className="font-semibold">{fmt(e.amount)}</TableCell>
                     <TableCell><Badge className={STATUS_STYLE[e.status]}>{e.status}</Badge></TableCell>
                     <TableCell>
-                      {e.status === "معلّق" && canApprove && (
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline" onClick={() => changeStatus(e.id, "معتمد")}>
-                            <Check className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => {
-                            const r = prompt("سبب الرفض:");
-                            if (r) changeStatus(e.id, "مرفوض", r);
-                          }}>
-                            <X className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </div>
-                      )}
-                      {e.status === "معتمد" && canPay && (
-                        <Button size="sm" variant="outline" onClick={() => changeStatus(e.id, "مدفوع")}>
-                          تأكيد الدفع
+                      <div className="flex gap-1 flex-wrap">
+                        <Button size="sm" variant="outline" onClick={() => openAttachments(e)} title="المرفقات">
+                          <Paperclip className="h-3 w-3" />
                         </Button>
-                      )}
+                        {e.status === "معلّق" && canApprove && (
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => changeStatus(e.id, "معتمد")}>
+                              <Check className="h-3 w-3" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => {
+                              const r = prompt("سبب الرفض:");
+                              if (r) changeStatus(e.id, "مرفوض", r);
+                            }}>
+                              <X className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </>
+                        )}
+                        {e.status === "معتمد" && canPay && (
+                          <Button size="sm" variant="outline" onClick={() => changeStatus(e.id, "مدفوع")}>
+                            تأكيد الدفع
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -365,6 +429,42 @@ function ExpensesPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!attachOpen} onOpenChange={(o) => { if (!o) { setAttachOpen(null); setAttachments([]); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>مرفقات المصروف {attachOpen?.expense_number}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            {canCreate && (
+              <div>
+                <Label className="flex items-center gap-1"><Paperclip className="h-3 w-3" /> إضافة ملفات</Label>
+                <Input type="file" multiple onChange={(e) => addAttachmentsToExisting(e.target.files)} disabled={busy} />
+              </div>
+            )}
+            <div className="border rounded divide-y">
+              {attachments.length === 0 ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">لا توجد مرفقات</div>
+              ) : attachments.map((a) => (
+                <div key={a.id} className="flex items-center justify-between gap-2 p-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm truncate">{a.file_name}</div>
+                    <div className="text-xs text-muted-foreground">{a.mime_type || ""} {a.size_bytes ? `· ${(a.size_bytes / 1024).toFixed(1)} KB` : ""}</div>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => downloadAttachment(a.storage_path, a.file_name)}>
+                    <Download className="h-3 w-3" />
+                  </Button>
+                  {canApprove && (
+                    <Button size="sm" variant="outline" onClick={() => deleteAttachment(a)}>
+                      <Trash2 className="h-3 w-3 text-destructive" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

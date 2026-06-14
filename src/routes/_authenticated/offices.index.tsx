@@ -117,6 +117,7 @@ const STATUS_STYLES: Record<OfficeStatus, { badge: string; card: string; dot: st
 
 function OfficesPage() {
   const { hasRole } = useAuth();
+  const { activePropertyId } = useActiveProperty();
   const canEdit = hasRole("super_admin");
   const navigate = useNavigate();
   const openOffice = (o: Office) => navigate({ to: "/offices/$id", params: { id: o.id } });

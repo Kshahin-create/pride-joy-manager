@@ -368,8 +368,9 @@ function MaintenancePage() {
   };
   const saveApprove = async () => {
     if (!approveFor) return;
-    const { error } = await supabase.from("maintenance_requests").update({ status: "مغلق" }).eq("id", approveFor.id);
+    const { data, error } = await supabase.from("maintenance_requests").update({ status: "مغلق" }).eq("id", approveFor.id).select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) return toast.error("لا تملك صلاحية اعتماد هذا الطلب");
     toast.success("تم الاعتماد والإغلاق");
     setApproveFor(null); load();
   };
@@ -377,10 +378,11 @@ function MaintenancePage() {
     if (!approveFor) return;
     if (!approveNote.trim()) return toast.error("اكتب سبب الإرجاع");
     const newNotes = `${approveFor.notes ?? ""}\n\n[إرجاع من المشرف]: ${approveNote.trim()}`.trim();
-    const { error } = await supabase.from("maintenance_requests").update({
+    const { data, error } = await supabase.from("maintenance_requests").update({
       status: "جاري التنفيذ", notes: newNotes,
-    }).eq("id", approveFor.id);
+    }).eq("id", approveFor.id).select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) return toast.error("لا تملك صلاحية تعديل هذا الطلب");
     toast.success("تم إرجاع الأمر للفني");
     setApproveFor(null); load();
   };

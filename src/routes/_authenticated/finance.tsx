@@ -323,6 +323,7 @@ function ReceiptsTable({ rows, loading }: { rows: Payment[]; loading: boolean })
             <TableHead>التاريخ</TableHead>
             <TableHead>طريقة الدفع</TableHead>
             <TableHead>ملاحظات</TableHead>
+            <TableHead>المرفق</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -335,6 +336,13 @@ function ReceiptsTable({ rows, loading }: { rows: Payment[]; loading: boolean })
               <TableCell>{p.payment_date}</TableCell>
               <TableCell>{p.payment_method}</TableCell>
               <TableCell className="text-muted-foreground text-xs">{p.notes ?? "—"}</TableCell>
+              <TableCell>
+                {p.receipt_file_url ? (
+                  <Button size="sm" variant="outline" onClick={() => openReceipt(p.receipt_file_url!)}>
+                    عرض
+                  </Button>
+                ) : <span className="text-muted-foreground text-xs">—</span>}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

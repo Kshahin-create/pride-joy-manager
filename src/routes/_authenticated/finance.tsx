@@ -58,6 +58,7 @@ interface Payment {
   payment_method: PaymentMethod;
   receipt_number: string;
   notes: string | null;
+  receipt_file_url: string | null;
   invoices?: { invoice_number: string; companies?: { company_name: string } | null } | null;
 }
 

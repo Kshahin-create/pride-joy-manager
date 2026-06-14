@@ -51,7 +51,12 @@ export interface Company {
   tax_number: string | null;
   status: ClientStatus;
   notes: string | null;
+  delegate_name?: string | null;
+  phone?: string | null;
 }
+
+const ATTACHMENT_TYPES = ["السجل التجاري","الهوية","الرقم الضريبي","عقد","أخرى"];
+type PendingFile = { file: File; type: string };
 
 function ClientsPage() {
   const { hasRole } = useAuth();

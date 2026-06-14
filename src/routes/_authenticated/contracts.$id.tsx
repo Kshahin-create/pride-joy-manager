@@ -27,6 +27,7 @@ import {
 import { toast } from "sonner";
 import { CONTRACT_STATUS_STYLE, type ContractStatus, ContractFormDialog } from "./contracts.index";
 import { DelegatesCard, LinkedOfficesCard, LinkedParkingCard } from "@/components/contract-relations";
+import { TaxFeesCard, DepositCard, PaymentScheduleCard } from "@/components/contract-financials";
 
 export const Route = createFileRoute("/_authenticated/contracts/$id")({
   component: ContractDetailsPage,
@@ -192,6 +193,9 @@ function ContractDetailsPage() {
       <DelegatesCard contractId={contract.id} canManage={canUpload} />
       <LinkedOfficesCard contractId={contract.id} canManage={canUpload} />
       <LinkedParkingCard contractId={contract.id} canManage={canUpload} />
+      <TaxFeesCard contractId={contract.id} canManage={canUpload} />
+      <DepositCard contractId={contract.id} canManage={canUpload} />
+      <PaymentScheduleCard contractId={contract.id} canManage={canUpload} />
       <AttachmentsCard contractId={contract.id} canUpload={canUpload} canDelete={isAdmin} />
 
       <Card>

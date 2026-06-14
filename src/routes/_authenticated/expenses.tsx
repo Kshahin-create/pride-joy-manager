@@ -92,22 +92,69 @@ function ExpensesPage() {
     all: expenses.reduce((s, e) => s + Number(e.amount), 0),
   }), [expenses]);
 
+  const uploadFilesFor = async (expenseId: string, files: File[]) => {
+    for (const f of files) {
+      const path = `${expenseId}/${Date.now()}-${f.name}`;
+      const up = await supabase.storage.from("expense-attachments").upload(path, f, { upsert: false });
+      if (up.error) { toast.error(`فشل رفع ${f.name}: ${up.error.message}`); continue; }
+      const ins = await supabase.from("expense_attachments").insert({
+        expense_id: expenseId, file_name: f.name, storage_path: path,
+        mime_type: f.type || null, size_bytes: f.size,
+      });
+      if (ins.error) toast.error(ins.error.message);
+    }
+  };
+
   const createExpense = async () => {
     if (!form.description || !form.amount) return toast.error("الوصف والمبلغ مطلوبان");
     setBusy(true);
-    const { error } = await supabase.from("expenses").insert({
+    const { data, error } = await supabase.from("expenses").insert({
       category: form.category, description: form.description, amount: Number(form.amount),
       vendor_id: form.vendor_id || null, expense_date: form.expense_date,
       payment_method: form.payment_method || null, notes: form.notes || null,
-    });
+    }).select("id").single();
+    if (error) { setBusy(false); return toast.error(error.message); }
+    if (pendingFiles.length > 0 && data?.id) {
+      await uploadFilesFor(data.id, pendingFiles);
+    }
     setBusy(false);
-    if (error) return toast.error(error.message);
     toast.success("تم تسجيل المصروف");
     setOpen(false);
+    setPendingFiles([]);
     setForm({ category: "أخرى", description: "", amount: "", vendor_id: "",
       expense_date: new Date().toISOString().slice(0, 10), payment_method: "", notes: "" });
     await load();
   };
+
+  const openAttachments = async (e: Expense) => {
+    setAttachOpen(e);
+    const { data } = await supabase.from("expense_attachments").select("*").eq("expense_id", e.id).order("created_at", { ascending: false });
+    setAttachments(data ?? []);
+  };
+
+  const addAttachmentsToExisting = async (files: FileList | null) => {
+    if (!files || !attachOpen) return;
+    setBusy(true);
+    await uploadFilesFor(attachOpen.id, Array.from(files));
+    setBusy(false);
+    await openAttachments(attachOpen);
+  };
+
+  const downloadAttachment = async (path: string, name: string) => {
+    const { data, error } = await supabase.storage.from("expense-attachments").createSignedUrl(path, 60);
+    if (error || !data) return toast.error(error?.message || "تعذّر التحميل");
+    const a = document.createElement("a");
+    a.href = data.signedUrl; a.download = name; a.target = "_blank"; a.click();
+  };
+
+  const deleteAttachment = async (att: any) => {
+    if (!confirm("حذف المرفق؟")) return;
+    await supabase.storage.from("expense-attachments").remove([att.storage_path]);
+    const { error } = await supabase.from("expense_attachments").delete().eq("id", att.id);
+    if (error) return toast.error(error.message);
+    if (attachOpen) await openAttachments(attachOpen);
+  };
+
 
   const changeStatus = async (id: string, status: string, reason?: string) => {
     const patch: any = { status };

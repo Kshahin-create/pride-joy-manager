@@ -1236,8 +1236,16 @@ function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean })
                                   {FILE_TYPES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                                 </SelectContent>
                               </Select>
-                            </div>
                           </div>
+                          <div>
+                            <Label className="text-xs">وصف (اختياري)</Label>
+                            <Input
+                              placeholder="وصف مختصر للملف"
+                              value={it.description}
+                              onChange={(e) => setFileItems((p) => p.map((x, k) => k === i ? { ...x, description: e.target.value } : x))}
+                            />
+                          </div>
+                        </div>
                         </div>
                       ))}
                     </div>

@@ -255,9 +255,12 @@ function ContractsPage() {
 }
 
 type PendingFile = { file: File; type: ContractAttachmentType };
-export type ContractAttachmentType = "نسخة العقد" | "الهوية" | "السجل التجاري" | "سند دفع";
+export type ContractAttachmentType =
+  | "نسخة العقد" | "الهوية" | "السجل التجاري" | "سند دفع"
+  | "التفويض" | "السندات" | "الشيكات" | "الفواتير" | "الملاحق";
 export const CONTRACT_ATTACHMENT_TYPES: ContractAttachmentType[] = [
   "نسخة العقد", "الهوية", "السجل التجاري", "سند دفع",
+  "التفويض", "السندات", "الشيكات", "الفواتير", "الملاحق",
 ];
 
 export function ContractFormDialog({
@@ -273,13 +276,23 @@ export function ContractFormDialog({
   const [offices, setOffices] = useState<{ id: string; code: string; status: string }[]>([]);
   const [pending, setPending] = useState<PendingFile[]>([]);
   const [form, setForm] = useState({
+    contract_type: "عقد إيجار مكتب" as ContractType,
+    contract_name: "",
+    status: "مسودة" as ContractStatus,
     company_id: defaultCompanyId ?? "",
     office_id: defaultOfficeId ?? "",
+    lessor_name: "",
+    lessor_cr: "",
+    lessor_id_number: "",
     start_date: new Date().toISOString().slice(0, 10),
     end_date: "",
     rent_amount: "0",
     deposit_amount: "0",
     service_fees: "0",
+    auto_renew: false,
+    notice_period_days: "",
+    annual_increase_pct: "",
+    alert_thresholds_days: [90, 30] as number[],
     notes: "",
   });
 
@@ -295,10 +308,21 @@ export function ContractFormDialog({
         if (!data) return;
         const c = data as Contract;
         setForm({
+          contract_type: (c.contract_type ?? "عقد إيجار مكتب") as ContractType,
+          contract_name: c.contract_name ?? "",
+          status: c.status,
           company_id: c.company_id, office_id: c.office_id,
+          lessor_name: c.lessor_name ?? "",
+          lessor_cr: c.lessor_cr ?? "",
+          lessor_id_number: c.lessor_id_number ?? "",
           start_date: c.start_date, end_date: c.end_date,
           rent_amount: String(c.rent_amount), deposit_amount: String(c.deposit_amount),
-          service_fees: String(c.service_fees), notes: c.notes ?? "",
+          service_fees: String(c.service_fees),
+          auto_renew: !!c.auto_renew,
+          notice_period_days: c.notice_period_days != null ? String(c.notice_period_days) : "",
+          annual_increase_pct: c.annual_increase_pct != null ? String(c.annual_increase_pct) : "",
+          alert_thresholds_days: c.alert_thresholds_days ?? [90, 30],
+          notes: c.notes ?? "",
         });
       });
     } else {
@@ -318,6 +342,15 @@ export function ContractFormDialog({
     ]);
   };
 
+  const toggleThreshold = (d: number) => {
+    setForm(f => ({
+      ...f,
+      alert_thresholds_days: f.alert_thresholds_days.includes(d)
+        ? f.alert_thresholds_days.filter(x => x !== d)
+        : [...f.alert_thresholds_days, d].sort((a, b) => b - a),
+    }));
+  };
+
   const submit = async () => {
     if (!form.company_id || !form.office_id || !form.start_date || !form.end_date) {
       toast.error("الرجاء تعبئة الحقول المطلوبة");
@@ -326,30 +359,39 @@ export function ContractFormDialog({
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
     const payload = {
+      contract_type: form.contract_type,
+      contract_name: form.contract_name || null,
       company_id: form.company_id,
       office_id: form.office_id,
+      lessor_name: form.lessor_name || null,
+      lessor_cr: form.lessor_cr || null,
+      lessor_id_number: form.lessor_id_number || null,
       start_date: form.start_date,
       end_date: form.end_date,
       rent_amount: Number(form.rent_amount) || 0,
       deposit_amount: Number(form.deposit_amount) || 0,
       service_fees: Number(form.service_fees) || 0,
+      auto_renew: form.auto_renew,
+      notice_period_days: form.notice_period_days ? Number(form.notice_period_days) : null,
+      annual_increase_pct: form.annual_increase_pct ? Number(form.annual_increase_pct) : null,
+      alert_thresholds_days: form.alert_thresholds_days,
       notes: form.notes || null,
     };
 
     let targetId = contractId ?? null;
     if (isEdit && contractId) {
-      const { data, error } = await supabase.from("contracts").update(payload).eq("id", contractId).select("id");
+      const { data, error } = await supabase.from("contracts")
+        .update({ ...payload, status: form.status }).eq("id", contractId).select("id");
       if (error) { setSaving(false); toast.error("فشل التعديل: " + error.message); return; }
       if (!data || data.length === 0) { setSaving(false); toast.error("لا تملك صلاحية تعديل هذا العقد"); return; }
     } else {
       const { data, error } = await supabase.from("contracts").insert({
-        ...payload, status: "ساري", contract_number: "", created_by: u.user?.id,
+        ...payload, status: form.status, contract_number: "", created_by: u.user?.id,
       }).select("id").single();
       if (error || !data) { setSaving(false); toast.error("فشل الحفظ: " + (error?.message ?? "")); return; }
       targetId = data.id;
     }
 
-    // Upload pending attachments
     if (targetId && pending.length > 0) {
       for (const p of pending) {
         const path = `${targetId}/${Date.now()}_${p.file.name}`;
@@ -369,49 +411,136 @@ export function ContractFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent dir="rtl" className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{isEdit ? "تعديل العقد" : "عقد جديد"}</DialogTitle></DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+        <div className="space-y-4">
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <Label>نوع العقد *</Label>
+              <Select value={form.contract_type} onValueChange={(v) => setForm({ ...form, contract_type: v as ContractType })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{CONTRACT_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="md:col-span-2">
+              <Label>اسم العقد</Label>
+              <Input value={form.contract_name} onChange={(e) => setForm({ ...form, contract_name: e.target.value })} placeholder="اختياري — مثلاً: عقد شركة الفجر 2026" />
+            </div>
+            <div>
+              <Label>حالة العقد</Label>
+              <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as ContractStatus })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{CONTRACT_STATUSES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </section>
+
+          <section className="border-t pt-3">
+            <h3 className="text-sm font-semibold mb-2 text-muted-foreground">المؤجر</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <Label>اسم الجهة المالكة</Label>
+                <Input value={form.lessor_name} onChange={(e) => setForm({ ...form, lessor_name: e.target.value })} />
+              </div>
+              <div>
+                <Label>السجل التجاري</Label>
+                <Input value={form.lessor_cr} onChange={(e) => setForm({ ...form, lessor_cr: e.target.value })} />
+              </div>
+              <div>
+                <Label>رقم الهوية / السجل</Label>
+                <Input value={form.lessor_id_number} onChange={(e) => setForm({ ...form, lessor_id_number: e.target.value })} />
+              </div>
+            </div>
+          </section>
+
+          <section className="border-t pt-3">
+            <h3 className="text-sm font-semibold mb-2 text-muted-foreground">المستأجر والوحدة</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <Label>المستأجر *</Label>
+                <Select value={form.company_id} onValueChange={(v) => setForm({ ...form, company_id: v })}>
+                  <SelectTrigger><SelectValue placeholder="اختر المستأجر" /></SelectTrigger>
+                  <SelectContent>{companies.map(c => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>المكتب *</Label>
+                <Select value={form.office_id} onValueChange={(v) => setForm({ ...form, office_id: v })}>
+                  <SelectTrigger><SelectValue placeholder="اختر المكتب" /></SelectTrigger>
+                  <SelectContent>{offices.map(o => <SelectItem key={o.id} value={o.id}>{o.code} — {o.status}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </div>
+          </section>
+
+          <section className="border-t pt-3">
+            <h3 className="text-sm font-semibold mb-2 text-muted-foreground">المدة والبيانات المالية</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <Label>من تاريخ *</Label>
+                <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
+              </div>
+              <div>
+                <Label>إلى تاريخ *</Label>
+                <Input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} />
+              </div>
+              <div>
+                <Label>نسبة الزيادة السنوية (%)</Label>
+                <Input type="number" step="0.01" value={form.annual_increase_pct} onChange={(e) => setForm({ ...form, annual_increase_pct: e.target.value })} />
+              </div>
+              <div>
+                <Label>قيمة الإيجار</Label>
+                <Input type="number" value={form.rent_amount} onChange={(e) => setForm({ ...form, rent_amount: e.target.value })} />
+              </div>
+              <div>
+                <Label>التأمين</Label>
+                <Input type="number" value={form.deposit_amount} onChange={(e) => setForm({ ...form, deposit_amount: e.target.value })} />
+              </div>
+              <div>
+                <Label>رسوم الخدمات</Label>
+                <Input type="number" value={form.service_fees} onChange={(e) => setForm({ ...form, service_fees: e.target.value })} />
+              </div>
+            </div>
+          </section>
+
+          <section className="border-t pt-3">
+            <h3 className="text-sm font-semibold mb-2 text-muted-foreground">شروط التجديد والإخلاء</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+              <div className="flex items-center gap-2 pt-6">
+                <input id="auto_renew" type="checkbox" className="h-4 w-4"
+                  checked={form.auto_renew}
+                  onChange={(e) => setForm({ ...form, auto_renew: e.target.checked })} />
+                <Label htmlFor="auto_renew" className="cursor-pointer">تجديد تلقائي</Label>
+              </div>
+              <div>
+                <Label>مدة الإشعار قبل الإخلاء (أيام)</Label>
+                <Input type="number" value={form.notice_period_days}
+                  onChange={(e) => setForm({ ...form, notice_period_days: e.target.value })} />
+              </div>
+            </div>
+          </section>
+
+          <section className="border-t pt-3">
+            <h3 className="text-sm font-semibold mb-2 text-muted-foreground">تنبيهات قبل انتهاء العقد</h3>
+            <div className="flex flex-wrap gap-3">
+              {ALERT_THRESHOLD_OPTIONS.map(d => (
+                <label key={d} className="flex items-center gap-2 border rounded-md px-3 py-1.5 cursor-pointer hover:bg-muted/50">
+                  <input type="checkbox" className="h-4 w-4"
+                    checked={form.alert_thresholds_days.includes(d)}
+                    onChange={() => toggleThreshold(d)} />
+                  <span className="text-sm">{d} يوم</span>
+                </label>
+              ))}
+            </div>
+          </section>
+
           <div>
-            <Label>المستأجر *</Label>
-            <Select value={form.company_id} onValueChange={(v) => setForm({ ...form, company_id: v })}>
-              <SelectTrigger><SelectValue placeholder="اختر المستأجر" /></SelectTrigger>
-              <SelectContent>{companies.map(c => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>المكتب *</Label>
-            <Select value={form.office_id} onValueChange={(v) => setForm({ ...form, office_id: v })}>
-              <SelectTrigger><SelectValue placeholder="اختر المكتب" /></SelectTrigger>
-              <SelectContent>{offices.map(o => <SelectItem key={o.id} value={o.id}>{o.code} — {o.status}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>من تاريخ *</Label>
-            <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
-          </div>
-          <div>
-            <Label>إلى تاريخ *</Label>
-            <Input type="date" value={form.end_date} onChange={(e) => setForm({ ...form, end_date: e.target.value })} />
-          </div>
-          <div>
-            <Label>قيمة الإيجار</Label>
-            <Input type="number" value={form.rent_amount} onChange={(e) => setForm({ ...form, rent_amount: e.target.value })} />
-          </div>
-          <div>
-            <Label>التأمين</Label>
-            <Input type="number" value={form.deposit_amount} onChange={(e) => setForm({ ...form, deposit_amount: e.target.value })} />
-          </div>
-          <div>
-            <Label>رسوم الخدمات</Label>
-            <Input type="number" value={form.service_fees} onChange={(e) => setForm({ ...form, service_fees: e.target.value })} />
-          </div>
-          <div className="md:col-span-2">
             <Label>ملاحظات</Label>
             <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
 
-          <div className="md:col-span-2 border-t pt-3 space-y-2">
+          <section className="border-t pt-3 space-y-2">
             <div className="flex items-center justify-between">
               <Label>المرفقات</Label>
               <label className="cursor-pointer">
@@ -423,14 +552,14 @@ export function ContractFormDialog({
               </label>
             </div>
             {pending.length === 0 ? (
-              <p className="text-xs text-muted-foreground">يمكنك إرفاق نسخ العقد والهويات والمستندات الداعمة.</p>
+              <p className="text-xs text-muted-foreground">يمكنك إرفاق نسخ العقد والهويات والتفويضات والشيكات والملاحق.</p>
             ) : (
               <div className="space-y-2">
                 {pending.map((p, i) => (
                   <div key={i} className="flex items-center gap-2 p-2 border rounded-md">
                     <span className="flex-1 text-sm truncate">{p.file.name}</span>
                     <Select value={p.type} onValueChange={(v) => setPending(arr => arr.map((x, idx) => idx === i ? { ...x, type: v as ContractAttachmentType } : x))}>
-                      <SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="w-40 h-8"><SelectValue /></SelectTrigger>
                       <SelectContent>{CONTRACT_ATTACHMENT_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                     </Select>
                     <Button size="sm" variant="ghost" type="button"
@@ -439,8 +568,9 @@ export function ContractFormDialog({
                 ))}
               </div>
             )}
-          </div>
+          </section>
         </div>
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>إلغاء</Button>
           <Button onClick={submit} disabled={saving} className="bg-primary text-primary-foreground">

@@ -224,6 +224,13 @@ function ExpensesPage() {
                       <SelectContent>{vendors.map((v) => <SelectItem key={v.id} value={v.id}>{v.company_name}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
+                  <div>
+                    <Label>طريقة السداد</Label>
+                    <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
+                      <SelectTrigger><SelectValue placeholder="اختر طريقة" /></SelectTrigger>
+                      <SelectContent>{METHODS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
                   <div className="col-span-2"><Label>ملاحظات</Label><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
                 </div>
                 <DialogFooter>

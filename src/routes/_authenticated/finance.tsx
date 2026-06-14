@@ -58,6 +58,7 @@ interface Payment {
   payment_method: PaymentMethod;
   receipt_number: string;
   notes: string | null;
+  receipt_file_url: string | null;
   invoices?: { invoice_number: string; companies?: { company_name: string } | null } | null;
 }
 
@@ -308,6 +309,11 @@ function InvoicesTable({
 }
 
 function ReceiptsTable({ rows, loading }: { rows: Payment[]; loading: boolean }) {
+  const openReceipt = async (path: string) => {
+    const { data, error } = await supabase.storage.from("payment-receipts").createSignedUrl(path, 60);
+    if (error || !data) { toast.error("تعذّر فتح الملف"); return; }
+    window.open(data.signedUrl, "_blank");
+  };
   if (loading) return <div className="py-10 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   if (rows.length === 0) return <p className="text-center text-muted-foreground py-8">لا توجد سندات قبض</p>;
   return (
@@ -322,6 +328,7 @@ function ReceiptsTable({ rows, loading }: { rows: Payment[]; loading: boolean })
             <TableHead>التاريخ</TableHead>
             <TableHead>طريقة الدفع</TableHead>
             <TableHead>ملاحظات</TableHead>
+            <TableHead>المرفق</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -334,6 +341,13 @@ function ReceiptsTable({ rows, loading }: { rows: Payment[]; loading: boolean })
               <TableCell>{p.payment_date}</TableCell>
               <TableCell>{p.payment_method}</TableCell>
               <TableCell className="text-muted-foreground text-xs">{p.notes ?? "—"}</TableCell>
+              <TableCell>
+                {p.receipt_file_url ? (
+                  <Button size="sm" variant="outline" onClick={() => openReceipt(p.receipt_file_url!)}>
+                    عرض
+                  </Button>
+                ) : <span className="text-muted-foreground text-xs">—</span>}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -349,6 +363,7 @@ function PaymentDialog({
   const [method, setMethod] = useState<PaymentMethod>("نقدي");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -358,6 +373,7 @@ function PaymentDialog({
       setMethod("نقدي");
       setDate(new Date().toISOString().slice(0, 10));
       setNotes("");
+      setFile(null);
     }
   }, [invoice]);
 
@@ -370,6 +386,28 @@ function PaymentDialog({
     if (amt > remaining + 0.001) { toast.error("المبلغ يتجاوز المتبقي"); return; }
     setBusy(true);
     const { data: userRes } = await supabase.auth.getUser();
+
+    let receipt_file_url: string | null = null;
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        setBusy(false);
+        toast.error("حجم الملف يتجاوز 10 ميغابايت");
+        return;
+      }
+      const ext = file.name.split(".").pop() ?? "bin";
+      const path = `${invoice.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const up = await supabase.storage.from("payment-receipts").upload(path, file, {
+        contentType: file.type || undefined,
+        upsert: false,
+      });
+      if (up.error) {
+        setBusy(false);
+        toast.error("فشل رفع الملف: " + up.error.message);
+        return;
+      }
+      receipt_file_url = up.data.path;
+    }
+
     const { error } = await supabase.from("payments").insert({
       invoice_id: invoice.id,
       amount_paid: amt,
@@ -377,6 +415,7 @@ function PaymentDialog({
       payment_method: method,
       receipt_number: "",
       notes: notes || null,
+      receipt_file_url,
       created_by: userRes.user?.id ?? null,
     });
     setBusy(false);
@@ -417,6 +456,19 @@ function PaymentDialog({
             <div>
               <Label>ملاحظات</Label>
               <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+            </div>
+            <div>
+              <Label>مرفق الإيصال (اختياري)</Label>
+              <Input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
+              {file && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {file.name} — {(file.size / 1024).toFixed(0)} KB
+                </p>
+              )}
             </div>
           </div>
         )}

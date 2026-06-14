@@ -286,13 +286,14 @@ function MaintenancePage() {
   const saveAssign = async () => {
     if (!assignFor) return;
     if (!assignTech && assignVendor === "none") return toast.error("اختر فني أو مورد");
-    const { error } = await supabase.from("maintenance_requests").update({
+    const { data, error } = await supabase.from("maintenance_requests").update({
       assigned_technician: assignTech || null,
       assigned_vendor_id: assignVendor === "none" ? null : assignVendor,
       priority: assignPriority,
       status: assignStart ? "جاري التنفيذ" : "معلّق للتعيين",
-    }).eq("id", assignFor.id);
+    }).eq("id", assignFor.id).select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) return toast.error("لا تملك صلاحية تعديل هذا الطلب");
     toast.success("تم الحفظ");
     setAssignFor(null); load();
   };

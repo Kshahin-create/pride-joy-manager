@@ -103,10 +103,11 @@ function AcContractsPage() {
 
   const load = async () => {
     setLoading(true);
+    const sb = supabase as any;
     const [{ data: cs }, { data: vs }, { data: us }] = await Promise.all([
-      scoped(supabase.from("ac_contracts" as any).select("*").order("created_at", { ascending: false }), activePropertyId),
-      supabase.from("vendors").select("id, company_name").order("company_name"),
-      scoped(supabase.from("ac_units").select("*").order("unit_code"), activePropertyId),
+      scoped(sb.from("ac_contracts").select("*").order("created_at", { ascending: false }), activePropertyId),
+      sb.from("vendors").select("id, company_name").order("company_name"),
+      scoped(sb.from("ac_units").select("*").order("unit_code"), activePropertyId),
     ]);
     setContracts((cs as any) || []);
     setVendors((vs as any) || []);

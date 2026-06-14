@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BrandLogo } from "@/components/brand-logo";
+import { PropertySwitcher } from "@/components/property-switcher";
 import { useAuth, roleLabel } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 

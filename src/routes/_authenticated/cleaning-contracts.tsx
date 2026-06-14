@@ -130,8 +130,8 @@ function CleaningContractsPage() {
   const [uploading, setUploading] = useState(false);
 
   const load = async () => {
-    const [c, v] = await Promise.all([
-      scoped(supabase.from("cleaning_contracts").select("*"), activePropertyId).order("created_at", { ascending: false }),
+    const [c, v] = await Promise.all([scoped(
+      supabase.from("cleaning_contracts").select("*"), activePropertyId).order("created_at", { ascending: false }),
       supabase.from("vendors").select("id,company_name").order("company_name"),
     ]);
     if (c.error) toast.error(c.error.message);

@@ -87,8 +87,8 @@ function CleaningTab() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [p, l] = await Promise.all([
-      scoped(supabase.from("cleaning_plans").select("*"), activePropertyId).order("created_at", { ascending: false }),
+    const [p, l] = await Promise.all([scoped(
+      supabase.from("cleaning_plans").select("*"), activePropertyId).order("created_at", { ascending: false }),
       supabase.from("cleaning_logs").select("*").order("execution_date", { ascending: false }).limit(100),
     ]);
     if (p.error) toast.error(p.error.message);
@@ -379,8 +379,8 @@ function CamerasTab() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [c, m] = await Promise.all([
-      scoped(supabase.from("cameras").select("*"), activePropertyId).order("camera_number"),
+    const [c, m] = await Promise.all([scoped(
+      supabase.from("cameras").select("*"), activePropertyId).order("camera_number"),
       supabase.from("camera_maintenance_logs").select("*").order("maintenance_date", { ascending: false }).limit(100),
     ]);
     if (c.error) toast.error(c.error.message);

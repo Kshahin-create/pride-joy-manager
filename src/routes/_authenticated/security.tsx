@@ -325,8 +325,8 @@ function PatrolsTab() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [p, g] = await Promise.all([
-      scoped(supabase.from("patrols").select("*"), activePropertyId).order("start_time", { ascending: false }).limit(50),
+    const [p, g] = await Promise.all([scoped(
+      supabase.from("patrols").select("*"), activePropertyId).order("start_time", { ascending: false }).limit(50),
       supabase.from("guards_safe").select("id, full_name, employee_number").order("full_name"),
     ]);
     setPatrols((p.data as Patrol[]) ?? []);

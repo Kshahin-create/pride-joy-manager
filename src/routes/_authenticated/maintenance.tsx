@@ -158,11 +158,11 @@ function MaintenancePage() {
   const [approveNote, setApproveNote] = useState("");
 
   const load = async () => {
-    const [m, a, o, s, v] = await Promise.all([
-      scoped(supabase.from("maintenance_requests").select("*"), activePropertyId).order("created_at", { ascending: false }),
-      scoped(supabase.from("assets").select("id,asset_name,asset_code,criticality"), activePropertyId).order("asset_code"),
-      supabase.from("offices").select("id,code,floor,space_id").order("floor").order("code"),
-      scoped(supabase.from("spaces").select("id,space_code,space_name,space_type,floor"), activePropertyId).order("floor").order("space_code"),
+    const [m, a, o, s, v] = await Promise.all([scoped(
+      supabase.from("maintenance_requests").select("*"), activePropertyId).order("created_at", { ascending: false }),scoped(
+      supabase.from("assets").select("id,asset_name,asset_code,criticality"), activePropertyId).order("asset_code"),
+      supabase.from("offices").select("id,code,floor,space_id").order("floor").order("code"),scoped(
+      supabase.from("spaces").select("id,space_code,space_name,space_type,floor"), activePropertyId).order("floor").order("space_code"),
       supabase.from("vendors").select("id,company_name").order("company_name"),
     ]);
     if (m.error) toast.error(m.error.message);

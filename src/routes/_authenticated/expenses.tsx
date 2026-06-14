@@ -65,11 +65,11 @@ function ExpensesPage() {
   });
 
   const load = async () => {
-    const [e, v, p, inv] = await Promise.all([
-      scoped(supabase.from("expenses").select("*"), activePropertyId).order("expense_date", { ascending: false }).limit(500),
-      supabase.from("vendors").select("id,company_name").order("company_name"),
-      scoped(supabase.from("vendor_payments").select("*"), activePropertyId).order("payment_date", { ascending: false }).limit(200),
-      scoped(supabase.from("payments").select("amount_paid"), activePropertyId),
+    const [e, v, p, inv] = await Promise.all([scoped(
+      supabase.from("expenses").select("*"), activePropertyId).order("expense_date", { ascending: false }).limit(500),
+      supabase.from("vendors").select("id,company_name").order("company_name"),scoped(
+      supabase.from("vendor_payments").select("*"), activePropertyId).order("payment_date", { ascending: false }).limit(200),scoped(
+      supabase.from("payments").select("amount_paid"), activePropertyId),
     ]);
     if (e.error) toast.error(e.error.message); else setExpenses((e.data ?? []) as Expense[]);
     if (!v.error) setVendors((v.data ?? []) as Vendor[]);

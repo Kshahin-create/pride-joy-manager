@@ -76,8 +76,8 @@ function ClientsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("companies").select("*").order("created_at", { ascending: false });
+    const { data, error } = scoped(await supabase
+      .from("companies").select("*"), activePropertyId).order("created_at", { ascending: false });
     if (error) { toast.error("تعذّر التحميل"); setLoading(false); return; }
     setRows((data ?? []) as Company[]);
     setLoading(false);

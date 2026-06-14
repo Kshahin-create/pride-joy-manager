@@ -46,9 +46,9 @@ function PmPlansPage() {
   });
 
   const load = async () => {
-    const [p, a] = await Promise.all([
-      scoped(supabase.from("pm_plans").select("*"), activePropertyId).order("next_due_at"),
-      scoped(supabase.from("assets").select("id,asset_name,asset_code"), activePropertyId).order("asset_code"),
+    const [p, a] = await Promise.all([scoped(
+      supabase.from("pm_plans").select("*"), activePropertyId).order("next_due_at"),scoped(
+      supabase.from("assets").select("id,asset_name,asset_code"), activePropertyId).order("asset_code"),
     ]);
     if (p.error) toast.error(p.error.message); else setPlans((p.data ?? []) as Plan[]);
     if (!a.error) setAssets((a.data ?? []) as Asset[]);

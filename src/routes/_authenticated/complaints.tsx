@@ -79,13 +79,13 @@ function TicketsPage() {
   const [form, setForm] = useState<Partial<Ticket>>({ ticket_type: "شكوى", priority: "متوسطة" });
 
   const load = async () => {
-    const [t, o, c] = await Promise.all([
+    const [t, o, c] = await Promise.all([scoped(
       (supabase as any)
         .from("tickets")
-        .select("*, offices(code), companies(company_name)")
+        .select("*, offices(code), companies(company_name)"), activePropertyId)
         .order("created_at", { ascending: false }),
-      (supabase as any).from("offices").select("id, code").order("code"),
-      scoped((supabase as any).from("companies").select("id, company_name"), activePropertyId).order("company_name"),
+      (supabase as any).from("offices").select("id, code").order("code"),scoped(
+      (supabase as any).from("companies").select("id, company_name"), activePropertyId).order("company_name"),
     ]);
     if (t.error) toast.error(t.error.message);
     setItems((t.data ?? []) as Ticket[]);

@@ -44,9 +44,9 @@ function AssetsPage() {
   const [form, setForm] = useState<Partial<Asset>>({ criticality: "عادي" });
 
   const load = async () => {
-    const { data, error } = await supabase
+    const { data, error } = scoped(await supabase
       .from("assets")
-      .select("*")
+      .select("*"), activePropertyId)
       .order("criticality", { ascending: true })
       .order("asset_code");
     if (error) return toast.error(error.message);

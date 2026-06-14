@@ -72,13 +72,13 @@ function Dashboard() {
       const [s, m, e, vIn, vTd, eP, eM, woO, woP] = await Promise.all([
         supabase.from("dashboard_stats").select("*").maybeSingle(),
         supabase.from("monthly_revenue").select("*"),
-        supabase.from("building_log").select("*").order("created_at", { ascending: false }).limit(10),
-        scoped(supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).eq("status", "داخل"),
-        scoped(supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).gte("check_in_at", today.toISOString()),
-        scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "معلّق"),
-        scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "مدفوع").gte("expense_date", monthStart.toISOString().slice(0, 10)),
-        scoped(supabase.from("maintenance_requests").select("id", { count: "exact", head: true }), activePropertyId).eq("is_overdue", true).neq("status", "مغلق"),
-        scoped(supabase.from("pm_plans").select("id", { count: "exact", head: true }), activePropertyId).eq("is_active", true).lte("next_due_at", new Date().toISOString()),
+        supabase.from("building_log").select("*").order("created_at", { ascending: false }).limit(10),scoped(
+        supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).eq("status", "داخل"),scoped(
+        supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).gte("check_in_at", today.toISOString()),scoped(
+        supabase.from("expenses").select("amount"), activePropertyId).eq("status", "معلّق"),scoped(
+        supabase.from("expenses").select("amount"), activePropertyId).eq("status", "مدفوع").gte("expense_date", monthStart.toISOString().slice(0, 10)),scoped(
+        supabase.from("maintenance_requests").select("id", { count: "exact", head: true }), activePropertyId).eq("is_overdue", true).neq("status", "مغلق"),scoped(
+        supabase.from("pm_plans").select("id", { count: "exact", head: true }), activePropertyId).eq("is_active", true).lte("next_due_at", new Date().toISOString()),
       ]);
       if (s.data) setStats(s.data as Stats);
       if (m.data) setMonthly(m.data.map((r: any) => ({ month: r.month, revenue: Number(r.revenue) })));

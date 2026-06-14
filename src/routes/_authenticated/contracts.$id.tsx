@@ -202,6 +202,12 @@ function ContractDetailsPage() {
         contract={contract} onDone={() => { setRenewOpen(false); load(); }}
       />
 
+      <ContractFormDialog
+        open={editOpen} onClose={() => setEditOpen(false)}
+        contractId={contract.id}
+        onSaved={() => { setEditOpen(false); load(); }}
+      />
+
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>

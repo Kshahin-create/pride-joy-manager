@@ -272,6 +272,7 @@ export function ContractFormDialog({
   defaultCompanyId?: string; defaultOfficeId?: string;
   contractId?: string;
 }) {
+  const { activePropertyId } = useActiveProperty();
   const isEdit = !!contractId;
   const [saving, setSaving] = useState(false);
   const [companies, setCompanies] = useState<{ id: string; company_name: string }[]>([]);

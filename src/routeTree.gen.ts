@@ -19,6 +19,7 @@ import { Route as AuthenticatedVendorsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedTenantsRouteImport } from './routes/_authenticated/tenants'
 import { Route as AuthenticatedTelegramRouteImport } from './routes/_authenticated/telegram'
+import { Route as AuthenticatedSupplyContractsRouteImport } from './routes/_authenticated/supply-contracts'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedRolesRouteImport } from './routes/_authenticated/roles'
 import { Route as AuthenticatedPropertiesRouteImport } from './routes/_authenticated/properties'
@@ -109,6 +110,12 @@ const AuthenticatedTelegramRoute = AuthenticatedTelegramRouteImport.update({
   path: '/telegram',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSupplyContractsRoute =
+  AuthenticatedSupplyContractsRouteImport.update({
+    id: '/supply-contracts',
+    path: '/supply-contracts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
   id: '/security',
   path: '/security',
@@ -360,6 +367,7 @@ export interface FileRoutesByFullPath {
   '/properties': typeof AuthenticatedPropertiesRoute
   '/roles': typeof AuthenticatedRolesRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
+  '/supply-contracts': typeof AuthenticatedSupplyContractsRoute
   '/telegram': typeof AuthenticatedTelegramRoute
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/users': typeof AuthenticatedUsersRoute
@@ -411,6 +419,7 @@ export interface FileRoutesByTo {
   '/properties': typeof AuthenticatedPropertiesRoute
   '/roles': typeof AuthenticatedRolesRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
+  '/supply-contracts': typeof AuthenticatedSupplyContractsRoute
   '/telegram': typeof AuthenticatedTelegramRoute
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/users': typeof AuthenticatedUsersRoute
@@ -464,6 +473,7 @@ export interface FileRoutesById {
   '/_authenticated/properties': typeof AuthenticatedPropertiesRoute
   '/_authenticated/roles': typeof AuthenticatedRolesRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRouteWithChildren
+  '/_authenticated/supply-contracts': typeof AuthenticatedSupplyContractsRoute
   '/_authenticated/telegram': typeof AuthenticatedTelegramRoute
   '/_authenticated/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/_authenticated/users': typeof AuthenticatedUsersRoute
@@ -517,6 +527,7 @@ export interface FileRouteTypes {
     | '/properties'
     | '/roles'
     | '/security'
+    | '/supply-contracts'
     | '/telegram'
     | '/tenants'
     | '/users'
@@ -568,6 +579,7 @@ export interface FileRouteTypes {
     | '/properties'
     | '/roles'
     | '/security'
+    | '/supply-contracts'
     | '/telegram'
     | '/tenants'
     | '/users'
@@ -620,6 +632,7 @@ export interface FileRouteTypes {
     | '/_authenticated/properties'
     | '/_authenticated/roles'
     | '/_authenticated/security'
+    | '/_authenticated/supply-contracts'
     | '/_authenticated/telegram'
     | '/_authenticated/tenants'
     | '/_authenticated/users'
@@ -722,6 +735,13 @@ declare module '@tanstack/react-router' {
       path: '/telegram'
       fullPath: '/telegram'
       preLoaderRoute: typeof AuthenticatedTelegramRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/supply-contracts': {
+      id: '/_authenticated/supply-contracts'
+      path: '/supply-contracts'
+      fullPath: '/supply-contracts'
+      preLoaderRoute: typeof AuthenticatedSupplyContractsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/security': {
@@ -1095,6 +1115,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPropertiesRoute: typeof AuthenticatedPropertiesRoute
   AuthenticatedRolesRoute: typeof AuthenticatedRolesRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
+  AuthenticatedSupplyContractsRoute: typeof AuthenticatedSupplyContractsRoute
   AuthenticatedTelegramRoute: typeof AuthenticatedTelegramRoute
   AuthenticatedTenantsRoute: typeof AuthenticatedTenantsRouteWithChildren
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
@@ -1134,6 +1155,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPropertiesRoute: AuthenticatedPropertiesRoute,
   AuthenticatedRolesRoute: AuthenticatedRolesRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRouteWithChildren,
+  AuthenticatedSupplyContractsRoute: AuthenticatedSupplyContractsRoute,
   AuthenticatedTelegramRoute: AuthenticatedTelegramRoute,
   AuthenticatedTenantsRoute: AuthenticatedTenantsRouteWithChildren,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,

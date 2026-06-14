@@ -896,6 +896,50 @@ export type Database = {
           },
         ]
       }
+      contract_deposit_deductions: {
+        Row: {
+          amount: number
+          attachment_path: string | null
+          contract_id: string
+          created_at: string
+          created_by: string | null
+          deduction_date: string
+          id: string
+          reason: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          attachment_path?: string | null
+          contract_id: string
+          created_at?: string
+          created_by?: string | null
+          deduction_date?: string
+          id?: string
+          reason: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          attachment_path?: string | null
+          contract_id?: string
+          created_at?: string
+          created_by?: string | null
+          deduction_date?: string
+          id?: string
+          reason?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_deposit_deductions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_offices: {
         Row: {
           contract_id: string
@@ -986,6 +1030,63 @@ export type Database = {
           },
         ]
       }
+      contract_payment_schedule: {
+        Row: {
+          amount: number
+          contract_id: string
+          created_at: string
+          due_date: string
+          id: string
+          installment_number: number
+          invoice_id: string | null
+          notes: string | null
+          paid_date: string | null
+          status: Database["public"]["Enums"]["payment_schedule_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          contract_id: string
+          created_at?: string
+          due_date: string
+          id?: string
+          installment_number: number
+          invoice_id?: string | null
+          notes?: string | null
+          paid_date?: string | null
+          status?: Database["public"]["Enums"]["payment_schedule_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          contract_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          installment_number?: number
+          invoice_id?: string | null
+          notes?: string | null
+          paid_date?: string | null
+          status?: Database["public"]["Enums"]["payment_schedule_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_payment_schedule_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_payment_schedule_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contracts: {
         Row: {
           alert_thresholds_days: number[]
@@ -998,6 +1099,12 @@ export type Database = {
           created_at: string
           created_by: string | null
           deposit_amount: number
+          deposit_notes: string | null
+          deposit_refund_amount: number | null
+          deposit_refund_date: string | null
+          deposit_status: Database["public"]["Enums"]["deposit_status"] | null
+          discount_amount: number | null
+          discount_notes: string | null
           end_date: string
           evacuation_date: string | null
           id: string
@@ -1007,12 +1114,16 @@ export type Database = {
           notes: string | null
           notice_period_days: number | null
           office_id: string
+          operating_fees: number | null
           renewed_from_id: string | null
           rent_amount: number
           service_fees: number
+          service_fees_breakdown: Json | null
           start_date: string
           status: Database["public"]["Enums"]["contract_status"]
           updated_at: string
+          vat_inclusive: boolean | null
+          vat_percentage: number | null
         }
         Insert: {
           alert_thresholds_days?: number[]
@@ -1025,6 +1136,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deposit_amount?: number
+          deposit_notes?: string | null
+          deposit_refund_amount?: number | null
+          deposit_refund_date?: string | null
+          deposit_status?: Database["public"]["Enums"]["deposit_status"] | null
+          discount_amount?: number | null
+          discount_notes?: string | null
           end_date: string
           evacuation_date?: string | null
           id?: string
@@ -1034,12 +1151,16 @@ export type Database = {
           notes?: string | null
           notice_period_days?: number | null
           office_id: string
+          operating_fees?: number | null
           renewed_from_id?: string | null
           rent_amount?: number
           service_fees?: number
+          service_fees_breakdown?: Json | null
           start_date: string
           status?: Database["public"]["Enums"]["contract_status"]
           updated_at?: string
+          vat_inclusive?: boolean | null
+          vat_percentage?: number | null
         }
         Update: {
           alert_thresholds_days?: number[]
@@ -1052,6 +1173,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           deposit_amount?: number
+          deposit_notes?: string | null
+          deposit_refund_amount?: number | null
+          deposit_refund_date?: string | null
+          deposit_status?: Database["public"]["Enums"]["deposit_status"] | null
+          discount_amount?: number | null
+          discount_notes?: string | null
           end_date?: string
           evacuation_date?: string | null
           id?: string
@@ -1061,12 +1188,16 @@ export type Database = {
           notes?: string | null
           notice_period_days?: number | null
           office_id?: string
+          operating_fees?: number | null
           renewed_from_id?: string | null
           rent_amount?: number
           service_fees?: number
+          service_fees_breakdown?: Json | null
           start_date?: string
           status?: Database["public"]["Enums"]["contract_status"]
           updated_at?: string
+          vat_inclusive?: boolean | null
+          vat_percentage?: number | null
         }
         Relationships: [
           {
@@ -3610,6 +3741,7 @@ export type Database = {
         | "عقد حجز"
         | "عقد تجديد"
         | "ملحق عقد"
+      deposit_status: "محتجز" | "مسترد جزئياً" | "مسترد كلياً" | "مخصوم"
       doc_category:
         | "عقد"
         | "هوية"
@@ -3682,6 +3814,7 @@ export type Database = {
       parking_spot_type: "عادي" | "VIP" | "ذوي احتياجات"
       parking_violation_status: "مفتوحة" | "محلولة"
       payment_method: "نقدي" | "تحويل بنكي" | "شيك"
+      payment_schedule_status: "مجدول" | "مستحق" | "مدفوع" | "متأخر" | "ملغي"
       penalty_reward_type: "مخالفة" | "إنذار" | "مكافأة"
       pm_frequency: "أسبوعي" | "شهري" | "ربع سنوي" | "نصف سنوي" | "سنوي"
       shift_type: "صباحي" | "مسائي" | "ليلي"
@@ -3900,6 +4033,7 @@ export const Constants = {
         "عقد تجديد",
         "ملحق عقد",
       ],
+      deposit_status: ["محتجز", "مسترد جزئياً", "مسترد كلياً", "مخصوم"],
       doc_category: [
         "عقد",
         "هوية",
@@ -3976,6 +4110,7 @@ export const Constants = {
       parking_spot_type: ["عادي", "VIP", "ذوي احتياجات"],
       parking_violation_status: ["مفتوحة", "محلولة"],
       payment_method: ["نقدي", "تحويل بنكي", "شيك"],
+      payment_schedule_status: ["مجدول", "مستحق", "مدفوع", "متأخر", "ملغي"],
       penalty_reward_type: ["مخالفة", "إنذار", "مكافأة"],
       pm_frequency: ["أسبوعي", "شهري", "ربع سنوي", "نصف سنوي", "سنوي"],
       shift_type: ["صباحي", "مسائي", "ليلي"],

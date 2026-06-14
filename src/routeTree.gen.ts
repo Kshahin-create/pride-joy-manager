@@ -37,6 +37,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDailyReportRouteImport } from './routes/_authenticated/daily-report'
 import { Route as AuthenticatedComplaintsRouteImport } from './routes/_authenticated/complaints'
 import { Route as AuthenticatedCommonAreasRouteImport } from './routes/_authenticated/common-areas'
+import { Route as AuthenticatedCleaningContractsRouteImport } from './routes/_authenticated/cleaning-contracts'
 import { Route as AuthenticatedBuildingMapRouteImport } from './routes/_authenticated/building-map'
 import { Route as AuthenticatedBuildingLogRouteImport } from './routes/_authenticated/building-log'
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
@@ -199,6 +200,12 @@ const AuthenticatedCommonAreasRoute =
     path: '/common-areas',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCleaningContractsRoute =
+  AuthenticatedCleaningContractsRouteImport.update({
+    id: '/cleaning-contracts',
+    path: '/cleaning-contracts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedBuildingMapRoute =
   AuthenticatedBuildingMapRouteImport.update({
     id: '/building-map',
@@ -303,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/assets': typeof AuthenticatedAssetsRouteWithChildren
   '/building-log': typeof AuthenticatedBuildingLogRoute
   '/building-map': typeof AuthenticatedBuildingMapRoute
+  '/cleaning-contracts': typeof AuthenticatedCleaningContractsRoute
   '/common-areas': typeof AuthenticatedCommonAreasRoute
   '/complaints': typeof AuthenticatedComplaintsRouteWithChildren
   '/daily-report': typeof AuthenticatedDailyReportRoute
@@ -349,6 +357,7 @@ export interface FileRoutesByTo {
   '/assets': typeof AuthenticatedAssetsRouteWithChildren
   '/building-log': typeof AuthenticatedBuildingLogRoute
   '/building-map': typeof AuthenticatedBuildingMapRoute
+  '/cleaning-contracts': typeof AuthenticatedCleaningContractsRoute
   '/common-areas': typeof AuthenticatedCommonAreasRoute
   '/complaints': typeof AuthenticatedComplaintsRouteWithChildren
   '/daily-report': typeof AuthenticatedDailyReportRoute
@@ -397,6 +406,7 @@ export interface FileRoutesById {
   '/_authenticated/assets': typeof AuthenticatedAssetsRouteWithChildren
   '/_authenticated/building-log': typeof AuthenticatedBuildingLogRoute
   '/_authenticated/building-map': typeof AuthenticatedBuildingMapRoute
+  '/_authenticated/cleaning-contracts': typeof AuthenticatedCleaningContractsRoute
   '/_authenticated/common-areas': typeof AuthenticatedCommonAreasRoute
   '/_authenticated/complaints': typeof AuthenticatedComplaintsRouteWithChildren
   '/_authenticated/daily-report': typeof AuthenticatedDailyReportRoute
@@ -445,6 +455,7 @@ export interface FileRouteTypes {
     | '/assets'
     | '/building-log'
     | '/building-map'
+    | '/cleaning-contracts'
     | '/common-areas'
     | '/complaints'
     | '/daily-report'
@@ -491,6 +502,7 @@ export interface FileRouteTypes {
     | '/assets'
     | '/building-log'
     | '/building-map'
+    | '/cleaning-contracts'
     | '/common-areas'
     | '/complaints'
     | '/daily-report'
@@ -538,6 +550,7 @@ export interface FileRouteTypes {
     | '/_authenticated/assets'
     | '/_authenticated/building-log'
     | '/_authenticated/building-map'
+    | '/_authenticated/cleaning-contracts'
     | '/_authenticated/common-areas'
     | '/_authenticated/complaints'
     | '/_authenticated/daily-report'
@@ -786,6 +799,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommonAreasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cleaning-contracts': {
+      id: '/_authenticated/cleaning-contracts'
+      path: '/cleaning-contracts'
+      fullPath: '/cleaning-contracts'
+      preLoaderRoute: typeof AuthenticatedCleaningContractsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/building-map': {
       id: '/_authenticated/building-map'
       path: '/building-map'
@@ -973,6 +993,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRouteWithChildren
   AuthenticatedBuildingLogRoute: typeof AuthenticatedBuildingLogRoute
   AuthenticatedBuildingMapRoute: typeof AuthenticatedBuildingMapRoute
+  AuthenticatedCleaningContractsRoute: typeof AuthenticatedCleaningContractsRoute
   AuthenticatedCommonAreasRoute: typeof AuthenticatedCommonAreasRoute
   AuthenticatedComplaintsRoute: typeof AuthenticatedComplaintsRouteWithChildren
   AuthenticatedDailyReportRoute: typeof AuthenticatedDailyReportRoute
@@ -1007,6 +1028,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssetsRoute: AuthenticatedAssetsRouteWithChildren,
   AuthenticatedBuildingLogRoute: AuthenticatedBuildingLogRoute,
   AuthenticatedBuildingMapRoute: AuthenticatedBuildingMapRoute,
+  AuthenticatedCleaningContractsRoute: AuthenticatedCleaningContractsRoute,
   AuthenticatedCommonAreasRoute: AuthenticatedCommonAreasRoute,
   AuthenticatedComplaintsRoute: AuthenticatedComplaintsRouteWithChildren,
   AuthenticatedDailyReportRoute: AuthenticatedDailyReportRoute,

@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -77,6 +79,7 @@ function overallBadge(o: Overall) {
 }
 
 function InspectionsPage() {
+  const { activePropertyId } = useActiveProperty();
   const { user, hasAnyRole } = useAuth();
   const canManage = hasAnyRole(["super_admin", "maintenance_supervisor", "security_supervisor"]);
 

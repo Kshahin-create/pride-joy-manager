@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Search, Pencil, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,6 +61,7 @@ const ATTACHMENT_TYPES = ["السجل التجاري","الهوية","الرقم
 type PendingFile = { file: File; type: string };
 
 function ClientsPage() {
+  const { activePropertyId } = useActiveProperty();
   const { hasRole } = useAuth();
   const canEdit = hasRole("super_admin") || hasRole("receptionist");
   const navigate = useNavigate();

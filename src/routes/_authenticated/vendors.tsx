@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +31,7 @@ type Vendor = {
 };
 
 function StarRating({ value }: { value: number }) {
+  const { activePropertyId } = useActiveProperty();
   const full = Math.round(value);
   return (
     <span className="inline-flex items-center gap-0.5">

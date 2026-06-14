@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Search, Receipt, AlertTriangle, Wallet, CalendarClock, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +69,7 @@ function fmt(n: number) {
 }
 
 function FinancePage() {
+  const { activePropertyId } = useActiveProperty();
   const { hasRole } = useAuth();
   const canView = hasRole("super_admin") || hasRole("accountant") || hasRole("owner");
   const canManage = hasRole("super_admin") || hasRole("accountant");
@@ -84,9 +87,9 @@ function FinancePage() {
   const load = useCallback(async () => {
     setLoading(true);
     const [invRes, payRes, coRes] = await Promise.all([
-      supabase.from("invoices").select("*, companies(id, company_name), contracts(id, contract_number)").order("due_date", { ascending: false }),
-      supabase.from("payments").select("*, invoices(invoice_number, companies(company_name))").order("payment_date", { ascending: false }),
-      supabase.from("companies").select("id, company_name").order("company_name"),
+      scoped(supabase.from("invoices").select("*, companies(id, company_name), contracts(id, contract_number)"), activePropertyId).order("due_date", { ascending: false }),
+      scoped(supabase.from("payments").select("*, invoices(invoice_number, companies(company_name))"), activePropertyId).order("payment_date", { ascending: false }),
+      scoped(supabase.from("companies").select("id, company_name"), activePropertyId).order("company_name"),
     ]);
     if (invRes.error) toast.error(invRes.error.message);
     setInvoices((invRes.data as Invoice[]) ?? []);

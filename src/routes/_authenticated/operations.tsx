@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Sparkles, Camera, AlertTriangle, Wrench, ImagePlus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +34,7 @@ const CAM_STATUS_STYLE: Record<CameraStatus, string> = {
 };
 
 function OperationsPage() {
+  const { activePropertyId } = useActiveProperty();
   return (
     <div className="space-y-4">
       <div>
@@ -84,7 +87,7 @@ function CleaningTab() {
   const load = useCallback(async () => {
     setLoading(true);
     const [p, l] = await Promise.all([
-      supabase.from("cleaning_plans").select("*").order("created_at", { ascending: false }),
+      scoped(supabase.from("cleaning_plans").select("*"), activePropertyId).order("created_at", { ascending: false }),
       supabase.from("cleaning_logs").select("*").order("execution_date", { ascending: false }).limit(100),
     ]);
     if (p.error) toast.error(p.error.message);
@@ -375,7 +378,7 @@ function CamerasTab() {
   const load = useCallback(async () => {
     setLoading(true);
     const [c, m] = await Promise.all([
-      supabase.from("cameras").select("*").order("camera_number"),
+      scoped(supabase.from("cameras").select("*"), activePropertyId).order("camera_number"),
       supabase.from("camera_maintenance_logs").select("*").order("maintenance_date", { ascending: false }).limit(100),
     ]);
     if (c.error) toast.error(c.error.message);

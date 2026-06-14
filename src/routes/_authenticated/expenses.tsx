@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +39,7 @@ const METHODS = ["نقدي","تحويل بنكي","شيك","بطاقة"];
 const fmt = (n: number) => Number(n || 0).toLocaleString("ar-EG") + " ر.س";
 
 function ExpensesPage() {
+  const { activePropertyId } = useActiveProperty();
   const { hasAnyRole } = useAuth();
   const canCreate = hasAnyRole(["super_admin","accountant","maintenance_supervisor"]);
   const canApprove = hasAnyRole(["super_admin","accountant"]);
@@ -63,10 +66,10 @@ function ExpensesPage() {
 
   const load = async () => {
     const [e, v, p, inv] = await Promise.all([
-      supabase.from("expenses").select("*").order("expense_date", { ascending: false }).limit(500),
+      scoped(supabase.from("expenses").select("*"), activePropertyId).order("expense_date", { ascending: false }).limit(500),
       supabase.from("vendors").select("id,company_name").order("company_name"),
-      supabase.from("vendor_payments").select("*").order("payment_date", { ascending: false }).limit(200),
-      supabase.from("payments").select("amount_paid"),
+      scoped(supabase.from("vendor_payments").select("*"), activePropertyId).order("payment_date", { ascending: false }).limit(200),
+      scoped(supabase.from("payments").select("amount_paid"), activePropertyId),
     ]);
     if (e.error) toast.error(e.error.message); else setExpenses((e.data ?? []) as Expense[]);
     if (!v.error) setVendors((v.data ?? []) as Vendor[]);

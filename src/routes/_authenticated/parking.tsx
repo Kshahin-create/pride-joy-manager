@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +57,7 @@ const CHECK_ITEMS = [
 ] as const;
 
 function ParkingPage() {
+  const { activePropertyId } = useActiveProperty();
   const { hasAnyRole } = useAuth();
   const canManage = hasAnyRole(["super_admin", "security_supervisor"]);
 

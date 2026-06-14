@@ -10,6 +10,8 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { useAuth, ROLE_LABELS } from "@/lib/auth-context";
 import { Timeline as BuildingLogTimeline, type BuildingLogRow } from "@/components/building-log-timeline";
 
@@ -32,6 +34,7 @@ const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n || 0);
 const fmtSAR = (n: number) => `${new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 0 }).format(n || 0)} ر.س`;
 
 function Dashboard() {
+  const { activePropertyId } = useActiveProperty();
   const { user, roles, hasAnyRole } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
   const [monthly, setMonthly] = useState<{ month: string; revenue: number }[]>([]);
@@ -70,12 +73,12 @@ function Dashboard() {
         supabase.from("dashboard_stats").select("*").maybeSingle(),
         supabase.from("monthly_revenue").select("*"),
         supabase.from("building_log").select("*").order("created_at", { ascending: false }).limit(10),
-        supabase.from("visitors").select("id", { count: "exact", head: true }).eq("status", "داخل"),
-        supabase.from("visitors").select("id", { count: "exact", head: true }).gte("check_in_at", today.toISOString()),
-        supabase.from("expenses").select("amount").eq("status", "معلّق"),
-        supabase.from("expenses").select("amount").eq("status", "مدفوع").gte("expense_date", monthStart.toISOString().slice(0, 10)),
-        supabase.from("maintenance_requests").select("id", { count: "exact", head: true }).eq("is_overdue", true).neq("status", "مغلق"),
-        supabase.from("pm_plans").select("id", { count: "exact", head: true }).eq("is_active", true).lte("next_due_at", new Date().toISOString()),
+        scoped(supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).eq("status", "داخل"),
+        scoped(supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).gte("check_in_at", today.toISOString()),
+        scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "معلّق"),
+        scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "مدفوع").gte("expense_date", monthStart.toISOString().slice(0, 10)),
+        scoped(supabase.from("maintenance_requests").select("id", { count: "exact", head: true }), activePropertyId).eq("is_overdue", true).neq("status", "مغلق"),
+        scoped(supabase.from("pm_plans").select("id", { count: "exact", head: true }), activePropertyId).eq("is_active", true).lte("next_due_at", new Date().toISOString()),
       ]);
       if (s.data) setStats(s.data as Stats);
       if (m.data) setMonthly(m.data.map((r: any) => ({ month: r.month, revenue: Number(r.revenue) })));

@@ -1142,6 +1142,7 @@ function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean })
         storage_path: path,
         mime_type: it.file.type || null,
         size_bytes: it.file.size,
+        notes: it.description.trim() || null,
       });
       if (insErr) { fail++; await supabase.storage.from("office-files").remove([path]); }
       else ok++;

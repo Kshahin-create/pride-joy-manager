@@ -237,21 +237,53 @@ function ClientsPage() {
 export function CompanyFormDialog({ open, company, onClose, onSaved }: {
   open: boolean; company: Company | null; onClose: () => void; onSaved: () => void;
 }) {
+export function CompanyFormDialog({ open, company, onClose, onSaved }: {
+  open: boolean; company: Company | null; onClose: () => void; onSaved: () => void;
+}) {
   const [f, setF] = useState({
     company_name: "", activity: "", commercial_register: "", tax_number: "",
     status: "استفسار" as ClientStatus, notes: "",
+    delegate_name: "", phone: "",
   });
   const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<PendingFile[]>([]);
+  const [fileType, setFileType] = useState<string>("السجل التجاري");
+
   useEffect(() => {
-    if (open) setF(company ? {
-      company_name: company.company_name,
-      activity: company.activity ?? "",
-      commercial_register: company.commercial_register ?? "",
-      tax_number: company.tax_number ?? "",
-      status: company.status,
-      notes: company.notes ?? "",
-    } : { company_name:"", activity:"", commercial_register:"", tax_number:"", status:"استفسار", notes:"" });
+    if (open) {
+      setPending([]);
+      setF(company ? {
+        company_name: company.company_name,
+        activity: company.activity ?? "",
+        commercial_register: company.commercial_register ?? "",
+        tax_number: company.tax_number ?? "",
+        status: company.status,
+        notes: company.notes ?? "",
+        delegate_name: company.delegate_name ?? "",
+        phone: company.phone ?? "",
+      } : { company_name:"", activity:"", commercial_register:"", tax_number:"", status:"استفسار", notes:"", delegate_name:"", phone:"" });
+    }
   }, [open, company]);
+
+  const addFiles = (files: FileList | null) => {
+    if (!files) return;
+    setPending((p) => [...p, ...Array.from(files).map((file) => ({ file, type: fileType }))]);
+  };
+
+  const uploadAttachments = async (companyId: string) => {
+    if (pending.length === 0) return;
+    const { data: u } = await supabase.auth.getUser();
+    for (const it of pending) {
+      const path = `${companyId}/${Date.now()}_${it.file.name}`;
+      const up = await supabase.storage.from("companies").upload(path, it.file, { upsert: false });
+      if (up.error) { toast.error("فشل رفع " + it.file.name); continue; }
+      await supabase.from("company_attachments").insert({
+        company_id: companyId, attachment_type: it.type, file_name: it.file.name,
+        storage_path: path, mime_type: it.file.type, size_bytes: it.file.size,
+        created_by: u.user?.id,
+      });
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -264,26 +296,38 @@ export function CompanyFormDialog({ open, company, onClose, onSaved }: {
       tax_number: f.tax_number.trim() || null,
       status: f.status,
       notes: f.notes.trim() || null,
+      delegate_name: f.delegate_name.trim() || null,
+      phone: f.phone.trim() || null,
     };
-    const { error } = company
-      ? await supabase.from("companies").update(payload).eq("id", company.id)
-      : await supabase.from("companies").insert(payload);
+    let companyId = company?.id;
+    if (company) {
+      const { error } = await supabase.from("companies").update(payload).eq("id", company.id);
+      if (error) { setBusy(false); return toast.error("تعذّر الحفظ"); }
+    } else {
+      const { data, error } = await supabase.from("companies").insert(payload).select("id").single();
+      if (error || !data) { setBusy(false); return toast.error("تعذّر الحفظ"); }
+      companyId = data.id;
+    }
+    if (companyId) await uploadAttachments(companyId);
     setBusy(false);
-    if (error) return toast.error("تعذّر الحفظ");
     toast.success("تم الحفظ");
     onSaved();
   };
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent dir="rtl">
+      <DialogContent dir="rtl" className="max-w-2xl">
         <form onSubmit={submit}>
           <DialogHeader>
             <DialogTitle>{company ? "تعديل عميل" : "إضافة عميل جديد"}</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-3 py-2">
-            <div className="col-span-2 space-y-1.5"><Label>اسم الشركة</Label>
+          <div className="grid grid-cols-2 gap-3 py-2 max-h-[70vh] overflow-y-auto">
+            <div className="col-span-2 space-y-1.5"><Label>اسم الشركة *</Label>
               <Input value={f.company_name} onChange={(e) => setF({ ...f, company_name: e.target.value })} required /></div>
+            <div className="space-y-1.5"><Label>اسم المفوض</Label>
+              <Input value={f.delegate_name} onChange={(e) => setF({ ...f, delegate_name: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label>رقم الجوال</Label>
+              <Input value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /></div>
             <div className="space-y-1.5"><Label>النشاط</Label>
               <Input value={f.activity} onChange={(e) => setF({ ...f, activity: e.target.value })} /></div>
             <div className="space-y-1.5"><Label>الحالة</Label>
@@ -297,6 +341,30 @@ export function CompanyFormDialog({ open, company, onClose, onSaved }: {
               <Input value={f.tax_number} onChange={(e) => setF({ ...f, tax_number: e.target.value })} /></div>
             <div className="col-span-2 space-y-1.5"><Label>ملاحظات</Label>
               <Textarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></div>
+
+            <div className="col-span-2 space-y-2 border-t pt-3">
+              <Label>مرفقات</Label>
+              <div className="flex items-center gap-2">
+                <Select value={fileType} onValueChange={setFileType}>
+                  <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                  <SelectContent>{ATTACHMENT_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                </Select>
+                <Input type="file" multiple onChange={(e) => { addFiles(e.target.files); e.currentTarget.value = ""; }} />
+              </div>
+              {pending.length > 0 && (
+                <ul className="text-xs space-y-1 mt-2">
+                  {pending.map((p, i) => (
+                    <li key={i} className="flex items-center justify-between bg-muted/40 rounded px-2 py-1">
+                      <span>{p.file.name} <Badge variant="outline" className="ms-1">{p.type}</Badge></span>
+                      <button type="button" className="text-destructive" onClick={() => setPending(pending.filter((_, j) => j !== i))}>
+                        إزالة
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="text-[11px] text-muted-foreground">ستُرفع المرفقات بعد حفظ بيانات العميل.</p>
+            </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>إلغاء</Button>

@@ -1669,6 +1669,185 @@ export type Database = {
           },
         ]
       }
+      elevator_contract_attachments: {
+        Row: {
+          attachment_type: string
+          created_at: string
+          elevator_contract_id: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          attachment_type: string
+          created_at?: string
+          elevator_contract_id: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          attachment_type?: string
+          created_at?: string
+          elevator_contract_id?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "elevator_contract_attachments_elevator_contract_id_fkey"
+            columns: ["elevator_contract_id"]
+            isOneToOne: false
+            referencedRelation: "elevator_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      elevator_contracts: {
+        Row: {
+          alert_thresholds_days: number[] | null
+          contract_name: string
+          contract_number: string | null
+          contract_type: string
+          contract_value: number | null
+          covered_elevator_ids: string[] | null
+          created_at: string
+          created_by: string | null
+          duration_months: number | null
+          end_date: string | null
+          first_party_name: string | null
+          id: string
+          includes_corrective: boolean | null
+          includes_emergency: boolean | null
+          includes_preventive: boolean | null
+          notes: string | null
+          notice_period_days: number | null
+          payment_frequency: string | null
+          payment_method: string | null
+          pm_frequency: string | null
+          property_id: string
+          sla_critical_response_hours: number | null
+          sla_normal_response_hours: number | null
+          spare_parts_included: boolean | null
+          spare_parts_notes: string | null
+          start_date: string | null
+          status: string
+          tax_included: boolean | null
+          tax_percentage: number | null
+          updated_at: string
+          vendor_contact_name: string | null
+          vendor_cr: string | null
+          vendor_email: string | null
+          vendor_id: string | null
+          vendor_name: string | null
+          vendor_phone: string | null
+          vendor_tax_number: string | null
+        }
+        Insert: {
+          alert_thresholds_days?: number[] | null
+          contract_name: string
+          contract_number?: string | null
+          contract_type?: string
+          contract_value?: number | null
+          covered_elevator_ids?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          duration_months?: number | null
+          end_date?: string | null
+          first_party_name?: string | null
+          id?: string
+          includes_corrective?: boolean | null
+          includes_emergency?: boolean | null
+          includes_preventive?: boolean | null
+          notes?: string | null
+          notice_period_days?: number | null
+          payment_frequency?: string | null
+          payment_method?: string | null
+          pm_frequency?: string | null
+          property_id: string
+          sla_critical_response_hours?: number | null
+          sla_normal_response_hours?: number | null
+          spare_parts_included?: boolean | null
+          spare_parts_notes?: string | null
+          start_date?: string | null
+          status?: string
+          tax_included?: boolean | null
+          tax_percentage?: number | null
+          updated_at?: string
+          vendor_contact_name?: string | null
+          vendor_cr?: string | null
+          vendor_email?: string | null
+          vendor_id?: string | null
+          vendor_name?: string | null
+          vendor_phone?: string | null
+          vendor_tax_number?: string | null
+        }
+        Update: {
+          alert_thresholds_days?: number[] | null
+          contract_name?: string
+          contract_number?: string | null
+          contract_type?: string
+          contract_value?: number | null
+          covered_elevator_ids?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          duration_months?: number | null
+          end_date?: string | null
+          first_party_name?: string | null
+          id?: string
+          includes_corrective?: boolean | null
+          includes_emergency?: boolean | null
+          includes_preventive?: boolean | null
+          notes?: string | null
+          notice_period_days?: number | null
+          payment_frequency?: string | null
+          payment_method?: string | null
+          pm_frequency?: string | null
+          property_id?: string
+          sla_critical_response_hours?: number | null
+          sla_normal_response_hours?: number | null
+          spare_parts_included?: boolean | null
+          spare_parts_notes?: string | null
+          start_date?: string | null
+          status?: string
+          tax_included?: boolean | null
+          tax_percentage?: number | null
+          updated_at?: string
+          vendor_contact_name?: string | null
+          vendor_cr?: string | null
+          vendor_email?: string | null
+          vendor_id?: string | null
+          vendor_name?: string | null
+          vendor_phone?: string | null
+          vendor_tax_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "elevator_contracts_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "elevator_contracts_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number

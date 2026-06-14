@@ -135,7 +135,7 @@ export function DelegatesCard({ contractId, canManage }: { contractId: string; c
 
 interface ContractOffice {
   id: string; office_id: string; is_primary: boolean; rent_share: number | null; notes: string | null;
-  offices?: { id: string; code: string; floor: string | null } | null;
+  offices?: { id: string; code: string; floor: number | string | null } | null;
 }
 
 export function LinkedOfficesCard({ contractId, canManage }: { contractId: string; canManage: boolean }) {

@@ -269,8 +269,9 @@ function MaintenancePage() {
     if (target === "مكتمل مبدئياً") { openComplete(r); return; }
     if (target === "مغلق") { openApprove(r); return; }
     // جديد (re-open) — super_admin only enforced by trigger
-    const { error } = await supabase.from("maintenance_requests").update({ status: target }).eq("id", r.id);
+    const { data, error } = await supabase.from("maintenance_requests").update({ status: target }).eq("id", r.id).select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) return toast.error("لا تملك صلاحية تغيير حالة هذا الطلب");
     load();
   };
 

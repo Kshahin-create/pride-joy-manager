@@ -110,6 +110,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
     items: [
       { title: "المستخدمون", url: "/users", icon: UserCog, perms: ["users.view"] },
       { title: "الأدوار والصلاحيات", url: "/roles", icon: ShieldCheck, perms: ["roles.manage"] },
+      { title: "العقارات", url: "/properties", icon: Building, perms: ["identity.view"] },
       { title: "هوية البرج", url: "/identity", icon: Building, perms: ["identity.view"] },
       { title: "بوت تيليجرام", url: "/telegram", icon: Send, perms: ["telegram.view"] },
       { title: "واجهة الـ API", url: "/api-docs", icon: Code2, perms: ["api_keys.view"] },

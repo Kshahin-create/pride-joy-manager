@@ -848,14 +848,24 @@ export type Database = {
       }
       contracts: {
         Row: {
+          alert_thresholds_days: number[]
+          annual_increase_pct: number | null
+          auto_renew: boolean
           company_id: string
+          contract_name: string | null
           contract_number: string
+          contract_type: Database["public"]["Enums"]["contract_type"]
           created_at: string
           created_by: string | null
           deposit_amount: number
           end_date: string
+          evacuation_date: string | null
           id: string
+          lessor_cr: string | null
+          lessor_id_number: string | null
+          lessor_name: string | null
           notes: string | null
+          notice_period_days: number | null
           office_id: string
           renewed_from_id: string | null
           rent_amount: number
@@ -865,14 +875,24 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          alert_thresholds_days?: number[]
+          annual_increase_pct?: number | null
+          auto_renew?: boolean
           company_id: string
+          contract_name?: string | null
           contract_number: string
+          contract_type?: Database["public"]["Enums"]["contract_type"]
           created_at?: string
           created_by?: string | null
           deposit_amount?: number
           end_date: string
+          evacuation_date?: string | null
           id?: string
+          lessor_cr?: string | null
+          lessor_id_number?: string | null
+          lessor_name?: string | null
           notes?: string | null
+          notice_period_days?: number | null
           office_id: string
           renewed_from_id?: string | null
           rent_amount?: number
@@ -882,14 +902,24 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          alert_thresholds_days?: number[]
+          annual_increase_pct?: number | null
+          auto_renew?: boolean
           company_id?: string
+          contract_name?: string | null
           contract_number?: string
+          contract_type?: Database["public"]["Enums"]["contract_type"]
           created_at?: string
           created_by?: string | null
           deposit_amount?: number
           end_date?: string
+          evacuation_date?: string | null
           id?: string
+          lessor_cr?: string | null
+          lessor_id_number?: string | null
+          lessor_name?: string | null
           notes?: string | null
+          notice_period_days?: number | null
           office_id?: string
           renewed_from_id?: string | null
           rent_amount?: number
@@ -3416,7 +3446,30 @@ export type Database = {
         | "الهوية"
         | "السجل التجاري"
         | "سند دفع"
-      contract_status: "ساري" | "منتهي" | "مجدد" | "ملغي"
+        | "التفويض"
+        | "السندات"
+        | "الشيكات"
+        | "الفواتير"
+        | "الملاحق"
+      contract_status:
+        | "ساري"
+        | "منتهي"
+        | "مجدد"
+        | "ملغي"
+        | "مسودة"
+        | "قيد المراجعة"
+        | "بانتظار المستندات"
+        | "بانتظار الاعتماد"
+        | "موقوف"
+        | "متعثر"
+        | "تحت التجديد"
+        | "مخلى"
+      contract_type:
+        | "عقد إيجار مكتب"
+        | "عقد إيجار عدة مكاتب"
+        | "عقد حجز"
+        | "عقد تجديد"
+        | "ملحق عقد"
       doc_category:
         | "عقد"
         | "هوية"
@@ -3680,8 +3733,33 @@ export const Constants = {
         "الهوية",
         "السجل التجاري",
         "سند دفع",
+        "التفويض",
+        "السندات",
+        "الشيكات",
+        "الفواتير",
+        "الملاحق",
       ],
-      contract_status: ["ساري", "منتهي", "مجدد", "ملغي"],
+      contract_status: [
+        "ساري",
+        "منتهي",
+        "مجدد",
+        "ملغي",
+        "مسودة",
+        "قيد المراجعة",
+        "بانتظار المستندات",
+        "بانتظار الاعتماد",
+        "موقوف",
+        "متعثر",
+        "تحت التجديد",
+        "مخلى",
+      ],
+      contract_type: [
+        "عقد إيجار مكتب",
+        "عقد إيجار عدة مكاتب",
+        "عقد حجز",
+        "عقد تجديد",
+        "ملحق عقد",
+      ],
       doc_category: [
         "عقد",
         "هوية",

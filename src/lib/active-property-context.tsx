@@ -71,6 +71,8 @@ export function ActivePropertyProvider({ children }: { children: ReactNode }) {
     if (typeof window !== "undefined") {
       if (id) localStorage.setItem(STORAGE_KEY, id);
       else localStorage.removeItem(STORAGE_KEY);
+      // Force full refresh so all pages re-fetch with the new property scope.
+      window.location.reload();
     }
   };
 

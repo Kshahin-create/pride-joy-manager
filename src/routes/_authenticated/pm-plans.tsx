@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +32,7 @@ const FREQS = ["أسبوعي","شهري","ربع سنوي","نصف سنوي","س
 const PRIORITIES = ["طارئة","عالية","متوسطة","منخفضة"] as const;
 
 function PmPlansPage() {
+  const { activePropertyId } = useActiveProperty();
   const { hasAnyRole } = useAuth();
   const canManage = hasAnyRole(["super_admin","maintenance_supervisor"]);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -43,9 +46,7 @@ function PmPlansPage() {
   });
 
   const load = async () => {
-    const [p, a] = await Promise.all([
-      supabase.from("pm_plans").select("*").order("next_due_at"),
-      supabase.from("assets").select("id,asset_name,asset_code").order("asset_code"),
+    const [p, a] = await Promise.all([scoped(supabase.from("pm_plans").select("*"), activePropertyId).order("next_due_at"),scoped(supabase.from("assets").select("id,asset_name,asset_code"), activePropertyId).order("asset_code"),
     ]);
     if (p.error) toast.error(p.error.message); else setPlans((p.data ?? []) as Plan[]);
     if (!a.error) setAssets((a.data ?? []) as Asset[]);

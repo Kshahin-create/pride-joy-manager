@@ -4,6 +4,8 @@ import {
   Loader2, Plus, ShieldCheck, Footprints, AlertTriangle, X, Upload, Eye,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +56,7 @@ interface Guard {
 }
 
 function SecurityPage() {
+  const { activePropertyId } = useActiveProperty();
   return (
     <div className="space-y-4">
       <div>
@@ -77,6 +80,7 @@ function SecurityPage() {
 /* ============================== GUARDS ============================== */
 
 function GuardsTab() {
+  const { activePropertyId } = useActiveProperty();
   const { hasRole } = useAuth();
   const canManage = hasRole("super_admin") || hasRole("security_supervisor");
   const isAdmin = hasRole("super_admin");
@@ -89,7 +93,7 @@ function GuardsTab() {
     setLoading(true);
     // Use safe view for non-admins (no salary), full table for admins
     const q = isAdmin
-      ? await supabase.from("guards").select("*").order("full_name")
+      ? await scoped(supabase.from("guards").select("*"), activePropertyId).order("full_name")
       : await supabase.from("guards_safe").select("*").order("full_name");
     if (q.error) toast.error(q.error.message);
     setGuards((q.data as unknown as Guard[]) ?? []);
@@ -310,6 +314,7 @@ interface Checkpoint {
 }
 
 function PatrolsTab() {
+  const { activePropertyId } = useActiveProperty();
   const { hasRole } = useAuth();
   const canManage = hasRole("super_admin") || hasRole("security_supervisor");
   const [patrols, setPatrols] = useState<Patrol[]>([]);
@@ -320,15 +325,14 @@ function PatrolsTab() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [p, g] = await Promise.all([
-      supabase.from("patrols").select("*").order("start_time", { ascending: false }).limit(50),
+    const [p, g] = await Promise.all([scoped(supabase.from("patrols").select("*"), activePropertyId).order("start_time", { ascending: false }).limit(50),
       supabase.from("guards_safe").select("id, full_name, employee_number").order("full_name"),
     ]);
     setPatrols((p.data as Patrol[]) ?? []);
     setGuards((g.data as Guard[]) ?? []);
     const ids = (p.data ?? []).map((x: { id: string }) => x.id);
     if (ids.length > 0) {
-      const { data: ch } = await supabase.from("patrol_checkpoints").select("*").in("patrol_id", ids).order("visit_time");
+      const { data: ch } = await scoped(supabase.from("patrol_checkpoints").select("*"), activePropertyId).in("patrol_id", ids).order("visit_time");
       const map: Record<string, Checkpoint[]> = {};
       (ch as Checkpoint[] ?? []).forEach(c => {
         (map[c.patrol_id] ??= []).push(c);
@@ -508,6 +512,7 @@ interface Incident {
 }
 
 function IncidentsTab() {
+  const { activePropertyId } = useActiveProperty();
   const { hasRole } = useAuth();
   const canManage = hasRole("super_admin") || hasRole("security_supervisor");
   const [items, setItems] = useState<Incident[]>([]);
@@ -517,8 +522,8 @@ function IncidentsTab() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("security_incidents")
-      .select("*").order("incident_date", { ascending: false });
+    const { data, error } = await scoped(supabase.from("security_incidents")
+      .select("*"), activePropertyId).order("incident_date", { ascending: false });
     if (error) toast.error(error.message);
     setItems((data as Incident[]) ?? []);
     setLoading(false);

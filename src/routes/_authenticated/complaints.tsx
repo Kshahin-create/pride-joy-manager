@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +62,7 @@ export function statusBadge(s: TStatus) {
 }
 
 function TicketsPage() {
+  const { activePropertyId } = useActiveProperty();
   const { hasAnyRole } = useAuth();
   const canCreate = hasAnyRole(["super_admin", "receptionist"]);
 
@@ -76,13 +79,11 @@ function TicketsPage() {
   const [form, setForm] = useState<Partial<Ticket>>({ ticket_type: "شكوى", priority: "متوسطة" });
 
   const load = async () => {
-    const [t, o, c] = await Promise.all([
-      (supabase as any)
+    const [t, o, c] = await Promise.all([scoped((supabase as any)
         .from("tickets")
-        .select("*, offices(code), companies(company_name)")
+        .select("*, offices(code), companies(company_name)"), activePropertyId)
         .order("created_at", { ascending: false }),
-      (supabase as any).from("offices").select("id, code").order("code"),
-      (supabase as any).from("companies").select("id, company_name").order("company_name"),
+      (supabase as any).from("offices").select("id, code").order("code"),scoped((supabase as any).from("companies").select("id, company_name"), activePropertyId).order("company_name"),
     ]);
     if (t.error) toast.error(t.error.message);
     setItems((t.data ?? []) as Ticket[]);

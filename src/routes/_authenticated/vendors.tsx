@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +46,7 @@ function StarRating({ value }: { value: number }) {
 }
 
 function VendorsPage() {
+  const { activePropertyId } = useActiveProperty();
   const { hasRole } = useAuth();
   const canManage = hasRole("super_admin");
   const [items, setItems] = useState<Vendor[]>([]);
@@ -74,9 +77,9 @@ function VendorsPage() {
 
     const in60 = new Date();
     in60.setDate(in60.getDate() + 60);
-    const { data: cs } = await (supabase as any)
+    const { data: cs } = await scoped((supabase as any)
       .from("vendor_contracts")
-      .select("id")
+      .select("id"), activePropertyId)
       .lte("end_date", in60.toISOString().slice(0, 10))
       .gte("end_date", new Date().toISOString().slice(0, 10));
     setExpiringCount((cs ?? []).length);

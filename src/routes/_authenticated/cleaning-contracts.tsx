@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -106,6 +108,7 @@ const emptyForm = () => ({
 });
 
 function CleaningContractsPage() {
+  const { activePropertyId } = useActiveProperty();
   const { hasAnyRole } = useAuth();
   const canManage = hasAnyRole(["super_admin", "accountant"]);
 
@@ -127,8 +130,7 @@ function CleaningContractsPage() {
   const [uploading, setUploading] = useState(false);
 
   const load = async () => {
-    const [c, v] = await Promise.all([
-      supabase.from("cleaning_contracts").select("*").order("created_at", { ascending: false }),
+    const [c, v] = await Promise.all([scoped(supabase.from("cleaning_contracts").select("*"), activePropertyId).order("created_at", { ascending: false }),
       supabase.from("vendors").select("id,company_name").order("company_name"),
     ]);
     if (c.error) toast.error(c.error.message);

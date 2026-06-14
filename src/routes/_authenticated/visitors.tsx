@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +33,7 @@ type Office = { id: string; code: string; floor: number };
 const TYPES = ["زائر", "مقاول", "موظف توصيل", "صيانة خارجية", "ضيف VIP", "أخرى"] as const;
 
 function VisitorsPage() {
+  const { activePropertyId } = useActiveProperty();
   const { hasAnyRole } = useAuth();
   const canManage = hasAnyRole(["super_admin", "receptionist", "security_supervisor"]);
   const [items, setItems] = useState<Visitor[]>([]);
@@ -46,8 +49,7 @@ function VisitorsPage() {
   });
 
   const load = async () => {
-    const [v, o] = await Promise.all([
-      supabase.from("visitors").select("*").order("check_in_at", { ascending: false }).limit(500),
+    const [v, o] = await Promise.all([scoped(supabase.from("visitors").select("*"), activePropertyId).order("check_in_at", { ascending: false }).limit(500),
       supabase.from("offices").select("id,code,floor").order("code"),
     ]);
     if (v.error) toast.error(v.error.message); else setItems((v.data ?? []) as Visitor[]);

@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Search, AlertTriangle, FileSignature } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,6 +97,7 @@ export function daysBetween(a: string, b: Date = new Date()) {
 }
 
 function ContractsPage() {
+  const { activePropertyId } = useActiveProperty();
   const { hasRole } = useAuth();
   const canCreate = hasRole("super_admin") || hasRole("accountant");
   const navigate = useNavigate();
@@ -109,9 +112,9 @@ function ContractsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error } = await scoped(supabase
       .from("contracts")
-      .select("*, companies(id, company_name), offices(id, code)")
+      .select("*, companies(id, company_name), offices(id, code)"), activePropertyId)
       .order("created_at", { ascending: false });
     if (error) toast.error("فشل تحميل العقود: " + error.message);
     setRows((data as ContractWithRefs[]) ?? []);
@@ -120,8 +123,7 @@ function ContractsPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  useEffect(() => {
-    supabase.from("companies").select("id, company_name").order("company_name")
+  useEffect(() => {scoped(supabase.from("companies").select("id, company_name"), activePropertyId).order("company_name")
       .then(({ data }) => setCompanies((data as { id: string; company_name: string }[]) ?? []));
   }, []);
 
@@ -270,6 +272,7 @@ export function ContractFormDialog({
   defaultCompanyId?: string; defaultOfficeId?: string;
   contractId?: string;
 }) {
+  const { activePropertyId } = useActiveProperty();
   const isEdit = !!contractId;
   const [saving, setSaving] = useState(false);
   const [companies, setCompanies] = useState<{ id: string; company_name: string }[]>([]);
@@ -298,13 +301,11 @@ export function ContractFormDialog({
 
   useEffect(() => {
     if (!open) return;
-    setPending([]);
-    supabase.from("companies").select("id, company_name").order("company_name")
+    setPending([]);scoped(supabase.from("companies").select("id, company_name"), activePropertyId).order("company_name")
       .then(({ data }) => setCompanies((data as { id: string; company_name: string }[]) ?? []));
     supabase.from("offices").select("id, code, status").order("code")
       .then(({ data }) => setOffices((data as { id: string; code: string; status: string }[]) ?? []));
-    if (contractId) {
-      supabase.from("contracts").select("*").eq("id", contractId).maybeSingle().then(({ data }) => {
+    if (contractId) {scoped(supabase.from("contracts").select("*"), activePropertyId).eq("id", contractId).maybeSingle().then(({ data }) => {
         if (!data) return;
         const c = data as Contract;
         setForm({

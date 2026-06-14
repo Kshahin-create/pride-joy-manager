@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,6 +112,7 @@ async function uploadPhoto(file: File, prefix: string): Promise<string | null> {
 }
 
 function MaintenancePage() {
+  const { activePropertyId } = useActiveProperty();
   const { user, hasAnyRole } = useAuth();
   const canManage = hasAnyRole(["super_admin", "maintenance_supervisor"]);
   const [items, setItems] = useState<MR[]>([]);
@@ -155,11 +158,8 @@ function MaintenancePage() {
   const [approveNote, setApproveNote] = useState("");
 
   const load = async () => {
-    const [m, a, o, s, v] = await Promise.all([
-      supabase.from("maintenance_requests").select("*").order("created_at", { ascending: false }),
-      supabase.from("assets").select("id,asset_name,asset_code,criticality").order("asset_code"),
-      supabase.from("offices").select("id,code,floor,space_id").order("floor").order("code"),
-      supabase.from("spaces").select("id,space_code,space_name,space_type,floor").order("floor").order("space_code"),
+    const [m, a, o, s, v] = await Promise.all([scoped(supabase.from("maintenance_requests").select("*"), activePropertyId).order("created_at", { ascending: false }),scoped(supabase.from("assets").select("id,asset_name,asset_code,criticality"), activePropertyId).order("asset_code"),
+      supabase.from("offices").select("id,code,floor,space_id").order("floor").order("code"),scoped(supabase.from("spaces").select("id,space_code,space_name,space_type,floor"), activePropertyId).order("floor").order("space_code"),
       supabase.from("vendors").select("id,company_name").order("company_name"),
     ]);
     if (m.error) toast.error(m.error.message);

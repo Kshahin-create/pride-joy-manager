@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveProperty } from "@/lib/active-property-context";
+import { scoped } from "@/lib/scoped-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +57,7 @@ const CHECK_ITEMS = [
 ] as const;
 
 function ParkingPage() {
+  const { activePropertyId } = useActiveProperty();
   const { hasAnyRole } = useAuth();
   const canManage = hasAnyRole(["super_admin", "security_supervisor"]);
 
@@ -84,10 +87,8 @@ function ParkingPage() {
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
 
   const load = async () => {
-    const [s, o, c, mc, cl, vi] = await Promise.all([
-      (supabase as any).from("parking_spots").select("*").order("floor").order("spot_number"),
-      (supabase as any).from("offices").select("id, code").order("code"),
-      (supabase as any).from("cameras").select("id, camera_number, location").order("camera_number"),
+    const [s, o, c, mc, cl, vi] = await Promise.all([scoped((supabase as any).from("parking_spots").select("*"), activePropertyId).order("floor").order("spot_number"),
+      (supabase as any).from("offices").select("id, code").order("code"),scoped((supabase as any).from("cameras").select("id, camera_number, location"), activePropertyId).order("camera_number"),
       (supabase as any).from("parking_maintenance_checks").select("*").order("check_date", { ascending: false }),
       (supabase as any).from("parking_cleaning_logs").select("*").order("cleaning_date", { ascending: false }),
       (supabase as any).from("parking_violations").select("*, parking_spots(spot_number, floor)").order("violation_date", { ascending: false }),

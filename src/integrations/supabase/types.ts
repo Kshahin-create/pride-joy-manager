@@ -2327,6 +2327,7 @@ export type Database = {
           notes: string | null
           payment_date: string
           payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_file_url: string | null
           receipt_number: string
           updated_at: string
         }
@@ -2339,6 +2340,7 @@ export type Database = {
           notes?: string | null
           payment_date?: string
           payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_file_url?: string | null
           receipt_number: string
           updated_at?: string
         }
@@ -2351,6 +2353,7 @@ export type Database = {
           notes?: string | null
           payment_date?: string
           payment_method?: Database["public"]["Enums"]["payment_method"]
+          receipt_file_url?: string | null
           receipt_number?: string
           updated_at?: string
         }

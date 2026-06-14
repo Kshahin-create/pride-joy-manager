@@ -1087,7 +1087,7 @@ function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean })
   const [del, setDel] = useState<OfficeFile | null>(null);
   const [open, setOpen] = useState(false);
   const [defaultCategory, setDefaultCategory] = useState<DocCategory>("صورة");
-  const [fileItems, setFileItems] = useState<Array<{ file: File; title: string; category: DocCategory }>>([]);
+  const [fileItems, setFileItems] = useState<Array<{ file: File; title: string; category: DocCategory; description: string }>>([]);
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
 

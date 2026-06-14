@@ -1117,7 +1117,7 @@ function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean })
     if (!list) return;
     setFileItems((prev) => [
       ...prev,
-      ...Array.from(list).map((f) => ({ file: f, title: stripExt(f.name), category: defaultCategory })),
+      ...Array.from(list).map((f) => ({ file: f, title: stripExt(f.name), category: defaultCategory, description: "" })),
     ]);
   };
 

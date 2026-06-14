@@ -35,7 +35,6 @@ import { Route as AuthenticatedExpensesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDailyReportRouteImport } from './routes/_authenticated/daily-report'
-import { Route as AuthenticatedContractsRouteImport } from './routes/_authenticated/contracts'
 import { Route as AuthenticatedComplaintsRouteImport } from './routes/_authenticated/complaints'
 import { Route as AuthenticatedCommonAreasRouteImport } from './routes/_authenticated/common-areas'
 import { Route as AuthenticatedBuildingMapRouteImport } from './routes/_authenticated/building-map'
@@ -43,6 +42,7 @@ import { Route as AuthenticatedBuildingLogRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedApiDocsRouteImport } from './routes/_authenticated/api-docs'
 import { Route as AuthenticatedOfficesIndexRouteImport } from './routes/_authenticated/offices.index'
+import { Route as AuthenticatedContractsIndexRouteImport } from './routes/_authenticated/contracts.index'
 import { Route as AuthenticatedVendorsIdRouteImport } from './routes/_authenticated/vendors.$id'
 import { Route as AuthenticatedTenantsIdRouteImport } from './routes/_authenticated/tenants.$id'
 import { Route as AuthenticatedOfficesIdRouteImport } from './routes/_authenticated/offices.$id'
@@ -188,11 +188,6 @@ const AuthenticatedDailyReportRoute =
     path: '/daily-report',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedContractsRoute = AuthenticatedContractsRouteImport.update({
-  id: '/contracts',
-  path: '/contracts',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedComplaintsRoute = AuthenticatedComplaintsRouteImport.update({
   id: '/complaints',
   path: '/complaints',
@@ -232,6 +227,12 @@ const AuthenticatedOfficesIndexRoute =
     path: '/offices/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedContractsIndexRoute =
+  AuthenticatedContractsIndexRouteImport.update({
+    id: '/contracts/',
+    path: '/contracts/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedVendorsIdRoute = AuthenticatedVendorsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -249,9 +250,9 @@ const AuthenticatedOfficesIdRoute = AuthenticatedOfficesIdRouteImport.update({
 } as any)
 const AuthenticatedContractsIdRoute =
   AuthenticatedContractsIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedContractsRoute,
+    id: '/contracts/$id',
+    path: '/contracts/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedComplaintsIdRoute =
   AuthenticatedComplaintsIdRouteImport.update({
@@ -304,7 +305,6 @@ export interface FileRoutesByFullPath {
   '/building-map': typeof AuthenticatedBuildingMapRoute
   '/common-areas': typeof AuthenticatedCommonAreasRoute
   '/complaints': typeof AuthenticatedComplaintsRouteWithChildren
-  '/contracts': typeof AuthenticatedContractsRouteWithChildren
   '/daily-report': typeof AuthenticatedDailyReportRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documents': typeof AuthenticatedDocumentsRoute
@@ -332,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/vendors/$id': typeof AuthenticatedVendorsIdRoute
+  '/contracts/': typeof AuthenticatedContractsIndexRoute
   '/offices/': typeof AuthenticatedOfficesIndexRoute
   '/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
   '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
@@ -350,7 +351,6 @@ export interface FileRoutesByTo {
   '/building-map': typeof AuthenticatedBuildingMapRoute
   '/common-areas': typeof AuthenticatedCommonAreasRoute
   '/complaints': typeof AuthenticatedComplaintsRouteWithChildren
-  '/contracts': typeof AuthenticatedContractsRouteWithChildren
   '/daily-report': typeof AuthenticatedDailyReportRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documents': typeof AuthenticatedDocumentsRoute
@@ -378,6 +378,7 @@ export interface FileRoutesByTo {
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/vendors/$id': typeof AuthenticatedVendorsIdRoute
+  '/contracts': typeof AuthenticatedContractsIndexRoute
   '/offices': typeof AuthenticatedOfficesIndexRoute
   '/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
   '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
@@ -398,7 +399,6 @@ export interface FileRoutesById {
   '/_authenticated/building-map': typeof AuthenticatedBuildingMapRoute
   '/_authenticated/common-areas': typeof AuthenticatedCommonAreasRoute
   '/_authenticated/complaints': typeof AuthenticatedComplaintsRouteWithChildren
-  '/_authenticated/contracts': typeof AuthenticatedContractsRouteWithChildren
   '/_authenticated/daily-report': typeof AuthenticatedDailyReportRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
@@ -426,6 +426,7 @@ export interface FileRoutesById {
   '/_authenticated/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/_authenticated/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/_authenticated/vendors/$id': typeof AuthenticatedVendorsIdRoute
+  '/_authenticated/contracts/': typeof AuthenticatedContractsIndexRoute
   '/_authenticated/offices/': typeof AuthenticatedOfficesIndexRoute
   '/_authenticated/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
   '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
@@ -446,7 +447,6 @@ export interface FileRouteTypes {
     | '/building-map'
     | '/common-areas'
     | '/complaints'
-    | '/contracts'
     | '/daily-report'
     | '/dashboard'
     | '/documents'
@@ -474,6 +474,7 @@ export interface FileRouteTypes {
     | '/offices/$id'
     | '/tenants/$id'
     | '/vendors/$id'
+    | '/contracts/'
     | '/offices/'
     | '/security/guards/$id'
     | '/api/public/telegram/daily-report'
@@ -492,7 +493,6 @@ export interface FileRouteTypes {
     | '/building-map'
     | '/common-areas'
     | '/complaints'
-    | '/contracts'
     | '/daily-report'
     | '/dashboard'
     | '/documents'
@@ -520,6 +520,7 @@ export interface FileRouteTypes {
     | '/offices/$id'
     | '/tenants/$id'
     | '/vendors/$id'
+    | '/contracts'
     | '/offices'
     | '/security/guards/$id'
     | '/api/public/telegram/daily-report'
@@ -539,7 +540,6 @@ export interface FileRouteTypes {
     | '/_authenticated/building-map'
     | '/_authenticated/common-areas'
     | '/_authenticated/complaints'
-    | '/_authenticated/contracts'
     | '/_authenticated/daily-report'
     | '/_authenticated/dashboard'
     | '/_authenticated/documents'
@@ -567,6 +567,7 @@ export interface FileRouteTypes {
     | '/_authenticated/offices/$id'
     | '/_authenticated/tenants/$id'
     | '/_authenticated/vendors/$id'
+    | '/_authenticated/contracts/'
     | '/_authenticated/offices/'
     | '/_authenticated/security/guards/$id'
     | '/api/public/telegram/daily-report'
@@ -771,13 +772,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDailyReportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/contracts': {
-      id: '/_authenticated/contracts'
-      path: '/contracts'
-      fullPath: '/contracts'
-      preLoaderRoute: typeof AuthenticatedContractsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/complaints': {
       id: '/_authenticated/complaints'
       path: '/complaints'
@@ -827,6 +821,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOfficesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/contracts/': {
+      id: '/_authenticated/contracts/'
+      path: '/contracts'
+      fullPath: '/contracts/'
+      preLoaderRoute: typeof AuthenticatedContractsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/vendors/$id': {
       id: '/_authenticated/vendors/$id'
       path: '/$id'
@@ -850,10 +851,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/contracts/$id': {
       id: '/_authenticated/contracts/$id'
-      path: '/$id'
+      path: '/contracts/$id'
       fullPath: '/contracts/$id'
       preLoaderRoute: typeof AuthenticatedContractsIdRouteImport
-      parentRoute: typeof AuthenticatedContractsRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/complaints/$id': {
       id: '/_authenticated/complaints/$id'
@@ -932,20 +933,6 @@ const AuthenticatedComplaintsRouteWithChildren =
     AuthenticatedComplaintsRouteChildren,
   )
 
-interface AuthenticatedContractsRouteChildren {
-  AuthenticatedContractsIdRoute: typeof AuthenticatedContractsIdRoute
-}
-
-const AuthenticatedContractsRouteChildren: AuthenticatedContractsRouteChildren =
-  {
-    AuthenticatedContractsIdRoute: AuthenticatedContractsIdRoute,
-  }
-
-const AuthenticatedContractsRouteWithChildren =
-  AuthenticatedContractsRoute._addFileChildren(
-    AuthenticatedContractsRouteChildren,
-  )
-
 interface AuthenticatedSecurityRouteChildren {
   AuthenticatedSecurityGuardsIdRoute: typeof AuthenticatedSecurityGuardsIdRoute
 }
@@ -988,7 +975,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBuildingMapRoute: typeof AuthenticatedBuildingMapRoute
   AuthenticatedCommonAreasRoute: typeof AuthenticatedCommonAreasRoute
   AuthenticatedComplaintsRoute: typeof AuthenticatedComplaintsRouteWithChildren
-  AuthenticatedContractsRoute: typeof AuthenticatedContractsRouteWithChildren
   AuthenticatedDailyReportRoute: typeof AuthenticatedDailyReportRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
@@ -1010,7 +996,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRouteWithChildren
   AuthenticatedVisitorsRoute: typeof AuthenticatedVisitorsRoute
+  AuthenticatedContractsIdRoute: typeof AuthenticatedContractsIdRoute
   AuthenticatedOfficesIdRoute: typeof AuthenticatedOfficesIdRoute
+  AuthenticatedContractsIndexRoute: typeof AuthenticatedContractsIndexRoute
   AuthenticatedOfficesIndexRoute: typeof AuthenticatedOfficesIndexRoute
 }
 
@@ -1021,7 +1009,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBuildingMapRoute: AuthenticatedBuildingMapRoute,
   AuthenticatedCommonAreasRoute: AuthenticatedCommonAreasRoute,
   AuthenticatedComplaintsRoute: AuthenticatedComplaintsRouteWithChildren,
-  AuthenticatedContractsRoute: AuthenticatedContractsRouteWithChildren,
   AuthenticatedDailyReportRoute: AuthenticatedDailyReportRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
@@ -1043,7 +1030,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedVendorsRoute: AuthenticatedVendorsRouteWithChildren,
   AuthenticatedVisitorsRoute: AuthenticatedVisitorsRoute,
+  AuthenticatedContractsIdRoute: AuthenticatedContractsIdRoute,
   AuthenticatedOfficesIdRoute: AuthenticatedOfficesIdRoute,
+  AuthenticatedContractsIndexRoute: AuthenticatedContractsIndexRoute,
   AuthenticatedOfficesIndexRoute: AuthenticatedOfficesIndexRoute,
 }
 

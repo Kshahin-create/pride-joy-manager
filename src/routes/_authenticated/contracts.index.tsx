@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/contracts")({
+export const Route = createFileRoute("/_authenticated/contracts/")({
   component: ContractsPage,
 });
 
@@ -219,15 +219,24 @@ function ContractsPage() {
   );
 }
 
+type PendingFile = { file: File; type: ContractAttachmentType };
+export type ContractAttachmentType = "نسخة العقد" | "الهوية" | "السجل التجاري" | "سند دفع";
+export const CONTRACT_ATTACHMENT_TYPES: ContractAttachmentType[] = [
+  "نسخة العقد", "الهوية", "السجل التجاري", "سند دفع",
+];
+
 export function ContractFormDialog({
-  open, onClose, onSaved, defaultCompanyId, defaultOfficeId,
+  open, onClose, onSaved, defaultCompanyId, defaultOfficeId, contractId,
 }: {
   open: boolean; onClose: () => void; onSaved: () => void;
   defaultCompanyId?: string; defaultOfficeId?: string;
+  contractId?: string;
 }) {
+  const isEdit = !!contractId;
   const [saving, setSaving] = useState(false);
   const [companies, setCompanies] = useState<{ id: string; company_name: string }[]>([]);
   const [offices, setOffices] = useState<{ id: string; code: string; status: string }[]>([]);
+  const [pending, setPending] = useState<PendingFile[]>([]);
   const [form, setForm] = useState({
     company_id: defaultCompanyId ?? "",
     office_id: defaultOfficeId ?? "",
@@ -241,16 +250,38 @@ export function ContractFormDialog({
 
   useEffect(() => {
     if (!open) return;
-    setForm(f => ({
-      ...f,
-      company_id: defaultCompanyId ?? f.company_id,
-      office_id: defaultOfficeId ?? f.office_id,
-    }));
+    setPending([]);
     supabase.from("companies").select("id, company_name").order("company_name")
       .then(({ data }) => setCompanies((data as { id: string; company_name: string }[]) ?? []));
     supabase.from("offices").select("id, code, status").order("code")
       .then(({ data }) => setOffices((data as { id: string; code: string; status: string }[]) ?? []));
-  }, [open, defaultCompanyId, defaultOfficeId]);
+    if (contractId) {
+      supabase.from("contracts").select("*").eq("id", contractId).maybeSingle().then(({ data }) => {
+        if (!data) return;
+        const c = data as Contract;
+        setForm({
+          company_id: c.company_id, office_id: c.office_id,
+          start_date: c.start_date, end_date: c.end_date,
+          rent_amount: String(c.rent_amount), deposit_amount: String(c.deposit_amount),
+          service_fees: String(c.service_fees), notes: c.notes ?? "",
+        });
+      });
+    } else {
+      setForm(f => ({
+        ...f,
+        company_id: defaultCompanyId ?? f.company_id,
+        office_id: defaultOfficeId ?? f.office_id,
+      }));
+    }
+  }, [open, defaultCompanyId, defaultOfficeId, contractId]);
+
+  const addFiles = (files: FileList | null) => {
+    if (!files) return;
+    setPending(p => [
+      ...p,
+      ...Array.from(files).map(f => ({ file: f, type: "نسخة العقد" as ContractAttachmentType })),
+    ]);
+  };
 
   const submit = async () => {
     if (!form.company_id || !form.office_id || !form.start_date || !form.end_date) {
@@ -259,7 +290,7 @@ export function ContractFormDialog({
     }
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
-    const { error } = await supabase.from("contracts").insert({
+    const payload = {
       company_id: form.company_id,
       office_id: form.office_id,
       start_date: form.start_date,
@@ -268,20 +299,43 @@ export function ContractFormDialog({
       deposit_amount: Number(form.deposit_amount) || 0,
       service_fees: Number(form.service_fees) || 0,
       notes: form.notes || null,
-      status: "ساري",
-      contract_number: "",
-      created_by: u.user?.id,
-    });
+    };
+
+    let targetId = contractId ?? null;
+    if (isEdit && contractId) {
+      const { data, error } = await supabase.from("contracts").update(payload).eq("id", contractId).select("id");
+      if (error) { setSaving(false); toast.error("فشل التعديل: " + error.message); return; }
+      if (!data || data.length === 0) { setSaving(false); toast.error("لا تملك صلاحية تعديل هذا العقد"); return; }
+    } else {
+      const { data, error } = await supabase.from("contracts").insert({
+        ...payload, status: "ساري", contract_number: "", created_by: u.user?.id,
+      }).select("id").single();
+      if (error || !data) { setSaving(false); toast.error("فشل الحفظ: " + (error?.message ?? "")); return; }
+      targetId = data.id;
+    }
+
+    // Upload pending attachments
+    if (targetId && pending.length > 0) {
+      for (const p of pending) {
+        const path = `${targetId}/${Date.now()}_${p.file.name}`;
+        const up = await supabase.storage.from("contracts").upload(path, p.file, { upsert: false });
+        if (up.error) { toast.error("فشل رفع " + p.file.name + ": " + up.error.message); continue; }
+        await supabase.from("contract_attachments").insert({
+          contract_id: targetId, attachment_type: p.type, file_name: p.file.name,
+          storage_path: path, mime_type: p.file.type, size_bytes: p.file.size, created_by: u.user?.id,
+        });
+      }
+    }
+
     setSaving(false);
-    if (error) { toast.error("فشل الحفظ: " + error.message); return; }
-    toast.success("تم إنشاء العقد");
+    toast.success(isEdit ? "تم تحديث العقد" : "تم إنشاء العقد");
     onSaved();
   };
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent dir="rtl" className="max-w-2xl">
-        <DialogHeader><DialogTitle>عقد جديد</DialogTitle></DialogHeader>
+      <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>{isEdit ? "تعديل العقد" : "عقد جديد"}</DialogTitle></DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <Label>المستأجر *</Label>
@@ -321,6 +375,36 @@ export function ContractFormDialog({
             <Label>ملاحظات</Label>
             <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </div>
+
+          <div className="md:col-span-2 border-t pt-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>المرفقات</Label>
+              <label className="cursor-pointer">
+                <input type="file" multiple className="hidden"
+                  onChange={(e) => { addFiles(e.target.files); e.currentTarget.value = ""; }} />
+                <Button asChild variant="outline" size="sm" type="button">
+                  <span>+ إضافة ملفات</span>
+                </Button>
+              </label>
+            </div>
+            {pending.length === 0 ? (
+              <p className="text-xs text-muted-foreground">يمكنك إرفاق نسخ العقد والهويات والمستندات الداعمة.</p>
+            ) : (
+              <div className="space-y-2">
+                {pending.map((p, i) => (
+                  <div key={i} className="flex items-center gap-2 p-2 border rounded-md">
+                    <span className="flex-1 text-sm truncate">{p.file.name}</span>
+                    <Select value={p.type} onValueChange={(v) => setPending(arr => arr.map((x, idx) => idx === i ? { ...x, type: v as ContractAttachmentType } : x))}>
+                      <SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger>
+                      <SelectContent>{CONTRACT_ATTACHMENT_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <Button size="sm" variant="ghost" type="button"
+                      onClick={() => setPending(arr => arr.filter((_, idx) => idx !== i))}>إزالة</Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>إلغاء</Button>
@@ -332,3 +416,5 @@ export function ContractFormDialog({
     </Dialog>
   );
 }
+
+

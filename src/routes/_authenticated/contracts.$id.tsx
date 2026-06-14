@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-  ArrowRight, Loader2, RotateCw, Ban, Upload, Download, Trash2, FileText, Receipt,
+  ArrowRight, Loader2, RotateCw, Ban, Upload, Download, Trash2, FileText, Receipt, Pencil,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -25,7 +25,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { CONTRACT_STATUS_STYLE, type ContractStatus } from "./contracts";
+import { CONTRACT_STATUS_STYLE, type ContractStatus, ContractFormDialog } from "./contracts.index";
 
 export const Route = createFileRoute("/_authenticated/contracts/$id")({
   component: ContractDetailsPage,
@@ -71,6 +71,7 @@ function ContractDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [renewOpen, setRenewOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
 
   const generateInvoices = async () => {
@@ -139,6 +140,11 @@ function ContractDetailsPage() {
               توليد الفواتير
             </Button>
           )}
+          {(isAdmin || hasRole("accountant")) && (
+            <Button variant="outline" onClick={() => setEditOpen(true)}>
+              <Pencil className="h-4 w-4 ms-1" /> تعديل
+            </Button>
+          )}
           {canManage && (
             <Button onClick={() => setRenewOpen(true)} className="bg-primary text-primary-foreground">
               <RotateCw className="h-4 w-4 ms-1" /> تجديد
@@ -194,6 +200,12 @@ function ContractDetailsPage() {
       <RenewDialog
         open={renewOpen} onClose={() => setRenewOpen(false)}
         contract={contract} onDone={() => { setRenewOpen(false); load(); }}
+      />
+
+      <ContractFormDialog
+        open={editOpen} onClose={() => setEditOpen(false)}
+        contractId={contract.id}
+        onSaved={() => { setEditOpen(false); load(); }}
       />
 
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>

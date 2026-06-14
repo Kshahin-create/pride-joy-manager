@@ -342,24 +342,29 @@ function ExpensesPage() {
                     <TableCell className="font-semibold">{fmt(e.amount)}</TableCell>
                     <TableCell><Badge className={STATUS_STYLE[e.status]}>{e.status}</Badge></TableCell>
                     <TableCell>
-                      {e.status === "معلّق" && canApprove && (
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline" onClick={() => changeStatus(e.id, "معتمد")}>
-                            <Check className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => {
-                            const r = prompt("سبب الرفض:");
-                            if (r) changeStatus(e.id, "مرفوض", r);
-                          }}>
-                            <X className="h-3 w-3 text-destructive" />
-                          </Button>
-                        </div>
-                      )}
-                      {e.status === "معتمد" && canPay && (
-                        <Button size="sm" variant="outline" onClick={() => changeStatus(e.id, "مدفوع")}>
-                          تأكيد الدفع
+                      <div className="flex gap-1 flex-wrap">
+                        <Button size="sm" variant="outline" onClick={() => openAttachments(e)} title="المرفقات">
+                          <Paperclip className="h-3 w-3" />
                         </Button>
-                      )}
+                        {e.status === "معلّق" && canApprove && (
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => changeStatus(e.id, "معتمد")}>
+                              <Check className="h-3 w-3" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => {
+                              const r = prompt("سبب الرفض:");
+                              if (r) changeStatus(e.id, "مرفوض", r);
+                            }}>
+                              <X className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </>
+                        )}
+                        {e.status === "معتمد" && canPay && (
+                          <Button size="sm" variant="outline" onClick={() => changeStatus(e.id, "مدفوع")}>
+                            تأكيد الدفع
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -27,6 +27,7 @@ import {
 import { toast } from "sonner";
 import { CONTRACT_STATUS_STYLE, type ContractStatus, ContractFormDialog } from "./contracts.index";
 import { DelegatesCard, LinkedOfficesCard, LinkedParkingCard } from "@/components/contract-relations";
+import { TaxFeesCard, DepositCard, PaymentScheduleCard } from "@/components/contract-financials";
 
 export const Route = createFileRoute("/_authenticated/contracts/$id")({
   component: ContractDetailsPage,

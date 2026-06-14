@@ -344,7 +344,7 @@ function MaintenancePage() {
     const labor_cost = Number(completeLaborCost || 0);
     if (partsCost + labor_cost <= 0) return toast.error("أدخل تكلفة مواد أو عمالة");
 
-    const { error } = await supabase.from("maintenance_requests").update({
+    const { data, error } = await supabase.from("maintenance_requests").update({
       status: "مكتمل مبدئياً",
       after_photo_url: after,
       materials_used: completeMaterials,
@@ -352,8 +352,9 @@ function MaintenancePage() {
       labor_cost,
       labor_hours: completeLaborHours ? Number(completeLaborHours) : null,
       notes: completeNotes.trim(),
-    } as any).eq("id", completeFor.id);
+    } as any).eq("id", completeFor.id).select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) return toast.error("لا تملك صلاحية تعديل هذا الطلب");
     toast.success("تم تسجيل الإنجاز — بانتظار الاعتماد");
     setCompleteFor(null); load();
   };

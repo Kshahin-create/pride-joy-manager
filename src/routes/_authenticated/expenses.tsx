@@ -58,6 +58,9 @@ function ExpensesPage() {
     category: "أخرى", description: "", amount: "", vendor_id: "",
     expense_date: new Date().toISOString().slice(0, 10), payment_method: "", notes: "",
   });
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [attachOpen, setAttachOpen] = useState<Expense | null>(null);
+  const [attachments, setAttachments] = useState<any[]>([]);
   const [payForm, setPayForm] = useState<any>({
     vendor_id: "", amount: "", payment_method: "تحويل بنكي",
     reference_number: "", expense_id: "", notes: "",

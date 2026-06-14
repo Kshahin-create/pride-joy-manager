@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Plus, Check, X, Banknote, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { Plus, Check, X, Banknote, TrendingUp, TrendingDown, Wallet, Paperclip, Download, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/expenses")({
   component: ExpensesPage,

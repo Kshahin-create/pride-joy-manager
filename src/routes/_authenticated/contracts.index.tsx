@@ -25,20 +25,50 @@ export const Route = createFileRoute("/_authenticated/contracts/")({
   component: ContractsPage,
 });
 
-export type ContractStatus = "ساري" | "منتهي" | "مجدد" | "ملغي";
-export const CONTRACT_STATUSES: ContractStatus[] = ["ساري", "منتهي", "مجدد", "ملغي"];
+export type ContractStatus =
+  | "مسودة" | "قيد المراجعة" | "بانتظار المستندات" | "بانتظار الاعتماد"
+  | "ساري" | "موقوف" | "متعثر" | "تحت التجديد"
+  | "مجدد" | "منتهي" | "مخلى" | "ملغي";
+
+export const CONTRACT_STATUSES: ContractStatus[] = [
+  "مسودة", "قيد المراجعة", "بانتظار المستندات", "بانتظار الاعتماد",
+  "ساري", "موقوف", "متعثر", "تحت التجديد",
+  "مجدد", "منتهي", "مخلى", "ملغي",
+];
+
 export const CONTRACT_STATUS_STYLE: Record<ContractStatus, string> = {
+  "مسودة": "bg-muted text-foreground",
+  "قيد المراجعة": "bg-secondary text-secondary-foreground",
+  "بانتظار المستندات": "bg-warning/20 text-warning-foreground",
+  "بانتظار الاعتماد": "bg-warning/20 text-warning-foreground",
   "ساري": "bg-success text-success-foreground",
-  "منتهي": "bg-muted-foreground/40 text-background",
+  "موقوف": "bg-muted-foreground/40 text-background",
+  "متعثر": "bg-destructive/20 text-destructive",
+  "تحت التجديد": "bg-primary/15 text-primary",
   "مجدد": "bg-primary/15 text-primary",
+  "منتهي": "bg-muted-foreground/40 text-background",
+  "مخلى": "bg-muted-foreground/40 text-background",
   "ملغي": "bg-destructive/20 text-destructive",
 };
+
+export type ContractType =
+  | "عقد إيجار مكتب" | "عقد إيجار عدة مكاتب" | "عقد حجز" | "عقد تجديد" | "ملحق عقد";
+export const CONTRACT_TYPES: ContractType[] = [
+  "عقد إيجار مكتب", "عقد إيجار عدة مكاتب", "عقد حجز", "عقد تجديد", "ملحق عقد",
+];
+
+export const ALERT_THRESHOLD_OPTIONS = [180, 90, 60, 30, 15, 7] as const;
 
 export interface Contract {
   id: string;
   contract_number: string;
+  contract_type: ContractType;
+  contract_name: string | null;
   company_id: string;
   office_id: string;
+  lessor_name: string | null;
+  lessor_cr: string | null;
+  lessor_id_number: string | null;
   start_date: string;
   end_date: string;
   rent_amount: number;
@@ -47,6 +77,11 @@ export interface Contract {
   status: ContractStatus;
   notes: string | null;
   renewed_from_id: string | null;
+  alert_thresholds_days: number[] | null;
+  auto_renew: boolean | null;
+  notice_period_days: number | null;
+  annual_increase_pct: number | null;
+  evacuation_date: string | null;
 }
 
 type ContractWithRefs = Contract & {

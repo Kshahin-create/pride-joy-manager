@@ -303,10 +303,11 @@ function MaintenancePage() {
   const saveHold = async () => {
     if (!holdFor) return;
     if (!holdReason.trim()) return toast.error("اكتب سبب التعليق");
-    const { error } = await supabase.from("maintenance_requests").update({
+    const { data, error } = await supabase.from("maintenance_requests").update({
       status: "معلّق", hold_reason: holdReason.trim(),
-    }).eq("id", holdFor.id);
+    }).eq("id", holdFor.id).select("id");
     if (error) return toast.error(error.message);
+    if (!data || data.length === 0) return toast.error("لا تملك صلاحية تعديل هذا الطلب");
     toast.success("تم التعليق");
     setHoldFor(null); load();
   };

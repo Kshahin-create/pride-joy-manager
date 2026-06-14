@@ -44,7 +44,7 @@ function AssetsPage() {
   const [form, setForm] = useState<Partial<Asset>>({ criticality: "عادي" });
 
   const load = async () => {
-    const { data, error } = scoped(await supabase
+    const { data, error } = await scoped(supabase
       .from("assets")
       .select("*"), activePropertyId)
       .order("criticality", { ascending: true })

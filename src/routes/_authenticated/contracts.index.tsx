@@ -112,7 +112,7 @@ function ContractsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = scoped(await supabase
+    const { data, error } = await scoped(supabase
       .from("contracts")
       .select("*, companies(id, company_name), offices(id, code)"), activePropertyId)
       .order("created_at", { ascending: false });
@@ -123,8 +123,7 @@ function ContractsPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  useEffect(() => {scoped(
-    supabase.from("companies").select("id, company_name"), activePropertyId).order("company_name")
+  useEffect(() => {scoped(supabase.from("companies").select("id, company_name"), activePropertyId).order("company_name")
       .then(({ data }) => setCompanies((data as { id: string; company_name: string }[]) ?? []));
   }, []);
 
@@ -301,13 +300,11 @@ export function ContractFormDialog({
 
   useEffect(() => {
     if (!open) return;
-    setPending([]);scoped(
-    supabase.from("companies").select("id, company_name"), activePropertyId).order("company_name")
+    setPending([]);scoped(supabase.from("companies").select("id, company_name"), activePropertyId).order("company_name")
       .then(({ data }) => setCompanies((data as { id: string; company_name: string }[]) ?? []));
     supabase.from("offices").select("id, code, status").order("code")
       .then(({ data }) => setOffices((data as { id: string; code: string; status: string }[]) ?? []));
-    if (contractId) {scoped(
-      supabase.from("contracts").select("*"), activePropertyId).eq("id", contractId).maybeSingle().then(({ data }) => {
+    if (contractId) {scoped(supabase.from("contracts").select("*"), activePropertyId).eq("id", contractId).maybeSingle().then(({ data }) => {
         if (!data) return;
         const c = data as Contract;
         setForm({

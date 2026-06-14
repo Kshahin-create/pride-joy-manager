@@ -77,7 +77,7 @@ function VendorsPage() {
 
     const in60 = new Date();
     in60.setDate(in60.getDate() + 60);
-    const { data: cs } = scoped(await (supabase as any)
+    const { data: cs } = await scoped((supabase as any)
       .from("vendor_contracts")
       .select("id"), activePropertyId)
       .lte("end_date", in60.toISOString().slice(0, 10))

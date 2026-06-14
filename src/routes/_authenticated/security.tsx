@@ -93,7 +93,7 @@ function GuardsTab() {
     setLoading(true);
     // Use safe view for non-admins (no salary), full table for admins
     const q = isAdmin
-      ? scoped(await supabase.from("guards").select("*"), activePropertyId).order("full_name")
+      ? await scoped(supabase.from("guards").select("*"), activePropertyId).order("full_name")
       : await supabase.from("guards_safe").select("*").order("full_name");
     if (q.error) toast.error(q.error.message);
     setGuards((q.data as unknown as Guard[]) ?? []);
@@ -325,15 +325,14 @@ function PatrolsTab() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [p, g] = await Promise.all([scoped(
-      supabase.from("patrols").select("*"), activePropertyId).order("start_time", { ascending: false }).limit(50),
+    const [p, g] = await Promise.all([scoped(supabase.from("patrols").select("*"), activePropertyId).order("start_time", { ascending: false }).limit(50),
       supabase.from("guards_safe").select("id, full_name, employee_number").order("full_name"),
     ]);
     setPatrols((p.data as Patrol[]) ?? []);
     setGuards((g.data as Guard[]) ?? []);
     const ids = (p.data ?? []).map((x: { id: string }) => x.id);
     if (ids.length > 0) {
-      const { data: ch } = scoped(await supabase.from("patrol_checkpoints").select("*"), activePropertyId).in("patrol_id", ids).order("visit_time");
+      const { data: ch } = await scoped(supabase.from("patrol_checkpoints").select("*"), activePropertyId).in("patrol_id", ids).order("visit_time");
       const map: Record<string, Checkpoint[]> = {};
       (ch as Checkpoint[] ?? []).forEach(c => {
         (map[c.patrol_id] ??= []).push(c);
@@ -523,7 +522,7 @@ function IncidentsTab() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = scoped(await supabase.from("security_incidents")
+    const { data, error } = await scoped(supabase.from("security_incidents")
       .select("*"), activePropertyId).order("incident_date", { ascending: false });
     if (error) toast.error(error.message);
     setItems((data as Incident[]) ?? []);

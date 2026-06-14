@@ -87,10 +87,8 @@ function ParkingPage() {
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
 
   const load = async () => {
-    const [s, o, c, mc, cl, vi] = await Promise.all([scoped(
-      (supabase as any).from("parking_spots").select("*"), activePropertyId).order("floor").order("spot_number"),
-      (supabase as any).from("offices").select("id, code").order("code"),scoped(
-      (supabase as any).from("cameras").select("id, camera_number, location"), activePropertyId).order("camera_number"),
+    const [s, o, c, mc, cl, vi] = await Promise.all([scoped((supabase as any).from("parking_spots").select("*"), activePropertyId).order("floor").order("spot_number"),
+      (supabase as any).from("offices").select("id, code").order("code"),scoped((supabase as any).from("cameras").select("id, camera_number, location"), activePropertyId).order("camera_number"),
       (supabase as any).from("parking_maintenance_checks").select("*").order("check_date", { ascending: false }),
       (supabase as any).from("parking_cleaning_logs").select("*").order("cleaning_date", { ascending: false }),
       (supabase as any).from("parking_violations").select("*, parking_spots(spot_number, floor)").order("violation_date", { ascending: false }),

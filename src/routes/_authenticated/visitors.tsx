@@ -49,8 +49,7 @@ function VisitorsPage() {
   });
 
   const load = async () => {
-    const [v, o] = await Promise.all([scoped(
-      supabase.from("visitors").select("*"), activePropertyId).order("check_in_at", { ascending: false }).limit(500),
+    const [v, o] = await Promise.all([scoped(supabase.from("visitors").select("*"), activePropertyId).order("check_in_at", { ascending: false }).limit(500),
       supabase.from("offices").select("id,code,floor").order("code"),
     ]);
     if (v.error) toast.error(v.error.message); else setItems((v.data ?? []) as Visitor[]);

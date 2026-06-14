@@ -111,9 +111,7 @@ function InspectionsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [t, i] = await Promise.all([scoped(
-      (supabase as any).from("inspection_templates").select("*"), activePropertyId).eq("active", true).order("frequency"),scoped(
-      (supabase as any)
+    const [t, i] = await Promise.all([scoped((supabase as any).from("inspection_templates").select("*"), activePropertyId).eq("active", true).order("frequency"),scoped((supabase as any)
         .from("inspections")
         .select("*, inspection_templates(template_name, frequency)"), activePropertyId)
         .order("inspection_date", { ascending: false })

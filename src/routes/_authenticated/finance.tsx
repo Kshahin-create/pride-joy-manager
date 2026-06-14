@@ -86,10 +86,7 @@ function FinancePage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [invRes, payRes, coRes] = await Promise.all([scoped(
-      supabase.from("invoices").select("*, companies(id, company_name), contracts(id, contract_number)"), activePropertyId).order("due_date", { ascending: false }),scoped(
-      supabase.from("payments").select("*, invoices(invoice_number, companies(company_name))"), activePropertyId).order("payment_date", { ascending: false }),scoped(
-      supabase.from("companies").select("id, company_name"), activePropertyId).order("company_name"),
+    const [invRes, payRes, coRes] = await Promise.all([scoped(supabase.from("invoices").select("*, companies(id, company_name), contracts(id, contract_number)"), activePropertyId).order("due_date", { ascending: false }),scoped(supabase.from("payments").select("*, invoices(invoice_number, companies(company_name))"), activePropertyId).order("payment_date", { ascending: false }),scoped(supabase.from("companies").select("id, company_name"), activePropertyId).order("company_name"),
     ]);
     if (invRes.error) toast.error(invRes.error.message);
     setInvoices((invRes.data as Invoice[]) ?? []);

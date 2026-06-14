@@ -189,6 +189,9 @@ function ContractDetailsPage() {
         </CardContent>
       </Card>
 
+      <DelegatesCard contractId={contract.id} canManage={canUpload} />
+      <LinkedOfficesCard contractId={contract.id} canManage={canUpload} />
+      <LinkedParkingCard contractId={contract.id} canManage={canUpload} />
       <AttachmentsCard contractId={contract.id} canUpload={canUpload} canDelete={isAdmin} />
 
       <Card>

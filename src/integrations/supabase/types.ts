@@ -71,6 +71,7 @@ export type Database = {
           manufacturer: string | null
           notes: string | null
           office_id: string
+          property_id: string
           unit_number: string
           updated_at: string
           warranty_end_date: string | null
@@ -87,6 +88,7 @@ export type Database = {
           manufacturer?: string | null
           notes?: string | null
           office_id: string
+          property_id?: string
           unit_number: string
           updated_at?: string
           warranty_end_date?: string | null
@@ -103,6 +105,7 @@ export type Database = {
           manufacturer?: string | null
           notes?: string | null
           office_id?: string
+          property_id?: string
           unit_number?: string
           updated_at?: string
           warranty_end_date?: string | null
@@ -113,6 +116,13 @@ export type Database = {
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ac_units_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -229,6 +239,7 @@ export type Database = {
           location: string | null
           manufacturer: string | null
           notes: string | null
+          property_id: string
           responsible_person: string | null
           serial_number: string | null
           space_id: string | null
@@ -248,6 +259,7 @@ export type Database = {
           location?: string | null
           manufacturer?: string | null
           notes?: string | null
+          property_id?: string
           responsible_person?: string | null
           serial_number?: string | null
           space_id?: string | null
@@ -267,6 +279,7 @@ export type Database = {
           location?: string | null
           manufacturer?: string | null
           notes?: string | null
+          property_id?: string
           responsible_person?: string | null
           serial_number?: string | null
           space_id?: string | null
@@ -275,6 +288,13 @@ export type Database = {
           warranty_end_date?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "assets_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "assets_space_id_fkey"
             columns: ["space_id"]
@@ -359,6 +379,7 @@ export type Database = {
           location: string | null
           metadata: Json | null
           module: string
+          property_id: string
           updated_at: string
         }
         Insert: {
@@ -372,6 +393,7 @@ export type Database = {
           location?: string | null
           metadata?: Json | null
           module: string
+          property_id?: string
           updated_at?: string
         }
         Update: {
@@ -385,9 +407,18 @@ export type Database = {
           location?: string | null
           metadata?: Json | null
           module?: string
+          property_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "building_log_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       camera_maintenance_logs: {
         Row: {
@@ -443,6 +474,7 @@ export type Database = {
           location: string
           next_maintenance_date: string | null
           notes: string | null
+          property_id: string
           status: Database["public"]["Enums"]["camera_status"]
           updated_at: string
         }
@@ -455,6 +487,7 @@ export type Database = {
           location: string
           next_maintenance_date?: string | null
           notes?: string | null
+          property_id?: string
           status?: Database["public"]["Enums"]["camera_status"]
           updated_at?: string
         }
@@ -467,10 +500,19 @@ export type Database = {
           location?: string
           next_maintenance_date?: string | null
           notes?: string | null
+          property_id?: string
           status?: Database["public"]["Enums"]["camera_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cameras_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cleaning_contract_attachments: {
         Row: {
@@ -545,6 +587,7 @@ export type Database = {
           payment_frequency:
             | Database["public"]["Enums"]["cleaning_payment_frequency"]
             | null
+          property_id: string
           restroom_supplies: string[] | null
           scope_areas: string[] | null
           shift_end: string | null
@@ -592,6 +635,7 @@ export type Database = {
           payment_frequency?:
             | Database["public"]["Enums"]["cleaning_payment_frequency"]
             | null
+          property_id?: string
           restroom_supplies?: string[] | null
           scope_areas?: string[] | null
           shift_end?: string | null
@@ -639,6 +683,7 @@ export type Database = {
           payment_frequency?:
             | Database["public"]["Enums"]["cleaning_payment_frequency"]
             | null
+          property_id?: string
           restroom_supplies?: string[] | null
           scope_areas?: string[] | null
           shift_end?: string | null
@@ -662,6 +707,13 @@ export type Database = {
           vendor_tax_number?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cleaning_contracts_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cleaning_contracts_vendor_id_fkey"
             columns: ["vendor_id"]
@@ -737,6 +789,7 @@ export type Database = {
           frequency: Database["public"]["Enums"]["cleaning_frequency"]
           id: string
           notes: string | null
+          property_id: string
           supervisor: string | null
           updated_at: string
         }
@@ -748,6 +801,7 @@ export type Database = {
           frequency?: Database["public"]["Enums"]["cleaning_frequency"]
           id?: string
           notes?: string | null
+          property_id?: string
           supervisor?: string | null
           updated_at?: string
         }
@@ -759,10 +813,19 @@ export type Database = {
           frequency?: Database["public"]["Enums"]["cleaning_frequency"]
           id?: string
           notes?: string | null
+          property_id?: string
           supervisor?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_plans_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       client_interactions: {
         Row: {
@@ -864,6 +927,7 @@ export type Database = {
           id: string
           notes: string | null
           phone: string | null
+          property_id: string
           status: Database["public"]["Enums"]["client_status"]
           tax_number: string | null
           updated_at: string
@@ -878,6 +942,7 @@ export type Database = {
           id?: string
           notes?: string | null
           phone?: string | null
+          property_id?: string
           status?: Database["public"]["Enums"]["client_status"]
           tax_number?: string | null
           updated_at?: string
@@ -892,11 +957,20 @@ export type Database = {
           id?: string
           notes?: string | null
           phone?: string | null
+          property_id?: string
           status?: Database["public"]["Enums"]["client_status"]
           tax_number?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "companies_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       company_attachments: {
         Row: {
@@ -1314,6 +1388,7 @@ export type Database = {
           notice_period_days: number | null
           office_id: string
           operating_fees: number | null
+          property_id: string
           renewed_from_id: string | null
           rent_amount: number
           service_fees: number
@@ -1351,6 +1426,7 @@ export type Database = {
           notice_period_days?: number | null
           office_id: string
           operating_fees?: number | null
+          property_id?: string
           renewed_from_id?: string | null
           rent_amount?: number
           service_fees?: number
@@ -1388,6 +1464,7 @@ export type Database = {
           notice_period_days?: number | null
           office_id?: string
           operating_fees?: number | null
+          property_id?: string
           renewed_from_id?: string | null
           rent_amount?: number
           service_fees?: number
@@ -1414,6 +1491,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contracts_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contracts_renewed_from_id_fkey"
             columns: ["renewed_from_id"]
             isOneToOne: false
@@ -1436,6 +1520,7 @@ export type Database = {
           issue_date: string | null
           mime_type: string | null
           notes: string | null
+          property_id: string
           title: string
           updated_at: string
           uploaded_by: string | null
@@ -1453,6 +1538,7 @@ export type Database = {
           issue_date?: string | null
           mime_type?: string | null
           notes?: string | null
+          property_id?: string
           title: string
           updated_at?: string
           uploaded_by?: string | null
@@ -1470,11 +1556,20 @@ export type Database = {
           issue_date?: string | null
           mime_type?: string | null
           notes?: string | null
+          property_id?: string
           title?: string
           updated_at?: string
           uploaded_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "documents_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       electricity_meters: {
         Row: {
@@ -1486,6 +1581,7 @@ export type Database = {
           meter_status: string
           notes: string | null
           office_id: string
+          property_id: string
           updated_at: string
           utility_account_number: string | null
         }
@@ -1498,6 +1594,7 @@ export type Database = {
           meter_status?: string
           notes?: string | null
           office_id: string
+          property_id?: string
           updated_at?: string
           utility_account_number?: string | null
         }
@@ -1510,6 +1607,7 @@ export type Database = {
           meter_status?: string
           notes?: string | null
           office_id?: string
+          property_id?: string
           updated_at?: string
           utility_account_number?: string | null
         }
@@ -1519,6 +1617,13 @@ export type Database = {
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "electricity_meters_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -1582,6 +1687,7 @@ export type Database = {
           notes: string | null
           paid_at: string | null
           payment_method: string | null
+          property_id: string
           rejection_reason: string | null
           space_id: string | null
           status: Database["public"]["Enums"]["expense_status"]
@@ -1605,6 +1711,7 @@ export type Database = {
           notes?: string | null
           paid_at?: string | null
           payment_method?: string | null
+          property_id?: string
           rejection_reason?: string | null
           space_id?: string | null
           status?: Database["public"]["Enums"]["expense_status"]
@@ -1628,6 +1735,7 @@ export type Database = {
           notes?: string | null
           paid_at?: string | null
           payment_method?: string | null
+          property_id?: string
           rejection_reason?: string | null
           space_id?: string | null
           status?: Database["public"]["Enums"]["expense_status"]
@@ -1647,6 +1755,13 @@ export type Database = {
             columns: ["maintenance_request_id"]
             isOneToOne: false
             referencedRelation: "maintenance_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
           {
@@ -1937,6 +2052,7 @@ export type Database = {
           nationality: string | null
           notes: string | null
           photo_url: string | null
+          property_id: string
           salary: number | null
           security_company: string | null
           shift_type: Database["public"]["Enums"]["shift_type"] | null
@@ -1961,6 +2077,7 @@ export type Database = {
           nationality?: string | null
           notes?: string | null
           photo_url?: string | null
+          property_id?: string
           salary?: number | null
           security_company?: string | null
           shift_type?: Database["public"]["Enums"]["shift_type"] | null
@@ -1985,6 +2102,7 @@ export type Database = {
           nationality?: string | null
           notes?: string | null
           photo_url?: string | null
+          property_id?: string
           salary?: number | null
           security_company?: string | null
           shift_type?: Database["public"]["Enums"]["shift_type"] | null
@@ -1993,7 +2111,15 @@ export type Database = {
           working_days?: string | null
           working_hours?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "guards_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inspection_results: {
         Row: {
@@ -2053,6 +2179,7 @@ export type Database = {
           frequency: Database["public"]["Enums"]["inspection_frequency"]
           id: string
           items: Json
+          property_id: string
           template_name: string
           updated_at: string
         }
@@ -2062,6 +2189,7 @@ export type Database = {
           frequency: Database["public"]["Enums"]["inspection_frequency"]
           id?: string
           items?: Json
+          property_id?: string
           template_name: string
           updated_at?: string
         }
@@ -2071,10 +2199,19 @@ export type Database = {
           frequency?: Database["public"]["Enums"]["inspection_frequency"]
           id?: string
           items?: Json
+          property_id?: string
           template_name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "inspection_templates_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inspections: {
         Row: {
@@ -2085,6 +2222,7 @@ export type Database = {
           inspector_name: string | null
           notes: string | null
           overall_result: Database["public"]["Enums"]["inspection_overall"]
+          property_id: string
           space_id: string | null
           template_id: string
           updated_at: string
@@ -2097,6 +2235,7 @@ export type Database = {
           inspector_name?: string | null
           notes?: string | null
           overall_result?: Database["public"]["Enums"]["inspection_overall"]
+          property_id?: string
           space_id?: string | null
           template_id: string
           updated_at?: string
@@ -2109,11 +2248,19 @@ export type Database = {
           inspector_name?: string | null
           notes?: string | null
           overall_result?: Database["public"]["Enums"]["inspection_overall"]
+          property_id?: string
           space_id?: string | null
           template_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "inspections_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "inspections_space_id_fkey"
             columns: ["space_id"]
@@ -2144,6 +2291,7 @@ export type Database = {
           invoice_type: Database["public"]["Enums"]["invoice_type"]
           issue_date: string
           notes: string | null
+          property_id: string
           status: Database["public"]["Enums"]["invoice_status"]
           updated_at: string
         }
@@ -2160,6 +2308,7 @@ export type Database = {
           invoice_type: Database["public"]["Enums"]["invoice_type"]
           issue_date?: string
           notes?: string | null
+          property_id?: string
           status?: Database["public"]["Enums"]["invoice_status"]
           updated_at?: string
         }
@@ -2176,6 +2325,7 @@ export type Database = {
           invoice_type?: Database["public"]["Enums"]["invoice_type"]
           issue_date?: string
           notes?: string | null
+          property_id?: string
           status?: Database["public"]["Enums"]["invoice_status"]
           updated_at?: string
         }
@@ -2192,6 +2342,13 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -2225,6 +2382,7 @@ export type Database = {
           parts_cost: number
           pm_plan_id: string | null
           priority: Database["public"]["Enums"]["wo_priority"]
+          property_id: string
           reported_by: string | null
           reporter_name: string | null
           request_date: string
@@ -2271,6 +2429,7 @@ export type Database = {
           parts_cost?: number
           pm_plan_id?: string | null
           priority?: Database["public"]["Enums"]["wo_priority"]
+          property_id?: string
           reported_by?: string | null
           reporter_name?: string | null
           request_date?: string
@@ -2317,6 +2476,7 @@ export type Database = {
           parts_cost?: number
           pm_plan_id?: string | null
           priority?: Database["public"]["Enums"]["wo_priority"]
+          property_id?: string
           reported_by?: string | null
           reporter_name?: string | null
           request_date?: string
@@ -2365,6 +2525,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "maintenance_requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "maintenance_requests_space_id_fkey"
             columns: ["space_id"]
             isOneToOne: false
@@ -2382,6 +2549,7 @@ export type Database = {
           notes: string | null
           office_id: string
           phone_point: string | null
+          property_id: string
           service_provider: string | null
           updated_at: string
         }
@@ -2393,6 +2561,7 @@ export type Database = {
           notes?: string | null
           office_id: string
           phone_point?: string | null
+          property_id?: string
           service_provider?: string | null
           updated_at?: string
         }
@@ -2404,6 +2573,7 @@ export type Database = {
           notes?: string | null
           office_id?: string
           phone_point?: string | null
+          property_id?: string
           service_provider?: string | null
           updated_at?: string
         }
@@ -2413,6 +2583,13 @@ export type Database = {
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "network_points_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -2527,6 +2704,7 @@ export type Database = {
           notes: string | null
           office_number: string
           parking_count: number
+          property_id: string
           space_id: string | null
           status: Database["public"]["Enums"]["office_status"]
           updated_at: string
@@ -2543,6 +2721,7 @@ export type Database = {
           notes?: string | null
           office_number: string
           parking_count?: number
+          property_id?: string
           space_id?: string | null
           status?: Database["public"]["Enums"]["office_status"]
           updated_at?: string
@@ -2559,12 +2738,20 @@ export type Database = {
           notes?: string | null
           office_number?: string
           parking_count?: number
+          property_id?: string
           space_id?: string | null
           status?: Database["public"]["Enums"]["office_status"]
           updated_at?: string
           view_type?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "offices_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "offices_space_id_fkey"
             columns: ["space_id"]
@@ -2671,6 +2858,7 @@ export type Database = {
           location_description: string | null
           notes: string | null
           office_id: string | null
+          property_id: string
           space_id: string | null
           spot_number: string
           spot_type: Database["public"]["Enums"]["parking_spot_type"]
@@ -2686,6 +2874,7 @@ export type Database = {
           location_description?: string | null
           notes?: string | null
           office_id?: string | null
+          property_id?: string
           space_id?: string | null
           spot_number: string
           spot_type?: Database["public"]["Enums"]["parking_spot_type"]
@@ -2701,6 +2890,7 @@ export type Database = {
           location_description?: string | null
           notes?: string | null
           office_id?: string | null
+          property_id?: string
           space_id?: string | null
           spot_number?: string
           spot_type?: Database["public"]["Enums"]["parking_spot_type"]
@@ -2720,6 +2910,13 @@ export type Database = {
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parking_spots_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
           {
@@ -2790,6 +2987,7 @@ export type Database = {
           notes: string | null
           patrol_id: string
           photo_path: string | null
+          property_id: string
           visit_time: string
         }
         Insert: {
@@ -2800,6 +2998,7 @@ export type Database = {
           notes?: string | null
           patrol_id: string
           photo_path?: string | null
+          property_id?: string
           visit_time?: string
         }
         Update: {
@@ -2810,6 +3009,7 @@ export type Database = {
           notes?: string | null
           patrol_id?: string
           photo_path?: string | null
+          property_id?: string
           visit_time?: string
         }
         Relationships: [
@@ -2818,6 +3018,13 @@ export type Database = {
             columns: ["patrol_id"]
             isOneToOne: false
             referencedRelation: "patrols"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patrol_checkpoints_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -2831,6 +3038,7 @@ export type Database = {
           id: string
           notes: string | null
           patrol_number: string
+          property_id: string
           start_time: string
           updated_at: string
         }
@@ -2842,6 +3050,7 @@ export type Database = {
           id?: string
           notes?: string | null
           patrol_number: string
+          property_id?: string
           start_time?: string
           updated_at?: string
         }
@@ -2853,6 +3062,7 @@ export type Database = {
           id?: string
           notes?: string | null
           patrol_number?: string
+          property_id?: string
           start_time?: string
           updated_at?: string
         }
@@ -2871,6 +3081,13 @@ export type Database = {
             referencedRelation: "guards_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "patrols_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
         ]
       }
       payments: {
@@ -2883,6 +3100,7 @@ export type Database = {
           notes: string | null
           payment_date: string
           payment_method: Database["public"]["Enums"]["payment_method"]
+          property_id: string
           receipt_file_url: string | null
           receipt_number: string
           updated_at: string
@@ -2896,6 +3114,7 @@ export type Database = {
           notes?: string | null
           payment_date?: string
           payment_method: Database["public"]["Enums"]["payment_method"]
+          property_id?: string
           receipt_file_url?: string | null
           receipt_number: string
           updated_at?: string
@@ -2909,6 +3128,7 @@ export type Database = {
           notes?: string | null
           payment_date?: string
           payment_method?: Database["public"]["Enums"]["payment_method"]
+          property_id?: string
           receipt_file_url?: string | null
           receipt_number?: string
           updated_at?: string
@@ -2919,6 +3139,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -2938,6 +3165,7 @@ export type Database = {
           next_due_at: string
           notes: string | null
           plan_name: string
+          property_id: string
           space_id: string | null
           updated_at: string
         }
@@ -2955,6 +3183,7 @@ export type Database = {
           next_due_at?: string
           notes?: string | null
           plan_name: string
+          property_id?: string
           space_id?: string | null
           updated_at?: string
         }
@@ -2972,6 +3201,7 @@ export type Database = {
           next_due_at?: string
           notes?: string | null
           plan_name?: string
+          property_id?: string
           space_id?: string | null
           updated_at?: string
         }
@@ -2981,6 +3211,13 @@ export type Database = {
             columns: ["asset_id"]
             isOneToOne: false
             referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pm_plans_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
           {
@@ -3022,6 +3259,90 @@ export type Database = {
           is_active?: boolean
           phone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      properties: {
+        Row: {
+          address: string | null
+          city: string | null
+          code: string | null
+          country: string | null
+          cr_number: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          management_company: string | null
+          management_start_date: string | null
+          name: string
+          notes: string | null
+          owner_name: string | null
+          phone: string | null
+          property_type: Database["public"]["Enums"]["property_type"]
+          status: Database["public"]["Enums"]["property_status"]
+          total_area: number | null
+          total_floors: number | null
+          updated_at: string
+          vat_number: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          code?: string | null
+          country?: string | null
+          cr_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          management_company?: string | null
+          management_start_date?: string | null
+          name: string
+          notes?: string | null
+          owner_name?: string | null
+          phone?: string | null
+          property_type?: Database["public"]["Enums"]["property_type"]
+          status?: Database["public"]["Enums"]["property_status"]
+          total_area?: number | null
+          total_floors?: number | null
+          updated_at?: string
+          vat_number?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          code?: string | null
+          country?: string | null
+          cr_number?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          management_company?: string | null
+          management_start_date?: string | null
+          name?: string
+          notes?: string | null
+          owner_name?: string | null
+          phone?: string | null
+          property_type?: Database["public"]["Enums"]["property_type"]
+          status?: Database["public"]["Enums"]["property_status"]
+          total_area?: number | null
+          total_floors?: number | null
+          updated_at?: string
+          vat_number?: string | null
+          website?: string | null
         }
         Relationships: []
       }
@@ -3073,6 +3394,7 @@ export type Database = {
           incident_type: string
           location: string
           photos: Json
+          property_id: string
           space_id: string | null
           status: Database["public"]["Enums"]["incident_status"]
           updated_at: string
@@ -3091,6 +3413,7 @@ export type Database = {
           incident_type: string
           location: string
           photos?: Json
+          property_id?: string
           space_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"]
           updated_at?: string
@@ -3109,11 +3432,19 @@ export type Database = {
           incident_type?: string
           location?: string
           photos?: Json
+          property_id?: string
           space_id?: string | null
           status?: Database["public"]["Enums"]["incident_status"]
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "security_incidents_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "security_incidents_space_id_fkey"
             columns: ["space_id"]
@@ -3132,6 +3463,7 @@ export type Database = {
           id: string
           notes: string | null
           parent_space_id: string | null
+          property_id: string
           space_code: string
           space_name: string
           space_type: Database["public"]["Enums"]["space_type"]
@@ -3146,6 +3478,7 @@ export type Database = {
           id?: string
           notes?: string | null
           parent_space_id?: string | null
+          property_id?: string
           space_code: string
           space_name: string
           space_type: Database["public"]["Enums"]["space_type"]
@@ -3160,6 +3493,7 @@ export type Database = {
           id?: string
           notes?: string | null
           parent_space_id?: string | null
+          property_id?: string
           space_code?: string
           space_name?: string
           space_type?: Database["public"]["Enums"]["space_type"]
@@ -3172,6 +3506,13 @@ export type Database = {
             columns: ["parent_space_id"]
             isOneToOne: false
             referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "spaces_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -3256,6 +3597,7 @@ export type Database = {
           maintenance_request_id: string | null
           office_id: string | null
           priority: Database["public"]["Enums"]["ticket_priority"]
+          property_id: string
           resolution_notes: string | null
           space_id: string | null
           status: Database["public"]["Enums"]["ticket_status"]
@@ -3276,6 +3618,7 @@ export type Database = {
           maintenance_request_id?: string | null
           office_id?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
+          property_id?: string
           resolution_notes?: string | null
           space_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
@@ -3296,6 +3639,7 @@ export type Database = {
           maintenance_request_id?: string | null
           office_id?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
+          property_id?: string
           resolution_notes?: string | null
           space_id?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
@@ -3326,10 +3670,49 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tickets_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tickets_space_id_fkey"
             columns: ["space_id"]
             isOneToOne: false
             referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_properties: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean | null
+          property_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          property_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          property_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_properties_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
         ]
@@ -3400,6 +3783,7 @@ export type Database = {
           end_date: string
           id: string
           notes: string | null
+          property_id: string
           start_date: string
           updated_at: string
           vendor_id: string
@@ -3413,6 +3797,7 @@ export type Database = {
           end_date: string
           id?: string
           notes?: string | null
+          property_id?: string
           start_date: string
           updated_at?: string
           vendor_id: string
@@ -3426,11 +3811,19 @@ export type Database = {
           end_date?: string
           id?: string
           notes?: string | null
+          property_id?: string
           start_date?: string
           updated_at?: string
           vendor_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "vendor_contracts_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "vendor_contracts_vendor_id_fkey"
             columns: ["vendor_id"]
@@ -3499,6 +3892,7 @@ export type Database = {
           payment_date: string
           payment_method: string | null
           payment_number: string | null
+          property_id: string
           reference_number: string | null
           updated_at: string
           vendor_contract_id: string | null
@@ -3515,6 +3909,7 @@ export type Database = {
           payment_date?: string
           payment_method?: string | null
           payment_number?: string | null
+          property_id?: string
           reference_number?: string | null
           updated_at?: string
           vendor_contract_id?: string | null
@@ -3531,6 +3926,7 @@ export type Database = {
           payment_date?: string
           payment_method?: string | null
           payment_number?: string | null
+          property_id?: string
           reference_number?: string | null
           updated_at?: string
           vendor_contract_id?: string | null
@@ -3542,6 +3938,13 @@ export type Database = {
             columns: ["expense_id"]
             isOneToOne: false
             referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_payments_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
           {
@@ -3620,6 +4023,7 @@ export type Database = {
           notes: string | null
           office_id: string | null
           phone: string | null
+          property_id: string
           purpose: string | null
           received_by_guard_id: string | null
           space_id: string | null
@@ -3646,6 +4050,7 @@ export type Database = {
           notes?: string | null
           office_id?: string | null
           phone?: string | null
+          property_id?: string
           purpose?: string | null
           received_by_guard_id?: string | null
           space_id?: string | null
@@ -3672,6 +4077,7 @@ export type Database = {
           notes?: string | null
           office_id?: string | null
           phone?: string | null
+          property_id?: string
           purpose?: string | null
           received_by_guard_id?: string | null
           space_id?: string | null
@@ -3694,6 +4100,13 @@ export type Database = {
             columns: ["office_id"]
             isOneToOne: false
             referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitors_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
             referencedColumns: ["id"]
           },
           {
@@ -3836,6 +4249,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]
       }
+      get_user_default_property: { Args: { _user_id: string }; Returns: string }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"][]
@@ -3882,6 +4296,10 @@ export type Database = {
           _new_start: string
         }
         Returns: string
+      }
+      user_has_property: {
+        Args: { _property_id: string; _user_id: string }
+        Returns: boolean
       }
       verify_api_key: {
         Args: { _key: string }
@@ -4029,6 +4447,15 @@ export type Database = {
       payment_schedule_status: "مجدول" | "مستحق" | "مدفوع" | "متأخر" | "ملغي"
       penalty_reward_type: "مخالفة" | "إنذار" | "مكافأة"
       pm_frequency: "أسبوعي" | "شهري" | "ربع سنوي" | "نصف سنوي" | "سنوي"
+      property_status: "نشط" | "غير نشط" | "أرشيف"
+      property_type:
+        | "برج"
+        | "مجمع تجاري"
+        | "مركز تجاري"
+        | "مدينة صناعية"
+        | "مجمع إداري"
+        | "مجمع سكني"
+        | "عقار آخر"
       shift_type: "صباحي" | "مسائي" | "ليلي"
       space_status: "نشط" | "تحت الصيانة" | "مغلق"
       space_type:
@@ -4344,6 +4771,16 @@ export const Constants = {
       payment_schedule_status: ["مجدول", "مستحق", "مدفوع", "متأخر", "ملغي"],
       penalty_reward_type: ["مخالفة", "إنذار", "مكافأة"],
       pm_frequency: ["أسبوعي", "شهري", "ربع سنوي", "نصف سنوي", "سنوي"],
+      property_status: ["نشط", "غير نشط", "أرشيف"],
+      property_type: [
+        "برج",
+        "مجمع تجاري",
+        "مركز تجاري",
+        "مدينة صناعية",
+        "مجمع إداري",
+        "مجمع سكني",
+        "عقار آخر",
+      ],
       shift_type: ["صباحي", "مسائي", "ليلي"],
       space_status: ["نشط", "تحت الصيانة", "مغلق"],
       space_type: [

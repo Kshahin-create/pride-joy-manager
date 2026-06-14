@@ -21,6 +21,7 @@ import { Route as AuthenticatedTenantsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedTelegramRouteImport } from './routes/_authenticated/telegram'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedRolesRouteImport } from './routes/_authenticated/roles'
+import { Route as AuthenticatedPropertiesRouteImport } from './routes/_authenticated/properties'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPmPlansRouteImport } from './routes/_authenticated/pm-plans'
 import { Route as AuthenticatedPermissionsRouteImport } from './routes/_authenticated/permissions'
@@ -113,6 +114,11 @@ const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
 const AuthenticatedRolesRoute = AuthenticatedRolesRouteImport.update({
   id: '/roles',
   path: '/roles',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPropertiesRoute = AuthenticatedPropertiesRouteImport.update({
+  id: '/properties',
+  path: '/properties',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
@@ -327,6 +333,7 @@ export interface FileRoutesByFullPath {
   '/permissions': typeof AuthenticatedPermissionsRoute
   '/pm-plans': typeof AuthenticatedPmPlansRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/properties': typeof AuthenticatedPropertiesRoute
   '/roles': typeof AuthenticatedRolesRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/telegram': typeof AuthenticatedTelegramRoute
@@ -374,6 +381,7 @@ export interface FileRoutesByTo {
   '/permissions': typeof AuthenticatedPermissionsRoute
   '/pm-plans': typeof AuthenticatedPmPlansRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/properties': typeof AuthenticatedPropertiesRoute
   '/roles': typeof AuthenticatedRolesRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/telegram': typeof AuthenticatedTelegramRoute
@@ -423,6 +431,7 @@ export interface FileRoutesById {
   '/_authenticated/permissions': typeof AuthenticatedPermissionsRoute
   '/_authenticated/pm-plans': typeof AuthenticatedPmPlansRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/properties': typeof AuthenticatedPropertiesRoute
   '/_authenticated/roles': typeof AuthenticatedRolesRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRouteWithChildren
   '/_authenticated/telegram': typeof AuthenticatedTelegramRoute
@@ -472,6 +481,7 @@ export interface FileRouteTypes {
     | '/permissions'
     | '/pm-plans'
     | '/profile'
+    | '/properties'
     | '/roles'
     | '/security'
     | '/telegram'
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/permissions'
     | '/pm-plans'
     | '/profile'
+    | '/properties'
     | '/roles'
     | '/security'
     | '/telegram'
@@ -567,6 +578,7 @@ export interface FileRouteTypes {
     | '/_authenticated/permissions'
     | '/_authenticated/pm-plans'
     | '/_authenticated/profile'
+    | '/_authenticated/properties'
     | '/_authenticated/roles'
     | '/_authenticated/security'
     | '/_authenticated/telegram'
@@ -685,6 +697,13 @@ declare module '@tanstack/react-router' {
       path: '/roles'
       fullPath: '/roles'
       preLoaderRoute: typeof AuthenticatedRolesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/properties': {
+      id: '/_authenticated/properties'
+      path: '/properties'
+      fullPath: '/properties'
+      preLoaderRoute: typeof AuthenticatedPropertiesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
@@ -1010,6 +1029,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPermissionsRoute: typeof AuthenticatedPermissionsRoute
   AuthenticatedPmPlansRoute: typeof AuthenticatedPmPlansRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedPropertiesRoute: typeof AuthenticatedPropertiesRoute
   AuthenticatedRolesRoute: typeof AuthenticatedRolesRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
   AuthenticatedTelegramRoute: typeof AuthenticatedTelegramRoute
@@ -1045,6 +1065,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPermissionsRoute: AuthenticatedPermissionsRoute,
   AuthenticatedPmPlansRoute: AuthenticatedPmPlansRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedPropertiesRoute: AuthenticatedPropertiesRoute,
   AuthenticatedRolesRoute: AuthenticatedRolesRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRouteWithChildren,
   AuthenticatedTelegramRoute: AuthenticatedTelegramRoute,

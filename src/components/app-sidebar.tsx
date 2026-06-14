@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BrandLogo } from "@/components/brand-logo";
+import { PropertySwitcher } from "@/components/property-switcher";
 import { useAuth, roleLabel } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -109,6 +110,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
     items: [
       { title: "المستخدمون", url: "/users", icon: UserCog, perms: ["users.view"] },
       { title: "الأدوار والصلاحيات", url: "/roles", icon: ShieldCheck, perms: ["roles.manage"] },
+      { title: "العقارات", url: "/properties", icon: Building, perms: ["identity.view"] },
       { title: "هوية البرج", url: "/identity", icon: Building, perms: ["identity.view"] },
       { title: "بوت تيليجرام", url: "/telegram", icon: Send, perms: ["telegram.view"] },
       { title: "واجهة الـ API", url: "/api-docs", icon: Code2, perms: ["api_keys.view"] },
@@ -160,6 +162,9 @@ export function AppSidebar() {
           </div>
         </div>
       </SidebarHeader>
+
+      <PropertySwitcher />
+
 
       <SidebarContent>
         {NAV.map((group) => {

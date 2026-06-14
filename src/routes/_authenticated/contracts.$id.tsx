@@ -25,7 +25,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { CONTRACT_STATUS_STYLE, type ContractStatus } from "./contracts";
+import { CONTRACT_STATUS_STYLE, type ContractStatus, ContractFormDialog } from "./contracts.index";
 
 export const Route = createFileRoute("/_authenticated/contracts/$id")({
   component: ContractDetailsPage,

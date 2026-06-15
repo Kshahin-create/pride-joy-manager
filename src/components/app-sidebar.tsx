@@ -27,6 +27,7 @@ import {
   Sparkles,
   Sofa,
   LayoutGrid,
+  Bell,
 } from "lucide-react";
 
 import {

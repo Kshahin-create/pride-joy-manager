@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as LobbyCheckinRouteImport } from './routes/lobby-checkin'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -65,6 +66,11 @@ import { Route as AuthenticatedSecurityGuardsIdRouteImport } from './routes/_aut
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LobbyCheckinRoute = LobbyCheckinRouteImport.update({
+  id: '/lobby-checkin',
+  path: '/lobby-checkin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -346,6 +352,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/lobby-checkin': typeof LobbyCheckinRoute
   '/reset-password': typeof ResetPasswordRoute
   '/ac-contracts': typeof AuthenticatedAcContractsRoute
   '/api-docs': typeof AuthenticatedApiDocsRoute
@@ -399,6 +406,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/lobby-checkin': typeof LobbyCheckinRoute
   '/reset-password': typeof ResetPasswordRoute
   '/ac-contracts': typeof AuthenticatedAcContractsRoute
   '/api-docs': typeof AuthenticatedApiDocsRoute
@@ -454,6 +462,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
+  '/lobby-checkin': typeof LobbyCheckinRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/ac-contracts': typeof AuthenticatedAcContractsRoute
   '/_authenticated/api-docs': typeof AuthenticatedApiDocsRoute
@@ -509,6 +518,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/forgot-password'
+    | '/lobby-checkin'
     | '/reset-password'
     | '/ac-contracts'
     | '/api-docs'
@@ -562,6 +572,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/forgot-password'
+    | '/lobby-checkin'
     | '/reset-password'
     | '/ac-contracts'
     | '/api-docs'
@@ -616,6 +627,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/forgot-password'
+    | '/lobby-checkin'
     | '/reset-password'
     | '/_authenticated/ac-contracts'
     | '/_authenticated/api-docs'
@@ -671,6 +683,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LobbyCheckinRoute: typeof LobbyCheckinRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiPublicTelegramDailyReportRoute: typeof ApiPublicTelegramDailyReportRoute
   ApiPublicTelegramNotifyRoute: typeof ApiPublicTelegramNotifyRoute
@@ -685,6 +698,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lobby-checkin': {
+      id: '/lobby-checkin'
+      path: '/lobby-checkin'
+      fullPath: '/lobby-checkin'
+      preLoaderRoute: typeof LobbyCheckinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -1197,6 +1217,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
+  LobbyCheckinRoute: LobbyCheckinRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiPublicTelegramDailyReportRoute: ApiPublicTelegramDailyReportRoute,
   ApiPublicTelegramNotifyRoute: ApiPublicTelegramNotifyRoute,

@@ -118,6 +118,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { title: "العقارات", url: "/properties", icon: Building, perms: ["identity.view"] },
       { title: "هوية البرج", url: "/identity", icon: Building, perms: ["identity.view"] },
       { title: "بوت تيليجرام", url: "/telegram", icon: Send, perms: ["telegram.view"] },
+      { title: "مركز الإشعارات", url: "/notifications", icon: Bell },
       { title: "واجهة الـ API", url: "/api-docs", icon: Code2, perms: ["api_keys.view"] },
     ],
   },

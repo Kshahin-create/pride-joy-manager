@@ -28,6 +28,7 @@ import { Route as AuthenticatedPmPlansRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedPermissionsRouteImport } from './routes/_authenticated/permissions'
 import { Route as AuthenticatedParkingRouteImport } from './routes/_authenticated/parking'
 import { Route as AuthenticatedOperationsRouteImport } from './routes/_authenticated/operations'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedMaintenanceRouteImport } from './routes/_authenticated/maintenance'
 import { Route as AuthenticatedLobbyRouteImport } from './routes/_authenticated/lobby'
 import { Route as AuthenticatedInspectionsRouteImport } from './routes/_authenticated/inspections'
@@ -157,6 +158,12 @@ const AuthenticatedOperationsRoute = AuthenticatedOperationsRouteImport.update({
   path: '/operations',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMaintenanceRoute =
   AuthenticatedMaintenanceRouteImport.update({
     id: '/maintenance',
@@ -359,6 +366,7 @@ export interface FileRoutesByFullPath {
   '/inspections': typeof AuthenticatedInspectionsRoute
   '/lobby': typeof AuthenticatedLobbyRoute
   '/maintenance': typeof AuthenticatedMaintenanceRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/operations': typeof AuthenticatedOperationsRoute
   '/parking': typeof AuthenticatedParkingRoute
   '/permissions': typeof AuthenticatedPermissionsRoute
@@ -411,6 +419,7 @@ export interface FileRoutesByTo {
   '/inspections': typeof AuthenticatedInspectionsRoute
   '/lobby': typeof AuthenticatedLobbyRoute
   '/maintenance': typeof AuthenticatedMaintenanceRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/operations': typeof AuthenticatedOperationsRoute
   '/parking': typeof AuthenticatedParkingRoute
   '/permissions': typeof AuthenticatedPermissionsRoute
@@ -465,6 +474,7 @@ export interface FileRoutesById {
   '/_authenticated/inspections': typeof AuthenticatedInspectionsRoute
   '/_authenticated/lobby': typeof AuthenticatedLobbyRoute
   '/_authenticated/maintenance': typeof AuthenticatedMaintenanceRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/operations': typeof AuthenticatedOperationsRoute
   '/_authenticated/parking': typeof AuthenticatedParkingRoute
   '/_authenticated/permissions': typeof AuthenticatedPermissionsRoute
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/inspections'
     | '/lobby'
     | '/maintenance'
+    | '/notifications'
     | '/operations'
     | '/parking'
     | '/permissions'
@@ -571,6 +582,7 @@ export interface FileRouteTypes {
     | '/inspections'
     | '/lobby'
     | '/maintenance'
+    | '/notifications'
     | '/operations'
     | '/parking'
     | '/permissions'
@@ -624,6 +636,7 @@ export interface FileRouteTypes {
     | '/_authenticated/inspections'
     | '/_authenticated/lobby'
     | '/_authenticated/maintenance'
+    | '/_authenticated/notifications'
     | '/_authenticated/operations'
     | '/_authenticated/parking'
     | '/_authenticated/permissions'
@@ -798,6 +811,13 @@ declare module '@tanstack/react-router' {
       path: '/operations'
       fullPath: '/operations'
       preLoaderRoute: typeof AuthenticatedOperationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/maintenance': {
@@ -1107,6 +1127,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInspectionsRoute: typeof AuthenticatedInspectionsRoute
   AuthenticatedLobbyRoute: typeof AuthenticatedLobbyRoute
   AuthenticatedMaintenanceRoute: typeof AuthenticatedMaintenanceRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOperationsRoute: typeof AuthenticatedOperationsRoute
   AuthenticatedParkingRoute: typeof AuthenticatedParkingRoute
   AuthenticatedPermissionsRoute: typeof AuthenticatedPermissionsRoute
@@ -1147,6 +1168,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInspectionsRoute: AuthenticatedInspectionsRoute,
   AuthenticatedLobbyRoute: AuthenticatedLobbyRoute,
   AuthenticatedMaintenanceRoute: AuthenticatedMaintenanceRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOperationsRoute: AuthenticatedOperationsRoute,
   AuthenticatedParkingRoute: AuthenticatedParkingRoute,
   AuthenticatedPermissionsRoute: AuthenticatedPermissionsRoute,

@@ -3209,14 +3209,20 @@ export type Database = {
       notifications: {
         Row: {
           body: string | null
+          category: Database["public"]["Enums"]["notification_category"]
           created_at: string
           dedupe_key: string | null
+          dismissed_at: string | null
           entity_id: string | null
           entity_type: string | null
+          escalated_at: string | null
+          escalated_from: string | null
+          group_key: string | null
           id: string
           is_read: boolean
           link: string | null
           notification_type: Database["public"]["Enums"]["notification_type"]
+          priority: Database["public"]["Enums"]["notification_priority"]
           read_at: string | null
           target_role: Database["public"]["Enums"]["app_role"] | null
           title: string
@@ -3224,14 +3230,20 @@ export type Database = {
         }
         Insert: {
           body?: string | null
+          category?: Database["public"]["Enums"]["notification_category"]
           created_at?: string
           dedupe_key?: string | null
+          dismissed_at?: string | null
           entity_id?: string | null
           entity_type?: string | null
+          escalated_at?: string | null
+          escalated_from?: string | null
+          group_key?: string | null
           id?: string
           is_read?: boolean
           link?: string | null
           notification_type?: Database["public"]["Enums"]["notification_type"]
+          priority?: Database["public"]["Enums"]["notification_priority"]
           read_at?: string | null
           target_role?: Database["public"]["Enums"]["app_role"] | null
           title: string
@@ -3239,14 +3251,20 @@ export type Database = {
         }
         Update: {
           body?: string | null
+          category?: Database["public"]["Enums"]["notification_category"]
           created_at?: string
           dedupe_key?: string | null
+          dismissed_at?: string | null
           entity_id?: string | null
           entity_type?: string | null
+          escalated_at?: string | null
+          escalated_from?: string | null
+          group_key?: string | null
           id?: string
           is_read?: boolean
           link?: string | null
           notification_type?: Database["public"]["Enums"]["notification_type"]
+          priority?: Database["public"]["Enums"]["notification_priority"]
           read_at?: string | null
           target_role?: Database["public"]["Enums"]["app_role"] | null
           title?: string
@@ -5011,6 +5029,7 @@ export type Database = {
     Functions: {
       can_manage_security: { Args: { _uid: string }; Returns: boolean }
       create_telegram_link_code: { Args: never; Returns: string }
+      escalate_critical_notifications: { Args: never; Returns: undefined }
       generate_daily_notifications: { Args: never; Returns: undefined }
       generate_due_pm_work_orders: { Args: never; Returns: number }
       get_daily_report: { Args: { _date?: string }; Returns: Json }
@@ -5018,6 +5037,21 @@ export type Database = {
       get_my_roles: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"][]
+      }
+      get_notification_groups: {
+        Args: { _only_unread?: boolean }
+        Returns: {
+          category: Database["public"]["Enums"]["notification_category"]
+          count: number
+          group_key: string
+          latest_body: string
+          latest_created_at: string
+          latest_link: string
+          latest_title: string
+          notification_type: Database["public"]["Enums"]["notification_type"]
+          priority: Database["public"]["Enums"]["notification_priority"]
+          unread_count: number
+        }[]
       }
       get_user_default_property: { Args: { _user_id: string }; Returns: string }
       get_user_roles: {
@@ -5043,6 +5077,22 @@ export type Database = {
           _entity_id: string
           _entity_type: string
           _link: string
+          _role: Database["public"]["Enums"]["app_role"]
+          _title: string
+          _type: Database["public"]["Enums"]["notification_type"]
+        }
+        Returns: undefined
+      }
+      notify_v2: {
+        Args: {
+          _body: string
+          _category?: Database["public"]["Enums"]["notification_category"]
+          _dedupe: string
+          _entity_id: string
+          _entity_type: string
+          _group_key?: string
+          _link: string
+          _priority?: Database["public"]["Enums"]["notification_priority"]
           _role: Database["public"]["Enums"]["app_role"]
           _title: string
           _type: Database["public"]["Enums"]["notification_type"]
@@ -5198,6 +5248,14 @@ export type Database = {
         | "معلّق"
         | "مكتمل مبدئياً"
       materials_responsibility: "على شركة النظافة" | "على مالك البرج" | "مشتركة"
+      notification_category:
+        | "financial"
+        | "maintenance"
+        | "security"
+        | "contracts"
+        | "operations"
+        | "general"
+      notification_priority: "critical" | "high" | "medium" | "low"
       notification_type:
         | "contract_expiring"
         | "invoice_overdue"
@@ -5521,6 +5579,15 @@ export const Constants = {
         "على مالك البرج",
         "مشتركة",
       ],
+      notification_category: [
+        "financial",
+        "maintenance",
+        "security",
+        "contracts",
+        "operations",
+        "general",
+      ],
+      notification_priority: ["critical", "high", "medium", "low"],
       notification_type: [
         "contract_expiring",
         "invoice_overdue",

@@ -24,7 +24,7 @@ type SpotType = "عادي" | "VIP" | "ذوي احتياجات";
 type Spot = {
   id: string;
   spot_number: string;
-  floor: "P1" | "P2" | "P3";
+  floor: string;
   location_description: string | null;
   spot_type: SpotType;
   office_id: string | null;

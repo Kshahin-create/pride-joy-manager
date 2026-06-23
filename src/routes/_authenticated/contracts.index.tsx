@@ -417,6 +417,7 @@ export function ContractFormDialog({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent dir="rtl" className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{isEdit ? "تعديل العقد" : "عقد جديد"}</DialogTitle></DialogHeader>

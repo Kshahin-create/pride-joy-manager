@@ -180,8 +180,9 @@ function VisitorsPage() {
                 <Button onClick={checkIn} disabled={busy}>تسجيل الدخول</Button>
               </DialogFooter>
             </DialogContent>
-          </Dialog>
-        )}
+            </Dialog>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

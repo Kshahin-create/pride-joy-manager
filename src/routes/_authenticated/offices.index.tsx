@@ -841,7 +841,7 @@ function OfficeFormDialog({
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {FLOORS.map((f) => (
-                    <SelectItem key={f} value={String(f)}>الدور {f}</SelectItem>
+                    <SelectItem key={f} value={String(f)}>{floorLabel(f)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

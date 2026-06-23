@@ -311,7 +311,7 @@ export function CompanyFormDialog({ open, company, onClose, onSaved }: {
     if (companyId) await uploadAttachments(companyId);
     setBusy(false);
     toast.success("تم الحفظ");
-    onSaved();
+    onSaved(companyId);
   };
 
   return (

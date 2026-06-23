@@ -42,16 +42,26 @@ function DailyReportPage() {
   const [identity, setIdentity] = useState<{ building_name?: string; logo_url?: string | null } | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const canSeeFinance = useCanSeeFinance();
 
   const load = async (d: string) => {
     setLoading(true);
-    const [{ data: rpc }, { data: ident }] = await Promise.all([
-      supabase.rpc("get_daily_report" as never, { _date: d } as never),
-      supabase.from("building_identity" as never).select("building_name,logo_url").eq("id", true).maybeSingle(),
-    ]);
-    setReport(rpc as unknown as Report);
-    setIdentity((ident as never) ?? null);
-    setLoading(false);
+    setLoadError(null);
+    try {
+      const [rpcRes, identRes] = await Promise.all([
+        supabase.rpc("get_daily_report" as never, { _date: d } as never),
+        supabase.from("building_identity" as never).select("building_name,logo_url").eq("id", true).maybeSingle(),
+      ]);
+      if (rpcRes.error) throw rpcRes.error;
+      setReport(rpcRes.data as unknown as Report);
+      setIdentity((identRes.data as never) ?? null);
+    } catch (e: any) {
+      setLoadError(e?.message ?? "تعذّر تحميل التقرير");
+      setReport(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { void load(date); }, [date]);

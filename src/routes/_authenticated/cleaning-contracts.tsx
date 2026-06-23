@@ -454,17 +454,22 @@ function CleaningContractsPage() {
             <Section title="بيانات شركة النظافة">
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <Field label="المورد المسجّل (اختياري)">
-                  <Select value={form.vendor_id || "none"} onValueChange={(v) => {
-                    if (v === "none") { setForm({ ...form, vendor_id: "" }); return; }
-                    const vendor = vendors.find((x) => x.id === v);
-                    setForm({ ...form, vendor_id: v, vendor_name: vendor?.company_name ?? form.vendor_name });
-                  }}>
-                    <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">— بدون ربط —</SelectItem>
-                      {vendors.map((v) => <SelectItem key={v.id} value={v.id}>{v.company_name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select value={form.vendor_id || "none"} onValueChange={(v) => {
+                      if (v === "none") { setForm({ ...form, vendor_id: "" }); return; }
+                      const vendor = vendors.find((x) => x.id === v);
+                      setForm({ ...form, vendor_id: v, vendor_name: vendor?.company_name ?? form.vendor_name });
+                    }}>
+                      <SelectTrigger className="flex-1"><SelectValue placeholder="—" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">— بدون ربط —</SelectItem>
+                        {vendors.map((v) => <SelectItem key={v.id} value={v.id}>{v.company_name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Button type="button" variant="outline" size="icon" onClick={() => setVendorAddOpen(true)} title="إضافة مورد جديد">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </Field>
                 <Field label="اسم الشركة"><Input value={form.vendor_name} onChange={(e) => setForm({ ...form, vendor_name: e.target.value })} /></Field>
                 <Field label="السجل التجاري"><Input value={form.vendor_cr} onChange={(e) => setForm({ ...form, vendor_cr: e.target.value })} /></Field>

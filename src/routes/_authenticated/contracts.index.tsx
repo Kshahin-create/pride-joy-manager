@@ -592,6 +592,17 @@ export function ContractFormDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <CompanyFormDialog
+      open={tenantAddOpen}
+      company={null}
+      onClose={() => setTenantAddOpen(false)}
+      onSaved={async (newId) => {
+        await reloadCompanies();
+        if (newId) setForm((f) => ({ ...f, company_id: newId }));
+        setTenantAddOpen(false);
+      }}
+    />
+    </>
   );
 }
 

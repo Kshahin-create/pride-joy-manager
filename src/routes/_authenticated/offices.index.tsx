@@ -85,7 +85,8 @@ interface Office {
 }
 
 const STATUSES: OfficeStatus[] = ["متاح", "محجوز", "مؤجر", "تحت الصيانة", "غير متاح"];
-const FLOORS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const FLOORS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 99];
+const floorLabel = (f: number) => (f === 99 ? "السطح (99)" : `الدور ${f}`);
 
 const STATUS_STYLES: Record<OfficeStatus, { badge: string; card: string; dot: string }> = {
   "متاح": {

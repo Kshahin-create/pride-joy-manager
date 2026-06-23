@@ -99,8 +99,14 @@ function DailyReportPage() {
         {identity?.logo_url && <img src={identity.logo_url} alt="" className="h-12" />}
       </div>
 
-      {!report ? (
+      {loading && !report ? (
         <div className="text-muted-foreground">جاري التحميل…</div>
+      ) : loadError ? (
+        <div className="text-sm text-red-600 border border-red-200 bg-red-50 rounded-md p-3">
+          تعذّر تحميل التقرير: {loadError}
+        </div>
+      ) : !report ? (
+        <div className="text-muted-foreground">لا توجد بيانات.</div>
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -116,9 +122,14 @@ function DailyReportPage() {
 
             <Stat title="تذاكر جديدة" value={report.tickets_new} />
             <Stat title="تذاكر مُغلقة" value={report.tickets_closed} tone="ok" />
-            <Stat title="مدفوعات مستلمة" value={fmt(report.payments_received) + " ر.س"} tone="ok" />
-            <Stat title="مصروفات جديدة" value={fmt(report.expenses_new) + " ر.س"} />
+            {canSeeFinance && (
+              <>
+                <Stat title="مدفوعات مستلمة" value={fmt(report.payments_received) + " ر.س"} tone="ok" />
+                <Stat title="مصروفات جديدة" value={fmt(report.expenses_new) + " ر.س"} />
+              </>
+            )}
           </div>
+
 
           <Card>
             <CardHeader>

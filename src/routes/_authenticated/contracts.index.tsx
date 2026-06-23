@@ -466,10 +466,15 @@ export function ContractFormDialog({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <Label>المستأجر *</Label>
-                <Select value={form.company_id} onValueChange={(v) => setForm({ ...form, company_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="اختر المستأجر" /></SelectTrigger>
-                  <SelectContent>{companies.map(c => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}</SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select value={form.company_id} onValueChange={(v) => setForm({ ...form, company_id: v })}>
+                    <SelectTrigger className="flex-1"><SelectValue placeholder="اختر المستأجر" /></SelectTrigger>
+                    <SelectContent>{companies.map(c => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <Button type="button" variant="outline" size="icon" onClick={() => setTenantAddOpen(true)} title="إضافة مستأجر جديد">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <div>
                 <Label>المكتب *</Label>

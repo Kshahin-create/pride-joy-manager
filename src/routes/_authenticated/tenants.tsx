@@ -238,7 +238,7 @@ function ClientsPage() {
 }
 
 export function CompanyFormDialog({ open, company, onClose, onSaved }: {
-  open: boolean; company: Company | null; onClose: () => void; onSaved: () => void;
+  open: boolean; company: Company | null; onClose: () => void; onSaved: (id?: string) => void;
 }) {
   const [f, setF] = useState({
     company_name: "", activity: "", commercial_register: "", tax_number: "",

@@ -122,6 +122,7 @@ function CleaningContractsPage() {
   const [editing, setEditing] = useState<CleaningContract | null>(null);
   const [form, setForm] = useState<any>(emptyForm());
   const [busy, setBusy] = useState(false);
+  const [vendorAddOpen, setVendorAddOpen] = useState(false);
 
   // attachments dialog
   const [attachOpen, setAttachOpen] = useState(false);

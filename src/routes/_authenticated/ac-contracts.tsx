@@ -101,6 +101,7 @@ function AcContractsPage() {
   const [editing, setEditing] = useState<Contract | null>(null);
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
+  const [vendorAddOpen, setVendorAddOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);

@@ -117,6 +117,23 @@ function VisitorsPage() {
 
   const fmt = (s: string | null) => s ? new Date(s).toLocaleString("en-US", { hour12: false }) : "—";
 
+  const exportCsv = () => {
+    if (filtered.length === 0) return toast.error("لا توجد سجلات للتصدير");
+    const headers = ["visitor_number","full_name","national_id","phone","visitor_type","office","host_name","purpose","vehicle_plate","badge_number","check_in_at","check_out_at","status","notes"];
+    const esc = (v: any) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    const rows = filtered.map((v) => [
+      v.visitor_number, v.full_name, v.national_id, v.phone, v.visitor_type,
+      v.office_id ? officeMap.get(v.office_id)?.code : "",
+      v.host_name, v.purpose, v.vehicle_plate, v.badge_number,
+      v.check_in_at, v.check_out_at, v.status, v.notes,
+    ].map(esc).join(","));
+    const csv = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+    a.download = `visitors-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+
   return (
     <div className="space-y-4 p-4" dir="rtl">
       <div className="flex flex-wrap items-center justify-between gap-3">

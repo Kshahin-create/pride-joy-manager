@@ -17,8 +17,14 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Check, X, Banknote, TrendingUp, TrendingDown, Wallet, Paperclip, Download, Trash2 } from "lucide-react";
 
+import { FinanceAccessGate } from "@/components/finance-access-gate";
+
 export const Route = createFileRoute("/_authenticated/expenses")({
-  component: ExpensesPage,
+  component: () => (
+    <FinanceAccessGate>
+      <ExpensesPage />
+    </FinanceAccessGate>
+  ),
 });
 
 type Expense = {
@@ -36,7 +42,7 @@ type VendorPayment = {
 
 const CATEGORIES = ["صيانة","نظافة","أمن","كهرباء","مياه","مكتبية","مرافق","مقاولين","رواتب","تأمين","ضرائب ورسوم","أخرى"];
 const METHODS = ["نقدي","تحويل بنكي","شيك","بطاقة"];
-const fmt = (n: number) => Number(n || 0).toLocaleString("ar-EG") + " ر.س";
+const fmt = (n: number) => Number(n || 0).toLocaleString("en-US") + " ر.س";
 
 function ExpensesPage() {
   const { activePropertyId } = useActiveProperty();

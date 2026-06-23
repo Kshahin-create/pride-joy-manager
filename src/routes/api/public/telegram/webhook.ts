@@ -136,7 +136,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             }
             const { data: rpt } = await supabaseAdmin.rpc("get_daily_report" as never, { _date: new Date().toISOString().slice(0, 10) } as never);
             const r: any = rpt ?? {};
-            const fmt = (n: number) => Number(n ?? 0).toLocaleString("ar-SA");
+            const fmt = (n: number) => Number(n ?? 0).toLocaleString("en-US");
             const body = [
               `📊 <b>تقرير اليوم ${r.date ?? ""}</b>`,
               ``,

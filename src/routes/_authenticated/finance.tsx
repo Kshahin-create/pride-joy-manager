@@ -17,8 +17,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
+import { FinanceAccessGate } from "@/components/finance-access-gate";
+
 export const Route = createFileRoute("/_authenticated/finance")({
-  component: FinancePage,
+  component: () => (
+    <FinanceAccessGate>
+      <FinancePage />
+    </FinanceAccessGate>
+  ),
 });
 
 type InvoiceType = "إيجار" | "تأمين" | "رسوم تشغيل" | "رسوم خدمات" | "غرامات";
@@ -65,7 +71,7 @@ interface Payment {
 }
 
 function fmt(n: number) {
-  return Number(n || 0).toLocaleString("ar-EG") + " ر.س";
+  return Number(n || 0).toLocaleString("en-US") + " ر.س";
 }
 
 function FinancePage() {

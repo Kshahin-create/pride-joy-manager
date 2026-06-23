@@ -376,7 +376,7 @@ function InteractionsTab({ companyId, canEdit }: { companyId: string; canEdit: b
                <div key={r.id} className="border rounded-lg p-3 flex items-start gap-3">
                  <Badge variant="outline" className="shrink-0">{r.interaction_type}</Badge>
                  <div className="flex-1">
-                   <div className="text-xs text-muted-foreground">{new Date(r.interaction_date).toLocaleString("ar-EG")}</div>
+                   <div className="text-xs text-muted-foreground">{new Date(r.interaction_date).toLocaleString("en-US")}</div>
                    {r.details && <div className="text-sm mt-1">{r.details}</div>}
                  </div>
                  {canEdit && (

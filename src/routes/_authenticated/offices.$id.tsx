@@ -393,7 +393,7 @@ function ElectricityTab({ officeId, canEdit }: { officeId: string; canEdit: bool
               {last ? (
                 <div className="mb-3 p-3 rounded-md bg-muted/40 text-sm">
                   <span className="text-muted-foreground">آخر قراءة: </span>
-                  <span className="font-bold text-primary">{Number(last.reading_value).toLocaleString("ar-EG")}</span>
+                  <span className="font-bold text-primary">{Number(last.reading_value).toLocaleString("en-US")}</span>
                   <span className="text-muted-foreground"> — بتاريخ </span>
                   <span className="font-medium">{last.reading_date}</span>
                 </div>
@@ -413,7 +413,7 @@ function ElectricityTab({ officeId, canEdit }: { officeId: string; canEdit: bool
                     {rs.map((r) => (
                       <TableRow key={r.id}>
                         <TableCell>{r.reading_date}</TableCell>
-                        <TableCell className="font-medium">{Number(r.reading_value).toLocaleString("ar-EG")}</TableCell>
+                        <TableCell className="font-medium">{Number(r.reading_value).toLocaleString("en-US")}</TableCell>
                         <TableCell className="text-xs text-muted-foreground">{r.notes ?? "—"}</TableCell>
                       </TableRow>
                     ))}
@@ -1320,7 +1320,7 @@ function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean })
                         <TableCell className="font-medium">{f.file_name}</TableCell>
                         <TableCell><Badge variant="outline">{f.file_type}</Badge></TableCell>
                         <TableCell>{f.size_bytes ? `${Math.round(f.size_bytes / 1024)} KB` : "—"}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{new Date(f.created_at).toLocaleDateString("ar-EG")}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{new Date(f.created_at).toLocaleDateString("en-US")}</TableCell>
                         <TableCell className="text-end">
                           <Button size="sm" variant="ghost" onClick={() => download(f)}><Download className="h-4 w-4" /></Button>
                           {canEdit && (
@@ -1630,8 +1630,8 @@ function ContractCard({ contract, contacts, compact }: { contract: ContractRow; 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
           <Info label="بداية" value={<span className="flex items-center gap-1"><Calendar className="h-3 w-3 text-muted-foreground" />{contract.start_date}</span>} />
           <Info label="نهاية" value={<span className="flex items-center gap-1"><Calendar className="h-3 w-3 text-muted-foreground" />{contract.end_date}</span>} />
-          <Info label="الإيجار الشهري" value={<span className="flex items-center gap-1"><Wallet className="h-3 w-3 text-muted-foreground" />{Number(contract.rent_amount).toLocaleString("ar-EG")} ج.م</span>} />
-          <Info label="الضمان" value={`${Number(contract.deposit_amount).toLocaleString("ar-EG")} ج.م`} />
+          <Info label="الإيجار الشهري" value={<span className="flex items-center gap-1"><Wallet className="h-3 w-3 text-muted-foreground" />{Number(contract.rent_amount).toLocaleString("en-US")} ج.م</span>} />
+          <Info label="الضمان" value={`${Number(contract.deposit_amount).toLocaleString("en-US")} ج.م`} />
         </div>
 
         {co && (

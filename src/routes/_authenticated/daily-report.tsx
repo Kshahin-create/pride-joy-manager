@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileText, Printer, RefreshCw } from "lucide-react";
+import { useCanSeeFinance } from "@/lib/finance-access";
 
 export const Route = createFileRoute("/_authenticated/daily-report")({
   component: DailyReportPage,
@@ -41,21 +42,31 @@ function DailyReportPage() {
   const [identity, setIdentity] = useState<{ building_name?: string; logo_url?: string | null } | null>(null);
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const canSeeFinance = useCanSeeFinance();
 
   const load = async (d: string) => {
     setLoading(true);
-    const [{ data: rpc }, { data: ident }] = await Promise.all([
-      supabase.rpc("get_daily_report" as never, { _date: d } as never),
-      supabase.from("building_identity" as never).select("building_name,logo_url").eq("id", true).maybeSingle(),
-    ]);
-    setReport(rpc as unknown as Report);
-    setIdentity((ident as never) ?? null);
-    setLoading(false);
+    setLoadError(null);
+    try {
+      const [rpcRes, identRes] = await Promise.all([
+        supabase.rpc("get_daily_report" as never, { _date: d } as never),
+        supabase.from("building_identity" as never).select("building_name,logo_url").eq("id", true).maybeSingle(),
+      ]);
+      if (rpcRes.error) throw rpcRes.error;
+      setReport(rpcRes.data as unknown as Report);
+      setIdentity((identRes.data as never) ?? null);
+    } catch (e: any) {
+      setLoadError(e?.message ?? "تعذّر تحميل التقرير");
+      setReport(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { void load(date); }, [date]);
 
-  const fmt = (n: number) => new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 2 }).format(n);
+  const fmt = (n: number) => new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(n);
 
   return (
     <div className="p-6 space-y-6">
@@ -88,8 +99,14 @@ function DailyReportPage() {
         {identity?.logo_url && <img src={identity.logo_url} alt="" className="h-12" />}
       </div>
 
-      {!report ? (
+      {loading && !report ? (
         <div className="text-muted-foreground">جاري التحميل…</div>
+      ) : loadError ? (
+        <div className="text-sm text-red-600 border border-red-200 bg-red-50 rounded-md p-3">
+          تعذّر تحميل التقرير: {loadError}
+        </div>
+      ) : !report ? (
+        <div className="text-muted-foreground">لا توجد بيانات.</div>
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -105,9 +122,14 @@ function DailyReportPage() {
 
             <Stat title="تذاكر جديدة" value={report.tickets_new} />
             <Stat title="تذاكر مُغلقة" value={report.tickets_closed} tone="ok" />
-            <Stat title="مدفوعات مستلمة" value={fmt(report.payments_received) + " ر.س"} tone="ok" />
-            <Stat title="مصروفات جديدة" value={fmt(report.expenses_new) + " ر.س"} />
+            {canSeeFinance && (
+              <>
+                <Stat title="مدفوعات مستلمة" value={fmt(report.payments_received) + " ر.س"} tone="ok" />
+                <Stat title="مصروفات جديدة" value={fmt(report.expenses_new) + " ر.س"} />
+              </>
+            )}
           </div>
+
 
           <Card>
             <CardHeader>
@@ -128,7 +150,7 @@ function DailyReportPage() {
                         </div>
                       </div>
                       <div className="text-xs text-muted-foreground whitespace-nowrap">
-                        {new Date(e.created_at).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}
+                        {new Date(e.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                       </div>
                     </li>
                   ))}

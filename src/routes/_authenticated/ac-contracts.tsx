@@ -34,7 +34,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "
 };
 
 const fmtMoney = (n: number | null | undefined) =>
-  n == null ? "—" : Number(n).toLocaleString("ar-EG") + " ر.س";
+  n == null ? "—" : Number(n).toLocaleString("en-US") + " ر.س";
 
 type Vendor = { id: string; company_name: string };
 type AcUnit = { id: string; unit_code?: string | null; unit_name?: string | null; location?: string | null; [k: string]: any };

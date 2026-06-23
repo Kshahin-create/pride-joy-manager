@@ -248,10 +248,10 @@ export function DepositCard({ contractId, canManage }: { contractId: string; can
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-          <Info label="مبلغ التأمين" value={Number(contract.deposit_amount).toLocaleString("ar-EG") + " ر.س"} />
-          <Info label="إجمالي الخصومات" value={totalDed.toLocaleString("ar-EG") + " ر.س"} />
-          <Info label="المسترد" value={Number(contract.deposit_refund_amount ?? 0).toLocaleString("ar-EG") + " ر.س"} />
-          <Info label="المتبقي" value={remaining.toLocaleString("ar-EG") + " ر.س"} />
+          <Info label="مبلغ التأمين" value={Number(contract.deposit_amount).toLocaleString("en-US") + " ر.س"} />
+          <Info label="إجمالي الخصومات" value={totalDed.toLocaleString("en-US") + " ر.س"} />
+          <Info label="المسترد" value={Number(contract.deposit_refund_amount ?? 0).toLocaleString("en-US") + " ر.س"} />
+          <Info label="المتبقي" value={remaining.toLocaleString("en-US") + " ر.س"} />
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 items-end">
@@ -302,7 +302,7 @@ export function DepositCard({ contractId, canManage }: { contractId: string; can
               {items.map(d => (
                 <TableRow key={d.id}>
                   <TableCell>{d.deduction_date}</TableCell>
-                  <TableCell>{Number(d.amount).toLocaleString("ar-EG")} ر.س</TableCell>
+                  <TableCell>{Number(d.amount).toLocaleString("en-US")} ر.س</TableCell>
                   <TableCell>{d.reason}</TableCell>
                   {canManage && (
                     <TableCell>
@@ -471,7 +471,7 @@ export function PaymentScheduleCard({ contractId, canManage }: { contractId: str
                 <TableRow key={it.id}>
                   <TableCell>{it.installment_number}</TableCell>
                   <TableCell>{it.due_date}</TableCell>
-                  <TableCell>{Number(it.amount).toLocaleString("ar-EG")} ر.س</TableCell>
+                  <TableCell>{Number(it.amount).toLocaleString("en-US")} ر.س</TableCell>
                   <TableCell><Badge className={SCHED_BADGE[it.status]}>{it.status}</Badge></TableCell>
                   <TableCell>{it.paid_date ?? "—"}</TableCell>
                   {canManage && (

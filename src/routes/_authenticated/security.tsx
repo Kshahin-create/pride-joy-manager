@@ -152,7 +152,7 @@ function GuardsTab() {
                     <TableCell>{g.security_company ?? "—"}</TableCell>
                     <TableCell>{g.shift_type ? <Badge variant="outline">{g.shift_type}</Badge> : "—"}</TableCell>
                     <TableCell>{g.mobile ?? "—"}</TableCell>
-                    {isAdmin && <TableCell>{g.salary != null ? Number(g.salary).toLocaleString("ar-EG") : "—"}</TableCell>}
+                    {isAdmin && <TableCell>{g.salary != null ? Number(g.salary).toLocaleString("en-US") : "—"}</TableCell>}
                     <TableCell>
                       <Link to="/security/guards/$id" params={{ id: g.id }}>
                         <Button size="icon" variant="ghost"><Eye className="h-4 w-4" /></Button>
@@ -370,8 +370,8 @@ function PatrolsTab() {
                       <div>
                         <div className="font-medium">{p.patrol_number} — {g?.full_name ?? "—"}</div>
                         <div className="text-xs text-muted-foreground">
-                          {new Date(p.start_time).toLocaleString("ar-EG")}
-                          {p.end_time && " → " + new Date(p.end_time).toLocaleString("ar-EG")}
+                          {new Date(p.start_time).toLocaleString("en-US")}
+                          {p.end_time && " → " + new Date(p.end_time).toLocaleString("en-US")}
                         </div>
                       </div>
                       <Badge variant="outline">{cps.length} نقطة</Badge>
@@ -381,7 +381,7 @@ function PatrolsTab() {
                         {cps.map(c => (
                           <li key={c.id} className="flex justify-between border-t pt-1">
                             <span>• {c.checkpoint_name}</span>
-                            <span className="text-muted-foreground text-xs">{new Date(c.visit_time).toLocaleString("ar-EG")}</span>
+                            <span className="text-muted-foreground text-xs">{new Date(c.visit_time).toLocaleString("en-US")}</span>
                           </li>
                         ))}
                       </ul>
@@ -575,7 +575,7 @@ function IncidentsTab() {
                 {items.map(i => (
                   <TableRow key={i.id}>
                     <TableCell className="font-medium">{i.incident_number}</TableCell>
-                    <TableCell>{new Date(i.incident_date).toLocaleDateString("ar-EG")}</TableCell>
+                    <TableCell>{new Date(i.incident_date).toLocaleDateString("en-US")}</TableCell>
                     <TableCell>{i.location}</TableCell>
                     <TableCell>{i.incident_type}</TableCell>
                     <TableCell>

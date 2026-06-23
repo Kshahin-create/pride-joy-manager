@@ -14,7 +14,7 @@ async function send(chat_id: number, text: string) {
   });
 }
 
-const fmt = (n: number) => Number(n ?? 0).toLocaleString("ar-SA");
+const fmt = (n: number) => Number(n ?? 0).toLocaleString("en-US");
 
 export const Route = createFileRoute("/api/public/telegram/daily-report")({
   server: {

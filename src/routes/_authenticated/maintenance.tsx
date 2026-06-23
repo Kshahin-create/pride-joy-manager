@@ -107,8 +107,10 @@ async function uploadPhoto(file: File, prefix: string): Promise<string | null> {
   const path = `${prefix}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
   const { error } = await supabase.storage.from("maintenance-photos").upload(path, file, { upsert: false });
   if (error) { toast.error(error.message); return null; }
-  const { data } = supabase.storage.from("maintenance-photos").getPublicUrl(path);
-  return data.publicUrl;
+  // long-lived signed URL (private bucket) — 10 years
+  const { data, error: e2 } = await supabase.storage.from("maintenance-photos").createSignedUrl(path, 60 * 60 * 24 * 3650);
+  if (e2 || !data?.signedUrl) { toast.error(e2?.message ?? "تعذر إنشاء رابط الصورة"); return null; }
+  return data.signedUrl;
 }
 
 function MaintenancePage() {

@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Plus, LogOut, Users, UserCheck, Search } from "lucide-react";
+import { Plus, LogOut, Users, UserCheck, Search, Download } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/visitors")({
   component: VisitorsPage,

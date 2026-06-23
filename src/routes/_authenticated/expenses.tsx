@@ -17,8 +17,14 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Check, X, Banknote, TrendingUp, TrendingDown, Wallet, Paperclip, Download, Trash2 } from "lucide-react";
 
+import { FinanceAccessGate } from "@/components/finance-access-gate";
+
 export const Route = createFileRoute("/_authenticated/expenses")({
-  component: ExpensesPage,
+  component: () => (
+    <FinanceAccessGate>
+      <ExpensesPage />
+    </FinanceAccessGate>
+  ),
 });
 
 type Expense = {

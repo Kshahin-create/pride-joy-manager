@@ -339,10 +339,7 @@ function MaintenancePage() {
       if (!url) return;
       after = url;
     }
-    if (!after) return toast.error("صورة \"بعد\" مطلوبة");
-    if (!completeNotes.trim()) return toast.error("ملاحظات الإنجاز مطلوبة");
     const labor_cost = Number(completeLaborCost || 0);
-    if (partsCost + labor_cost <= 0) return toast.error("أدخل تكلفة مواد أو عمالة");
 
     const { data, error } = await supabase.from("maintenance_requests").update({
       status: "مكتمل مبدئياً",

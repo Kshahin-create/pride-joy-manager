@@ -24,7 +24,7 @@ type SpotType = "عادي" | "VIP" | "ذوي احتياجات";
 type Spot = {
   id: string;
   spot_number: string;
-  floor: "P1" | "P2" | "P3";
+  floor: string;
   location_description: string | null;
   spot_type: SpotType;
   office_id: string | null;
@@ -121,11 +121,13 @@ function ParkingPage() {
   };
   useEffect(() => { load(); }, []);
 
+  const allFloors = ["P1","P2","P3","P4","P5","P6","P7","P8","P9"] as const;
   const byFloor = useMemo(() => {
-    const g: Record<string, Spot[]> = { P1: [], P2: [], P3: [] };
-    spots.forEach((s) => g[s.floor]?.push(s));
+    const g: Record<string, Spot[]> = Object.fromEntries(allFloors.map((f) => [f, []]));
+    spots.forEach((s) => { if (g[s.floor]) g[s.floor].push(s); });
     return g;
   }, [spots]);
+  const activeFloors = useMemo(() => allFloors.filter((f) => byFloor[f].length > 0), [byFloor]);
 
   const counts = useMemo(() => {
     const c: Record<SpotStatus, number> = { "متاح": 0, "مخصص": 0, "مشغول": 0, "صيانة": 0 };
@@ -252,7 +254,7 @@ function ParkingPage() {
             <CardContent>
               {view === "grid" ? (
                 <div className="space-y-6">
-                  {(["P1", "P2", "P3"] as const).map((f) => (
+                  {activeFloors.map((f) => (
                     <div key={f}>
                       <div className="flex items-center gap-2 mb-3">
                         <Badge variant="outline" className="text-base px-3 py-1">{f}</Badge>

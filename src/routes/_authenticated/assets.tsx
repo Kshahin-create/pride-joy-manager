@@ -13,12 +13,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Plus, Wrench, AlertTriangle } from "lucide-react";
+import { Plus, Wrench, AlertTriangle, X } from "lucide-react";
 
 type Asset = {
   id: string;
   asset_name: string;
   asset_code: string;
+  asset_type: string | null;
   location: string | null;
   manufacturer: string | null;
   supplier: string | null;
@@ -28,7 +29,12 @@ type Asset = {
   expected_lifespan_years: number | null;
   responsible_person: string | null;
   criticality: "حرج" | "عادي";
+  space_id: string | null;
+  photo_urls: string[] | null;
 };
+
+type AssetType = { id: string; name: string };
+type Space = { id: string; space_name: string; space_code: string };
 
 export const Route = createFileRoute("/_authenticated/assets")({
   component: AssetsPage,
@@ -39,9 +45,15 @@ function AssetsPage() {
   const { hasAnyRole } = useAuth();
   const canManage = hasAnyRole(["super_admin", "maintenance_supervisor"]);
   const [items, setItems] = useState<Asset[]>([]);
+  const [types, setTypes] = useState<AssetType[]>([]);
+  const [spaces, setSpaces] = useState<Space[]>([]);
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<Asset>>({ criticality: "عادي" });
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [newTypeOpen, setNewTypeOpen] = useState(false);
+  const [newTypeName, setNewTypeName] = useState("");
+  const [busy, setBusy] = useState(false);
 
   const load = async () => {
     const { data, error } = await scoped(supabase
@@ -50,9 +62,17 @@ function AssetsPage() {
       .order("criticality", { ascending: true })
       .order("asset_code");
     if (error) return toast.error(error.message);
-    setItems((data ?? []) as Asset[]);
+    setItems((data ?? []) as unknown as Asset[]);
   };
-  useEffect(() => { load(); }, []);
+  const loadTypes = async () => {
+    const { data } = await (supabase as any).from("asset_types").select("id,name").order("name");
+    setTypes((data ?? []) as AssetType[]);
+  };
+  const loadSpaces = async () => {
+    const { data } = await scoped((supabase as any).from("spaces").select("id, space_name, space_code"), activePropertyId).order("space_code");
+    setSpaces((data ?? []) as Space[]);
+  };
+  useEffect(() => { load(); loadTypes(); loadSpaces(); }, [activePropertyId]);
 
   const filtered = useMemo(() => {
     const s = q.trim();
@@ -62,31 +82,62 @@ function AssetsPage() {
     });
     if (!s) return sorted;
     return sorted.filter((a) =>
-      [a.asset_name, a.asset_code, a.location, a.responsible_person]
+      [a.asset_name, a.asset_code, a.location, a.responsible_person, a.asset_type]
         .filter(Boolean).some((v) => String(v).includes(s))
     );
   }, [items, q]);
 
-  const submit = async () => {
-    if (!form.asset_name || !form.asset_code) return toast.error("الاسم والكود مطلوبان");
-    const { error } = await supabase.from("assets").insert({
-      asset_name: form.asset_name!,
-      asset_code: form.asset_code!,
-      location: form.location ?? null,
-      manufacturer: form.manufacturer ?? null,
-      supplier: form.supplier ?? null,
-      serial_number: form.serial_number ?? null,
-      install_date: form.install_date || null,
-      warranty_end_date: form.warranty_end_date || null,
-      expected_lifespan_years: form.expected_lifespan_years ?? null,
-      responsible_person: form.responsible_person ?? null,
-      criticality: (form.criticality as "حرج" | "عادي") ?? "عادي",
-    });
+  const addType = async () => {
+    const n = newTypeName.trim();
+    if (!n) return;
+    const { data, error } = await (supabase as any).from("asset_types").insert({ name: n }).select("id,name").single();
     if (error) return toast.error(error.message);
-    toast.success("تم إضافة الأصل");
-    setOpen(false);
-    setForm({ criticality: "عادي" });
-    load();
+    setTypes((t) => [...t, data].sort((a, b) => a.name.localeCompare(b.name)));
+    setForm((f) => ({ ...f, asset_type: data.name }));
+    setNewTypeName("");
+    setNewTypeOpen(false);
+  };
+
+  const submit = async () => {
+    if (!form.asset_name) return toast.error("اسم الأصل مطلوب");
+    setBusy(true);
+    try {
+      const uploaded: string[] = [];
+      for (const f of photos) {
+        const path = `${Date.now()}-${Math.random().toString(36).slice(2)}-${f.name}`;
+        const { error: upErr } = await (supabase as any).storage.from("asset-photos").upload(path, f);
+        if (upErr) throw upErr;
+        uploaded.push(path);
+      }
+      const payload: any = {
+        asset_name: form.asset_name!,
+        asset_type: form.asset_type ?? null,
+        space_id: form.space_id ?? null,
+        location: form.location ?? null,
+        manufacturer: form.manufacturer ?? null,
+        supplier: form.supplier ?? null,
+        serial_number: form.serial_number ?? null,
+        install_date: form.install_date || null,
+        warranty_end_date: form.warranty_end_date || null,
+        expected_lifespan_years: form.expected_lifespan_years ?? null,
+        responsible_person: form.responsible_person ?? null,
+        criticality: (form.criticality as "حرج" | "عادي") ?? "عادي",
+        photo_urls: uploaded,
+      };
+      if (form.asset_code && String(form.asset_code).trim()) payload.asset_code = String(form.asset_code).trim();
+      if (activePropertyId && activePropertyId !== "all") payload.property_id = activePropertyId;
+      const { error } = await (supabase as any).from("assets").insert(payload);
+      if (error) throw error;
+      toast.success("تم إضافة الأصل");
+      setOpen(false);
+      setForm({ criticality: "عادي" });
+      setPhotos([]);
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "تعذّر الحفظ");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const warrantyExpiringSoon = (d: string | null) => {
@@ -107,12 +158,31 @@ function AssetsPage() {
           {canManage && (
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild><Button><Plus className="ml-2 h-4 w-4" />إضافة أصل</Button></DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader><DialogTitle>إضافة أصل جديد</DialogTitle></DialogHeader>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="اسم الأصل *"><Input value={form.asset_name ?? ""} onChange={(e) => setForm({ ...form, asset_name: e.target.value })} /></Field>
-                  <Field label="كود الأصل *"><Input value={form.asset_code ?? ""} onChange={(e) => setForm({ ...form, asset_code: e.target.value })} /></Field>
-                  <Field label="الموقع"><Input value={form.location ?? ""} onChange={(e) => setForm({ ...form, location: e.target.value })} /></Field>
+                  <Field label="كود الأصل (تلقائي إذا تُرك فارغ)"><Input value={form.asset_code ?? ""} onChange={(e) => setForm({ ...form, asset_code: e.target.value })} placeholder="AST-YYYY-####" /></Field>
+                  <Field label="نوع الأصل">
+                    <div className="flex gap-2">
+                      <Select value={form.asset_type ?? ""} onValueChange={(v) => setForm({ ...form, asset_type: v })}>
+                        <SelectTrigger><SelectValue placeholder="اختر نوع…" /></SelectTrigger>
+                        <SelectContent>
+                          {types.map((t) => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Button type="button" variant="outline" size="icon" onClick={() => setNewTypeOpen(true)} title="إضافة نوع جديد"><Plus className="h-4 w-4" /></Button>
+                    </div>
+                  </Field>
+                  <Field label="الموقع (مساحة)">
+                    <Select value={form.space_id ?? ""} onValueChange={(v) => setForm({ ...form, space_id: v })}>
+                      <SelectTrigger><SelectValue placeholder="اختر مساحة…" /></SelectTrigger>
+                      <SelectContent>
+                        {spaces.map((s) => <SelectItem key={s.id} value={s.id}>{s.space_code} — {s.space_name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field label="موقع نصي (اختياري)"><Input value={form.location ?? ""} onChange={(e) => setForm({ ...form, location: e.target.value })} /></Field>
                   <Field label="المسؤول"><Input value={form.responsible_person ?? ""} onChange={(e) => setForm({ ...form, responsible_person: e.target.value })} /></Field>
                   <Field label="الشركة المصنعة"><Input value={form.manufacturer ?? ""} onChange={(e) => setForm({ ...form, manufacturer: e.target.value })} /></Field>
                   <Field label="المورد"><Input value={form.supplier ?? ""} onChange={(e) => setForm({ ...form, supplier: e.target.value })} /></Field>
@@ -126,13 +196,42 @@ function AssetsPage() {
                       <SelectContent><SelectItem value="عادي">عادي</SelectItem><SelectItem value="حرج">حرج</SelectItem></SelectContent>
                     </Select>
                   </Field>
+                  <div className="col-span-2">
+                    <Field label="صور (اختياري)">
+                      <Input type="file" multiple accept="image/*" onChange={(e) => setPhotos(Array.from(e.target.files ?? []))} />
+                      {photos.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {photos.map((f, i) => (
+                            <Badge key={i} variant="secondary" className="gap-1">
+                              {f.name}
+                              <button type="button" onClick={() => setPhotos((p) => p.filter((_, j) => j !== i))}>
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </Field>
+                  </div>
                 </div>
-                <DialogFooter><Button onClick={submit}>حفظ</Button></DialogFooter>
+                <DialogFooter><Button onClick={submit} disabled={busy}>{busy ? "جاري الحفظ…" : "حفظ"}</Button></DialogFooter>
               </DialogContent>
             </Dialog>
           )}
         </div>
       </div>
+
+      {/* Add new type dialog */}
+      <Dialog open={newTypeOpen} onOpenChange={setNewTypeOpen}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader><DialogTitle>إضافة نوع أصل جديد</DialogTitle></DialogHeader>
+          <Input value={newTypeName} onChange={(e) => setNewTypeName(e.target.value)} placeholder="مثال: نظام مراقبة" />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNewTypeOpen(false)}>إلغاء</Button>
+            <Button onClick={addType}>إضافة</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader><CardTitle>قائمة الأصول</CardTitle></CardHeader>
@@ -143,6 +242,7 @@ function AssetsPage() {
               <TableRow>
                 <TableHead>الكود</TableHead>
                 <TableHead>الاسم</TableHead>
+                <TableHead>النوع</TableHead>
                 <TableHead>الموقع</TableHead>
                 <TableHead>المسؤول</TableHead>
                 <TableHead>انتهاء الضمان</TableHead>
@@ -154,7 +254,8 @@ function AssetsPage() {
                 <TableRow key={a.id} className="cursor-pointer" onClick={() => window.location.assign(`/assets/${a.id}`)}>
                   <TableCell className="font-mono text-xs">{a.asset_code}</TableCell>
                   <TableCell className="font-medium">{a.asset_name}</TableCell>
-                  <TableCell>{a.location ?? "—"}</TableCell>
+                  <TableCell>{a.asset_type ?? "—"}</TableCell>
+                  <TableCell>{spaces.find((s) => s.id === a.space_id)?.space_name ?? a.location ?? "—"}</TableCell>
                   <TableCell>{a.responsible_person ?? "—"}</TableCell>
                   <TableCell>
                     {a.warranty_end_date ? (
@@ -172,7 +273,7 @@ function AssetsPage() {
                 </TableRow>
               ))}
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">لا توجد أصول</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">لا توجد أصول</TableCell></TableRow>
               )}
             </TableBody>
           </Table>

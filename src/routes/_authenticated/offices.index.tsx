@@ -85,7 +85,8 @@ interface Office {
 }
 
 const STATUSES: OfficeStatus[] = ["متاح", "محجوز", "مؤجر", "تحت الصيانة", "غير متاح"];
-const FLOORS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const FLOORS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 99];
+const floorLabel = (f: number) => (f === 99 ? "السطح (99)" : `الدور ${f}`);
 
 const STATUS_STYLES: Record<OfficeStatus, { badge: string; card: string; dot: string }> = {
   "متاح": {
@@ -313,7 +314,7 @@ function OfficesPage() {
               <SelectContent>
                 <SelectItem value="all">كل الأدوار</SelectItem>
                 {FLOORS.map((f) => (
-                  <SelectItem key={f} value={String(f)}>الدور {f}</SelectItem>
+                  <SelectItem key={f} value={String(f)}>{floorLabel(f)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -530,7 +531,7 @@ function GridView({
           return (
             <div key={f} className="flex items-stretch gap-3">
               <div className="w-16 shrink-0 rounded-lg bg-primary text-primary-foreground flex flex-col items-center justify-center font-bold text-sm">
-                <span className="text-[10px] opacity-80">دور</span>
+                <span className="text-[10px] opacity-80">{f === 99 ? "السطح" : "دور"}</span>
                 <span className="text-lg">{f}</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 flex-1">
@@ -692,7 +693,7 @@ function Info({ label, value }: { label: string; value: React.ReactNode }) {
 const officeSchema = z.object({
   code: z.string().trim().min(1, "الكود مطلوب").max(20),
   office_number: z.string().trim().min(1, "رقم المكتب مطلوب").max(10),
-  floor: z.number().int().min(1, "الدور بين 1 و 9").max(9, "الدور بين 1 و 9"),
+  floor: z.number().int().refine((v) => (v >= 1 && v <= 9) || v === 99, "الدور بين 1 و 9 أو 99 (السطح)"),
   area_sqm: z.number().nonnegative().nullable(),
   parking_count: z.number().int().nonnegative(),
   view_type: z.string().max(100).nullable(),
@@ -840,7 +841,7 @@ function OfficeFormDialog({
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {FLOORS.map((f) => (
-                    <SelectItem key={f} value={String(f)}>الدور {f}</SelectItem>
+                    <SelectItem key={f} value={String(f)}>{floorLabel(f)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

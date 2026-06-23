@@ -440,6 +440,16 @@ function FireContractsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <VendorQuickAddDialog
+        open={vendorAddOpen}
+        onClose={() => setVendorAddOpen(false)}
+        defaultActivity="أنظمة حريق"
+        onCreated={(v) => {
+          setVendors((prev) => [...prev, v].sort((a, b) => a.company_name.localeCompare(b.company_name)));
+          setForm((f) => ({ ...f, vendor_id: v.id, company_name: v.company_name }));
+          setVendorAddOpen(false);
+        }}
+      />
     </div>
   );
 }

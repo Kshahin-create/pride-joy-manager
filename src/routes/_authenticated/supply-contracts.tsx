@@ -207,20 +207,25 @@ function SupplyContractsPage() {
                   </div>
                   <div>
                     <Label>المورد</Label>
-                    <Select
-                      value={form.vendor_id ?? ""}
-                      onValueChange={(v) => {
-                        const ven = vendors.find((x) => x.id === v);
-                        setForm({ ...form, vendor_id: v, vendor_company_name: ven?.company_name ?? "" });
-                      }}
-                    >
-                      <SelectTrigger><SelectValue placeholder="اختر مورد" /></SelectTrigger>
-                      <SelectContent>
-                        {vendors.map((v) => (
-                          <SelectItem key={v.id} value={v.id}>{v.company_name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <Select
+                        value={form.vendor_id ?? ""}
+                        onValueChange={(v) => {
+                          const ven = vendors.find((x) => x.id === v);
+                          setForm({ ...form, vendor_id: v, vendor_company_name: ven?.company_name ?? "" });
+                        }}
+                      >
+                        <SelectTrigger className="flex-1"><SelectValue placeholder="اختر مورد" /></SelectTrigger>
+                        <SelectContent>
+                          {vendors.map((v) => (
+                            <SelectItem key={v.id} value={v.id}>{v.company_name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button type="button" variant="outline" size="icon" onClick={() => setVendorAddOpen(true)} title="إضافة مورد جديد">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <div>
                     <Label>السجل التجاري</Label>

@@ -406,6 +406,15 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
           <Table>
             <TableHeader>
               <TableRow>
+                {selectMode && (
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={filtered.length > 0 && selected.size === filtered.length}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="تحديد الكل"
+                    />
+                  </TableHead>
+                )}
                 <TableHead>العنوان</TableHead>
                 <TableHead>التصنيف</TableHead>
                 <TableHead>تاريخ الإصدار</TableHead>
@@ -415,15 +424,20 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading && <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">جارٍ التحميل...</TableCell></TableRow>}
+              {loading && <TableRow><TableCell colSpan={selectMode ? 7 : 6} className="text-center py-6 text-muted-foreground">جارٍ التحميل...</TableCell></TableRow>}
               {!loading && filtered.length === 0 && (
-                <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                <TableRow><TableCell colSpan={selectMode ? 7 : 6} className="text-center py-6 text-muted-foreground">
                   <FileText className="h-8 w-8 mx-auto mb-1 opacity-40" />
                   {items.length === 0 ? "لا توجد مستندات بعد" : "لا نتائج مطابقة للبحث"}
                 </TableCell></TableRow>
               )}
               {filtered.map((d) => (
-                <TableRow key={d.id}>
+                <TableRow key={d.id} data-state={selected.has(d.id) ? "selected" : undefined}>
+                  {selectMode && (
+                    <TableCell>
+                      <Checkbox checked={selected.has(d.id)} onCheckedChange={() => toggleSelect(d.id)} aria-label={d.title} />
+                    </TableCell>
+                  )}
                   <TableCell className="font-medium">
                     <div>{d.title}</div>
                     {d.file_name && <div className="text-xs text-muted-foreground truncate max-w-xs">{d.file_name}</div>}

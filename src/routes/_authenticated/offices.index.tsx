@@ -693,7 +693,7 @@ function Info({ label, value }: { label: string; value: React.ReactNode }) {
 const officeSchema = z.object({
   code: z.string().trim().min(1, "الكود مطلوب").max(20),
   office_number: z.string().trim().min(1, "رقم المكتب مطلوب").max(10),
-  floor: z.number().int().min(1, "الدور بين 1 و 9").max(9, "الدور بين 1 و 9"),
+  floor: z.number().int().refine((v) => (v >= 1 && v <= 9) || v === 99, "الدور بين 1 و 9 أو 99 (السطح)"),
   area_sqm: z.number().nonnegative().nullable(),
   parking_count: z.number().int().nonnegative(),
   view_type: z.string().max(100).nullable(),

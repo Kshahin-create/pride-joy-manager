@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Plus, LogOut, Users, UserCheck, Search } from "lucide-react";
+import { Plus, LogOut, Users, UserCheck, Search, Download } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/visitors")({
   component: VisitorsPage,
@@ -117,6 +117,23 @@ function VisitorsPage() {
 
   const fmt = (s: string | null) => s ? new Date(s).toLocaleString("en-US", { hour12: false }) : "—";
 
+  const exportCsv = () => {
+    if (filtered.length === 0) return toast.error("لا توجد سجلات للتصدير");
+    const headers = ["visitor_number","full_name","national_id","phone","visitor_type","office","host_name","purpose","vehicle_plate","badge_number","check_in_at","check_out_at","status","notes"];
+    const esc = (v: any) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    const rows = filtered.map((v) => [
+      v.visitor_number, v.full_name, v.national_id, v.phone, v.visitor_type,
+      v.office_id ? officeMap.get(v.office_id)?.code : "",
+      v.host_name, v.purpose, v.vehicle_plate, v.badge_number,
+      v.check_in_at, v.check_out_at, v.status, v.notes,
+    ].map(esc).join(","));
+    const csv = "\uFEFF" + [headers.join(","), ...rows].join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+    a.download = `visitors-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+
   return (
     <div className="space-y-4 p-4" dir="rtl">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -124,11 +141,13 @@ function VisitorsPage() {
           <h1 className="text-2xl font-bold">إدارة الزوار</h1>
           <p className="text-sm text-muted-foreground">تسجيل دخول وخروج الزوار في البرج</p>
         </div>
-        {canManage && (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 ml-1" /> تسجيل دخول زائر</Button>
-            </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportCsv}><Download className="h-4 w-4 ml-1" /> تصدير CSV</Button>
+          {canManage && (
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button><Plus className="h-4 w-4 ml-1" /> تسجيل دخول زائر</Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader><DialogTitle>تسجيل دخول زائر جديد</DialogTitle></DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -161,8 +180,9 @@ function VisitorsPage() {
                 <Button onClick={checkIn} disabled={busy}>تسجيل الدخول</Button>
               </DialogFooter>
             </DialogContent>
-          </Dialog>
-        )}
+            </Dialog>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

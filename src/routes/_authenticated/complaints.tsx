@@ -67,8 +67,9 @@ function TicketsPage() {
   const canCreate = hasAnyRole(["super_admin", "receptionist"]);
 
   const [items, setItems] = useState<Ticket[]>([]);
-  const [offices, setOffices] = useState<{ id: string; code: string }[]>([]);
+  const [offices, setOffices] = useState<{ id: string; code: string; space_id: string | null }[]>([]);
   const [companies, setCompanies] = useState<{ id: string; company_name: string }[]>([]);
+  const [assets, setAssets] = useState<{ id: string; asset_name: string; space_id: string | null }[]>([]);
 
   const [fType, setFType] = useState<string>("all");
   const [fPriority, setFPriority] = useState<string>("all");
@@ -79,18 +80,28 @@ function TicketsPage() {
   const [form, setForm] = useState<Partial<Ticket>>({ ticket_type: "شكوى", priority: "متوسطة" });
 
   const load = async () => {
-    const [t, o, c] = await Promise.all([scoped((supabase as any)
+    const [t, o, c, a] = await Promise.all([scoped((supabase as any)
         .from("tickets")
         .select("*, offices(code), companies(company_name)"), activePropertyId)
         .order("created_at", { ascending: false }),
-      (supabase as any).from("offices").select("id, code").order("code"),scoped((supabase as any).from("companies").select("id, company_name"), activePropertyId).order("company_name"),
+      (supabase as any).from("offices").select("id, code, space_id").order("code"),
+      scoped((supabase as any).from("companies").select("id, company_name"), activePropertyId).order("company_name"),
+      (supabase as any).from("assets").select("id, asset_name, space_id").order("asset_name"),
     ]);
     if (t.error) toast.error(t.error.message);
     setItems((t.data ?? []) as Ticket[]);
     setOffices(o.data ?? []);
     setCompanies(c.data ?? []);
+    setAssets(a.data ?? []);
   };
   useEffect(() => { load(); }, []);
+
+  const officeAssets = useMemo(() => {
+    if (!form.office_id) return assets;
+    const o = offices.find((x) => x.id === form.office_id);
+    if (!o?.space_id) return [];
+    return assets.filter((x) => x.space_id === o.space_id);
+  }, [assets, offices, form.office_id]);
 
   const filtered = useMemo(() => {
     return items
@@ -184,7 +195,22 @@ function TicketsPage() {
                     </Select>
                   </div>
                 </div>
-                <div><Label>التصنيف</Label><Input value={form.category ?? ""} onChange={(e) => setForm({ ...form, category: e.target.value })} /></div>
+                <div>
+                  <Label>التصنيف (اختياري — أصل مرتبط بالمكتب)</Label>
+                  <Select
+                    value={form.category ?? "__none__"}
+                    onValueChange={(v) => setForm({ ...form, category: v === "__none__" ? null : v })}
+                  >
+                    <SelectTrigger><SelectValue placeholder="بدون" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">بدون</SelectItem>
+                      {officeAssets.length === 0 && (
+                        <div className="px-2 py-1 text-xs text-muted-foreground">لا توجد أصول مرتبطة بالمكتب المختار</div>
+                      )}
+                      {officeAssets.map((a) => <SelectItem key={a.id} value={a.asset_name}>{a.asset_name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div><Label>الوصف *</Label><Textarea rows={4} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
               </div>
               <DialogFooter><Button onClick={create}>حفظ</Button></DialogFooter>

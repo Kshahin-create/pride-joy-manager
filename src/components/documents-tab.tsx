@@ -21,7 +21,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Download, Eye, Trash2, FileText, AlertTriangle, Search, Share2, Archive, UploadCloud, X } from "lucide-react";
+import { Plus, Download, Eye, Trash2, FileText, AlertTriangle, Search, Share2, Archive, UploadCloud, X, CheckSquare } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import JSZip from "jszip";
 
 export const DOC_CATEGORIES = [
@@ -91,6 +92,8 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
   const [zipping, setZipping] = useState(false);
   const [defaultCategory, setDefaultCategory] = useState<DocCategory>("عقد");
   const [form, setForm] = useState<{ issue_date?: string; expiry_date?: string; notes?: string }>({});
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectMode, setSelectMode] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -202,14 +205,14 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
     );
   });
 
-  const downloadAllZip = async () => {
-    if (filtered.length === 0) { toast.error("لا توجد ملفات للتحميل"); return; }
+  const downloadZip = async (docs: DocumentRow[], label: string) => {
+    if (docs.length === 0) { toast.error("لا توجد ملفات للتحميل"); return; }
     setZipping(true);
-    const t = toast.loading(`جارٍ تحضير الأرشيف (${filtered.length} ملف)...`);
+    const t = toast.loading(`جارٍ تحضير الأرشيف (${docs.length} ملف)...`);
     try {
       const zip = new JSZip();
       const used = new Map<string, number>();
-      for (const d of filtered) {
+      for (const d of docs) {
         const url = await signedUrl(d.file_path);
         if (!url) continue;
         const res = await fetch(url);
@@ -227,13 +230,25 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
       const out = await zip.generateAsync({ type: "blob" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(out);
-      a.download = `archive-${new Date().toISOString().slice(0, 10)}.zip`;
+      a.download = `${label}-${new Date().toISOString().slice(0, 10)}.zip`;
       a.click();
       URL.revokeObjectURL(a.href);
       toast.success("تم تحضير الأرشيف", { id: t });
     } catch (e: any) {
       toast.error(e.message ?? "فشل تحضير الأرشيف", { id: t });
     } finally { setZipping(false); }
+  };
+  const downloadAllZip = () => downloadZip(filtered, "archive");
+  const downloadSelectedZip = () => {
+    const docs = filtered.filter((d) => selected.has(d.id));
+    downloadZip(docs, "selected");
+  };
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  };
+  const toggleSelectAll = () => {
+    if (selected.size === filtered.length) setSelected(new Set());
+    else setSelected(new Set(filtered.map((d) => d.id)));
   };
 
   const onPickFiles = (list: FileList | null) => {
@@ -267,10 +282,22 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
             {DOC_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
           </SelectContent>
         </Select>
-        <div className="ms-auto flex gap-2">
-          <Button variant="outline" onClick={downloadAllZip} disabled={zipping || filtered.length === 0}>
-            <Archive className="h-4 w-4 ms-1" /> تحميل الكل (ZIP)
+        <div className="ms-auto flex gap-2 flex-wrap">
+          <Button
+            variant={selectMode ? "default" : "outline"}
+            onClick={() => { setSelectMode((v) => !v); setSelected(new Set()); }}
+          >
+            <CheckSquare className="h-4 w-4 ms-1" /> {selectMode ? "إلغاء التحديد" : "تحديد ملفات"}
           </Button>
+          {selectMode ? (
+            <Button onClick={downloadSelectedZip} disabled={zipping || selected.size === 0}>
+              <Archive className="h-4 w-4 ms-1" /> تحميل المحدد ({selected.size})
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={downloadAllZip} disabled={zipping || filtered.length === 0}>
+              <Archive className="h-4 w-4 ms-1" /> تحميل الكل (ZIP)
+            </Button>
+          )}
           {canManage && (
             <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setFileItems([]); }}>
               <DialogTrigger asChild>
@@ -379,6 +406,15 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
           <Table>
             <TableHeader>
               <TableRow>
+                {selectMode && (
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={filtered.length > 0 && selected.size === filtered.length}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="تحديد الكل"
+                    />
+                  </TableHead>
+                )}
                 <TableHead>العنوان</TableHead>
                 <TableHead>التصنيف</TableHead>
                 <TableHead>تاريخ الإصدار</TableHead>
@@ -388,15 +424,20 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading && <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">جارٍ التحميل...</TableCell></TableRow>}
+              {loading && <TableRow><TableCell colSpan={selectMode ? 7 : 6} className="text-center py-6 text-muted-foreground">جارٍ التحميل...</TableCell></TableRow>}
               {!loading && filtered.length === 0 && (
-                <TableRow><TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
+                <TableRow><TableCell colSpan={selectMode ? 7 : 6} className="text-center py-6 text-muted-foreground">
                   <FileText className="h-8 w-8 mx-auto mb-1 opacity-40" />
                   {items.length === 0 ? "لا توجد مستندات بعد" : "لا نتائج مطابقة للبحث"}
                 </TableCell></TableRow>
               )}
               {filtered.map((d) => (
-                <TableRow key={d.id}>
+                <TableRow key={d.id} data-state={selected.has(d.id) ? "selected" : undefined}>
+                  {selectMode && (
+                    <TableCell>
+                      <Checkbox checked={selected.has(d.id)} onCheckedChange={() => toggleSelect(d.id)} aria-label={d.title} />
+                    </TableCell>
+                  )}
                   <TableCell className="font-medium">
                     <div>{d.title}</div>
                     {d.file_name && <div className="text-xs text-muted-foreground truncate max-w-xs">{d.file_name}</div>}

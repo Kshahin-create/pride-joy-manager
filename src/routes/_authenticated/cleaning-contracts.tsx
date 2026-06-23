@@ -591,6 +591,18 @@ function CleaningContractsPage() {
         </DialogContent>
       </Dialog>
 
+      <VendorQuickAddDialog
+        open={vendorAddOpen}
+        onClose={() => setVendorAddOpen(false)}
+        defaultActivity="نظافة"
+        onCreated={(v) => {
+          setVendors((prev) => [...prev, v].sort((a, b) => a.company_name.localeCompare(b.company_name)));
+          setForm((f: any) => ({ ...f, vendor_id: v.id, vendor_name: v.company_name }));
+          setVendorAddOpen(false);
+        }}
+      />
+
+
       {/* Attachments Dialog */}
       <Dialog open={attachOpen} onOpenChange={setAttachOpen}>
         <DialogContent className="max-w-2xl" dir="rtl">

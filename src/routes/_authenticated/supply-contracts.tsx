@@ -527,6 +527,16 @@ function SupplyContractsPage() {
           </Table>
         </CardContent>
       </Card>
+      <VendorQuickAddDialog
+        open={vendorAddOpen}
+        onClose={() => setVendorAddOpen(false)}
+        defaultActivity="توريد"
+        onCreated={(v) => {
+          setVendors((prev) => [...prev, v].sort((a, b) => a.company_name.localeCompare(b.company_name)));
+          setForm({ ...form, vendor_id: v.id, vendor_company_name: v.company_name });
+          setVendorAddOpen(false);
+        }}
+      />
     </div>
   );
 }

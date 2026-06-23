@@ -445,6 +445,16 @@ function ElevatorContractsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <VendorQuickAddDialog
+        open={vendorAddOpen}
+        onClose={() => setVendorAddOpen(false)}
+        defaultActivity="مصاعد"
+        onCreated={(v) => {
+          setVendors((prev) => [...prev, v].sort((a, b) => a.company_name.localeCompare(b.company_name)));
+          setForm((f) => ({ ...f, vendor_id: v.id, vendor_name: v.company_name }));
+          setVendorAddOpen(false);
+        }}
+      />
     </div>
   );
 }

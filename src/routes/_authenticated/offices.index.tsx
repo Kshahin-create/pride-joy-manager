@@ -531,7 +531,7 @@ function GridView({
           return (
             <div key={f} className="flex items-stretch gap-3">
               <div className="w-16 shrink-0 rounded-lg bg-primary text-primary-foreground flex flex-col items-center justify-center font-bold text-sm">
-                <span className="text-[10px] opacity-80">دور</span>
+                <span className="text-[10px] opacity-80">{f === 99 ? "السطح" : "دور"}</span>
                 <span className="text-lg">{f}</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 flex-1">

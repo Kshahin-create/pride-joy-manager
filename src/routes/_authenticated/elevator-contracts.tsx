@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, FileText, ArrowUpDown } from "lucide-react";
+import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
 
 export const Route = createFileRoute("/_authenticated/elevator-contracts")({
   component: ElevatorContractsPage,
@@ -100,6 +101,7 @@ function ElevatorContractsPage() {
   const [editing, setEditing] = useState<Contract | null>(null);
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
+  const [vendorAddOpen, setVendorAddOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -321,16 +323,21 @@ function ElevatorContractsPage() {
               <div className="grid md:grid-cols-2 gap-3">
                 <div><Label>الطرف الأول (مالك البرج/الإدارة)</Label><Input value={form.first_party_name} onChange={e => setForm({ ...form, first_party_name: e.target.value })} /></div>
                 <div><Label>المورد (الطرف الثاني)</Label>
-                  <Select value={form.vendor_id || "none"} onValueChange={v => {
-                    if (v === "none") setForm({ ...form, vendor_id: "", vendor_name: "" });
-                    else { const ve = vendors.find(x => x.id === v); setForm({ ...form, vendor_id: v, vendor_name: ve?.company_name || "" }); }
-                  }}>
-                    <SelectTrigger><SelectValue placeholder="اختر مورد" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">— يدوي —</SelectItem>
-                      {vendors.map(v => <SelectItem key={v.id} value={v.id}>{v.company_name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select value={form.vendor_id || "none"} onValueChange={v => {
+                      if (v === "none") setForm({ ...form, vendor_id: "", vendor_name: "" });
+                      else { const ve = vendors.find(x => x.id === v); setForm({ ...form, vendor_id: v, vendor_name: ve?.company_name || "" }); }
+                    }}>
+                      <SelectTrigger className="flex-1"><SelectValue placeholder="اختر مورد" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">— يدوي —</SelectItem>
+                        {vendors.map(v => <SelectItem key={v.id} value={v.id}>{v.company_name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Button type="button" variant="outline" size="icon" onClick={() => setVendorAddOpen(true)} title="إضافة مورد جديد">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 <div><Label>اسم شركة المصاعد</Label><Input value={form.vendor_name} onChange={e => setForm({ ...form, vendor_name: e.target.value })} /></div>
                 <div><Label>اسم المسؤول</Label><Input value={form.vendor_contact_name} onChange={e => setForm({ ...form, vendor_contact_name: e.target.value })} /></div>
@@ -438,6 +445,16 @@ function ElevatorContractsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <VendorQuickAddDialog
+        open={vendorAddOpen}
+        onClose={() => setVendorAddOpen(false)}
+        defaultActivity="مصاعد"
+        onCreated={(v) => {
+          setVendors((prev) => [...prev, v].sort((a, b) => a.company_name.localeCompare(b.company_name)));
+          setForm((f) => ({ ...f, vendor_id: v.id, vendor_name: v.company_name }));
+          setVendorAddOpen(false);
+        }}
+      />
     </div>
   );
 }

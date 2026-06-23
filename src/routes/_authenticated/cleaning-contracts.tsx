@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Sparkles, FileText, Upload, Trash2, Pencil, Download, Calendar, Users } from "lucide-react";
+import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
 
 export const Route = createFileRoute("/_authenticated/cleaning-contracts")({
   component: CleaningContractsPage,
@@ -121,6 +122,7 @@ function CleaningContractsPage() {
   const [editing, setEditing] = useState<CleaningContract | null>(null);
   const [form, setForm] = useState<any>(emptyForm());
   const [busy, setBusy] = useState(false);
+  const [vendorAddOpen, setVendorAddOpen] = useState(false);
 
   // attachments dialog
   const [attachOpen, setAttachOpen] = useState(false);
@@ -452,17 +454,22 @@ function CleaningContractsPage() {
             <Section title="بيانات شركة النظافة">
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <Field label="المورد المسجّل (اختياري)">
-                  <Select value={form.vendor_id || "none"} onValueChange={(v) => {
-                    if (v === "none") { setForm({ ...form, vendor_id: "" }); return; }
-                    const vendor = vendors.find((x) => x.id === v);
-                    setForm({ ...form, vendor_id: v, vendor_name: vendor?.company_name ?? form.vendor_name });
-                  }}>
-                    <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">— بدون ربط —</SelectItem>
-                      {vendors.map((v) => <SelectItem key={v.id} value={v.id}>{v.company_name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2">
+                    <Select value={form.vendor_id || "none"} onValueChange={(v) => {
+                      if (v === "none") { setForm({ ...form, vendor_id: "" }); return; }
+                      const vendor = vendors.find((x) => x.id === v);
+                      setForm({ ...form, vendor_id: v, vendor_name: vendor?.company_name ?? form.vendor_name });
+                    }}>
+                      <SelectTrigger className="flex-1"><SelectValue placeholder="—" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">— بدون ربط —</SelectItem>
+                        {vendors.map((v) => <SelectItem key={v.id} value={v.id}>{v.company_name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Button type="button" variant="outline" size="icon" onClick={() => setVendorAddOpen(true)} title="إضافة مورد جديد">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </Field>
                 <Field label="اسم الشركة"><Input value={form.vendor_name} onChange={(e) => setForm({ ...form, vendor_name: e.target.value })} /></Field>
                 <Field label="السجل التجاري"><Input value={form.vendor_cr} onChange={(e) => setForm({ ...form, vendor_cr: e.target.value })} /></Field>
@@ -583,6 +590,18 @@ function CleaningContractsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <VendorQuickAddDialog
+        open={vendorAddOpen}
+        onClose={() => setVendorAddOpen(false)}
+        defaultActivity="نظافة"
+        onCreated={(v) => {
+          setVendors((prev) => [...prev, v].sort((a, b) => a.company_name.localeCompare(b.company_name)));
+          setForm((f: any) => ({ ...f, vendor_id: v.id, vendor_name: v.company_name }));
+          setVendorAddOpen(false);
+        }}
+      />
+
 
       {/* Attachments Dialog */}
       <Dialog open={attachOpen} onOpenChange={setAttachOpen}>

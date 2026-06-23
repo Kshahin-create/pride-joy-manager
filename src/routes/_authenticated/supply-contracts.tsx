@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, FileSignature, AlertTriangle } from "lucide-react";
+import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
 
 export const Route = createFileRoute("/_authenticated/supply-contracts")({
   component: SupplyContractsPage,
@@ -68,6 +69,7 @@ function SupplyContractsPage() {
     tax_rate: 15,
     payment_frequency: "حسب التوريد",
   });
+  const [vendorAddOpen, setVendorAddOpen] = useState(false);
 
   const load = async () => {
     const { data, error } = await scoped(
@@ -205,20 +207,25 @@ function SupplyContractsPage() {
                   </div>
                   <div>
                     <Label>المورد</Label>
-                    <Select
-                      value={form.vendor_id ?? ""}
-                      onValueChange={(v) => {
-                        const ven = vendors.find((x) => x.id === v);
-                        setForm({ ...form, vendor_id: v, vendor_company_name: ven?.company_name ?? "" });
-                      }}
-                    >
-                      <SelectTrigger><SelectValue placeholder="اختر مورد" /></SelectTrigger>
-                      <SelectContent>
-                        {vendors.map((v) => (
-                          <SelectItem key={v.id} value={v.id}>{v.company_name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <Select
+                        value={form.vendor_id ?? ""}
+                        onValueChange={(v) => {
+                          const ven = vendors.find((x) => x.id === v);
+                          setForm({ ...form, vendor_id: v, vendor_company_name: ven?.company_name ?? "" });
+                        }}
+                      >
+                        <SelectTrigger className="flex-1"><SelectValue placeholder="اختر مورد" /></SelectTrigger>
+                        <SelectContent>
+                          {vendors.map((v) => (
+                            <SelectItem key={v.id} value={v.id}>{v.company_name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button type="button" variant="outline" size="icon" onClick={() => setVendorAddOpen(true)} title="إضافة مورد جديد">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   <div>
                     <Label>السجل التجاري</Label>
@@ -520,6 +527,16 @@ function SupplyContractsPage() {
           </Table>
         </CardContent>
       </Card>
+      <VendorQuickAddDialog
+        open={vendorAddOpen}
+        onClose={() => setVendorAddOpen(false)}
+        defaultActivity="توريد"
+        onCreated={(v) => {
+          setVendors((prev) => [...prev, v].sort((a, b) => a.company_name.localeCompare(b.company_name)));
+          setForm({ ...form, vendor_id: v.id, vendor_company_name: v.company_name });
+          setVendorAddOpen(false);
+        }}
+      />
     </div>
   );
 }

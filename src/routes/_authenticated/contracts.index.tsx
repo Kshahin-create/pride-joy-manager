@@ -22,6 +22,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { CompanyFormDialog } from "./tenants";
 
 export const Route = createFileRoute("/_authenticated/contracts/")({
   component: ContractsPage,
@@ -278,6 +279,11 @@ export function ContractFormDialog({
   const [companies, setCompanies] = useState<{ id: string; company_name: string }[]>([]);
   const [offices, setOffices] = useState<{ id: string; code: string; status: string }[]>([]);
   const [pending, setPending] = useState<PendingFile[]>([]);
+  const [tenantAddOpen, setTenantAddOpen] = useState(false);
+  const reloadCompanies = useCallback(async () => {
+    const { data } = await scoped(supabase.from("companies").select("id, company_name"), activePropertyId).order("company_name");
+    setCompanies((data as { id: string; company_name: string }[]) ?? []);
+  }, [activePropertyId]);
   const [form, setForm] = useState({
     contract_type: "عقد إيجار مكتب" as ContractType,
     contract_name: "",
@@ -411,6 +417,7 @@ export function ContractFormDialog({
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent dir="rtl" className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{isEdit ? "تعديل العقد" : "عقد جديد"}</DialogTitle></DialogHeader>
@@ -460,10 +467,15 @@ export function ContractFormDialog({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <Label>المستأجر *</Label>
-                <Select value={form.company_id} onValueChange={(v) => setForm({ ...form, company_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="اختر المستأجر" /></SelectTrigger>
-                  <SelectContent>{companies.map(c => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}</SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select value={form.company_id} onValueChange={(v) => setForm({ ...form, company_id: v })}>
+                    <SelectTrigger className="flex-1"><SelectValue placeholder="اختر المستأجر" /></SelectTrigger>
+                    <SelectContent>{companies.map(c => <SelectItem key={c.id} value={c.id}>{c.company_name}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <Button type="button" variant="outline" size="icon" onClick={() => setTenantAddOpen(true)} title="إضافة مستأجر جديد">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <div>
                 <Label>المكتب *</Label>
@@ -580,6 +592,17 @@ export function ContractFormDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <CompanyFormDialog
+      open={tenantAddOpen}
+      company={null}
+      onClose={() => setTenantAddOpen(false)}
+      onSaved={async (newId) => {
+        await reloadCompanies();
+        if (newId) setForm((f) => ({ ...f, company_id: newId }));
+        setTenantAddOpen(false);
+      }}
+    />
+    </>
   );
 }
 

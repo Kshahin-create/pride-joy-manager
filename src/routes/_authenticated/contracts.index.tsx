@@ -22,6 +22,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { CompanyFormDialog } from "./tenants";
 
 export const Route = createFileRoute("/_authenticated/contracts/")({
   component: ContractsPage,

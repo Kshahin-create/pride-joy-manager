@@ -11,38 +11,38 @@ export function VendorQuickAddDialog({
   open,
   onClose,
   onCreated,
-  defaultName = "",
+  defaultActivity = "",
 }: {
   open: boolean;
   onClose: () => void;
   onCreated: (vendor: { id: string; company_name: string }) => void;
-  defaultName?: string;
+  defaultActivity?: string;
 }) {
   const [busy, setBusy] = useState(false);
   const [f, setF] = useState({
-    company_name: defaultName,
-    contact_name: "",
-    phone: "",
+    company_name: "",
+    activity: defaultActivity,
+    contact_person: "",
+    mobile: "",
     email: "",
-    commercial_register: "",
-    tax_number: "",
-    service_type: "",
+    address: "",
   });
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!f.company_name.trim()) return toast.error("اسم الشركة مطلوب");
     setBusy(true);
+    const { data: u } = await supabase.auth.getUser();
     const { data, error } = await (supabase as any)
       .from("vendors")
       .insert({
         company_name: f.company_name.trim(),
-        contact_name: f.contact_name.trim() || null,
-        phone: f.phone.trim() || null,
+        activity: f.activity.trim() || null,
+        contact_person: f.contact_person.trim() || null,
+        mobile: f.mobile.trim() || null,
         email: f.email.trim() || null,
-        commercial_register: f.commercial_register.trim() || null,
-        tax_number: f.tax_number.trim() || null,
-        service_type: f.service_type.trim() || null,
+        address: f.address.trim() || null,
+        created_by: u.user?.id ?? null,
       })
       .select("id, company_name")
       .single();
@@ -50,7 +50,7 @@ export function VendorQuickAddDialog({
     if (error || !data) return toast.error("تعذّر الحفظ");
     toast.success("تم إضافة المورد");
     onCreated({ id: data.id, company_name: data.company_name });
-    setF({ company_name: "", contact_name: "", phone: "", email: "", commercial_register: "", tax_number: "", service_type: "" });
+    setF({ company_name: "", activity: defaultActivity, contact_person: "", mobile: "", email: "", address: "" });
   };
 
   return (
@@ -66,28 +66,24 @@ export function VendorQuickAddDialog({
               <Input value={f.company_name} onChange={(e) => setF({ ...f, company_name: e.target.value })} required />
             </div>
             <div className="space-y-1.5">
+              <Label>النشاط</Label>
+              <Input value={f.activity} onChange={(e) => setF({ ...f, activity: e.target.value })} placeholder="تكييف، نظافة، مصاعد..." />
+            </div>
+            <div className="space-y-1.5">
               <Label>اسم المسؤول</Label>
-              <Input value={f.contact_name} onChange={(e) => setF({ ...f, contact_name: e.target.value })} />
+              <Input value={f.contact_person} onChange={(e) => setF({ ...f, contact_person: e.target.value })} />
             </div>
             <div className="space-y-1.5">
               <Label>رقم الجوال</Label>
-              <Input value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
+              <Input value={f.mobile} onChange={(e) => setF({ ...f, mobile: e.target.value })} />
             </div>
             <div className="space-y-1.5">
               <Label>البريد الإلكتروني</Label>
               <Input type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
             </div>
-            <div className="space-y-1.5">
-              <Label>نوع الخدمة</Label>
-              <Input value={f.service_type} onChange={(e) => setF({ ...f, service_type: e.target.value })} placeholder="تكييف، نظافة، مصاعد..." />
-            </div>
-            <div className="space-y-1.5">
-              <Label>السجل التجاري</Label>
-              <Input value={f.commercial_register} onChange={(e) => setF({ ...f, commercial_register: e.target.value })} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>الرقم الضريبي</Label>
-              <Input value={f.tax_number} onChange={(e) => setF({ ...f, tax_number: e.target.value })} />
+            <div className="col-span-2 space-y-1.5">
+              <Label>العنوان</Label>
+              <Input value={f.address} onChange={(e) => setF({ ...f, address: e.target.value })} />
             </div>
           </div>
           <DialogFooter>

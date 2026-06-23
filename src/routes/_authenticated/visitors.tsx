@@ -141,11 +141,13 @@ function VisitorsPage() {
           <h1 className="text-2xl font-bold">إدارة الزوار</h1>
           <p className="text-sm text-muted-foreground">تسجيل دخول وخروج الزوار في البرج</p>
         </div>
-        {canManage && (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 ml-1" /> تسجيل دخول زائر</Button>
-            </DialogTrigger>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportCsv}><Download className="h-4 w-4 ml-1" /> تصدير CSV</Button>
+          {canManage && (
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button><Plus className="h-4 w-4 ml-1" /> تسجيل دخول زائر</Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader><DialogTitle>تسجيل دخول زائر جديد</DialogTitle></DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

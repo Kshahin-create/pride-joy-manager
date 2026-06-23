@@ -314,7 +314,7 @@ function OfficesPage() {
               <SelectContent>
                 <SelectItem value="all">كل الأدوار</SelectItem>
                 {FLOORS.map((f) => (
-                  <SelectItem key={f} value={String(f)}>الدور {f}</SelectItem>
+                  <SelectItem key={f} value={String(f)}>{floorLabel(f)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, FileSignature, AlertTriangle } from "lucide-react";
+import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
 
 export const Route = createFileRoute("/_authenticated/supply-contracts")({
   component: SupplyContractsPage,

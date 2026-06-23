@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, FileText, Snowflake } from "lucide-react";
+import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
 
 export const Route = createFileRoute("/_authenticated/ac-contracts")({
   component: AcContractsPage,

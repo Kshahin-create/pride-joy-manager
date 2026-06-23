@@ -205,14 +205,14 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
     );
   });
 
-  const downloadAllZip = async () => {
-    if (filtered.length === 0) { toast.error("لا توجد ملفات للتحميل"); return; }
+  const downloadZip = async (docs: DocumentRow[], label: string) => {
+    if (docs.length === 0) { toast.error("لا توجد ملفات للتحميل"); return; }
     setZipping(true);
-    const t = toast.loading(`جارٍ تحضير الأرشيف (${filtered.length} ملف)...`);
+    const t = toast.loading(`جارٍ تحضير الأرشيف (${docs.length} ملف)...`);
     try {
       const zip = new JSZip();
       const used = new Map<string, number>();
-      for (const d of filtered) {
+      for (const d of docs) {
         const url = await signedUrl(d.file_path);
         if (!url) continue;
         const res = await fetch(url);
@@ -230,13 +230,25 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
       const out = await zip.generateAsync({ type: "blob" });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(out);
-      a.download = `archive-${new Date().toISOString().slice(0, 10)}.zip`;
+      a.download = `${label}-${new Date().toISOString().slice(0, 10)}.zip`;
       a.click();
       URL.revokeObjectURL(a.href);
       toast.success("تم تحضير الأرشيف", { id: t });
     } catch (e: any) {
       toast.error(e.message ?? "فشل تحضير الأرشيف", { id: t });
     } finally { setZipping(false); }
+  };
+  const downloadAllZip = () => downloadZip(filtered, "archive");
+  const downloadSelectedZip = () => {
+    const docs = filtered.filter((d) => selected.has(d.id));
+    downloadZip(docs, "selected");
+  };
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  };
+  const toggleSelectAll = () => {
+    if (selected.size === filtered.length) setSelected(new Set());
+    else setSelected(new Set(filtered.map((d) => d.id)));
   };
 
   const onPickFiles = (list: FileList | null) => {

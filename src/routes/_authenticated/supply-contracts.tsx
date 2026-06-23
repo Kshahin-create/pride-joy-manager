@@ -69,6 +69,7 @@ function SupplyContractsPage() {
     tax_rate: 15,
     payment_frequency: "حسب التوريد",
   });
+  const [vendorAddOpen, setVendorAddOpen] = useState(false);
 
   const load = async () => {
     const { data, error } = await scoped(

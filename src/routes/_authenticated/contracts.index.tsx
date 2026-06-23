@@ -279,6 +279,11 @@ export function ContractFormDialog({
   const [companies, setCompanies] = useState<{ id: string; company_name: string }[]>([]);
   const [offices, setOffices] = useState<{ id: string; code: string; status: string }[]>([]);
   const [pending, setPending] = useState<PendingFile[]>([]);
+  const [tenantAddOpen, setTenantAddOpen] = useState(false);
+  const reloadCompanies = useCallback(async () => {
+    const { data } = await scoped(supabase.from("companies").select("id, company_name"), activePropertyId).order("company_name");
+    setCompanies((data as { id: string; company_name: string }[]) ?? []);
+  }, [activePropertyId]);
   const [form, setForm] = useState({
     contract_type: "عقد إيجار مكتب" as ContractType,
     contract_name: "",

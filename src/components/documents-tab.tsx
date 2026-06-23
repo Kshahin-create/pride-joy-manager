@@ -92,6 +92,8 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
   const [zipping, setZipping] = useState(false);
   const [defaultCategory, setDefaultCategory] = useState<DocCategory>("عقد");
   const [form, setForm] = useState<{ issue_date?: string; expiry_date?: string; notes?: string }>({});
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectMode, setSelectMode] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);

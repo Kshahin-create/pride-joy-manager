@@ -415,10 +415,32 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_types: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       assets: {
         Row: {
           asset_code: string
           asset_name: string
+          asset_type: string | null
           created_at: string
           created_by: string | null
           criticality: Database["public"]["Enums"]["asset_criticality"]
@@ -428,6 +450,7 @@ export type Database = {
           location: string | null
           manufacturer: string | null
           notes: string | null
+          photo_urls: string[]
           property_id: string
           responsible_person: string | null
           serial_number: string | null
@@ -439,6 +462,7 @@ export type Database = {
         Insert: {
           asset_code: string
           asset_name: string
+          asset_type?: string | null
           created_at?: string
           created_by?: string | null
           criticality?: Database["public"]["Enums"]["asset_criticality"]
@@ -448,6 +472,7 @@ export type Database = {
           location?: string | null
           manufacturer?: string | null
           notes?: string | null
+          photo_urls?: string[]
           property_id?: string
           responsible_person?: string | null
           serial_number?: string | null
@@ -459,6 +484,7 @@ export type Database = {
         Update: {
           asset_code?: string
           asset_name?: string
+          asset_type?: string | null
           created_at?: string
           created_by?: string | null
           criticality?: Database["public"]["Enums"]["asset_criticality"]
@@ -468,6 +494,7 @@ export type Database = {
           location?: string | null
           manufacturer?: string | null
           notes?: string | null
+          photo_urls?: string[]
           property_id?: string
           responsible_person?: string | null
           serial_number?: string | null

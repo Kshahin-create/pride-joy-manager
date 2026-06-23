@@ -211,6 +211,7 @@ function TicketsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div><Label>الوصف *</Label><Textarea rows={4} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
               </div>
               <DialogFooter><Button onClick={create}>حفظ</Button></DialogFooter>
             </DialogContent>

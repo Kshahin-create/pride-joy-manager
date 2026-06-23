@@ -254,7 +254,7 @@ function ParkingPage() {
             <CardContent>
               {view === "grid" ? (
                 <div className="space-y-6">
-                  {(["P1", "P2", "P3"] as const).map((f) => (
+                  {activeFloors.map((f) => (
                     <div key={f}>
                       <div className="flex items-center gap-2 mb-3">
                         <Badge variant="outline" className="text-base px-3 py-1">{f}</Badge>

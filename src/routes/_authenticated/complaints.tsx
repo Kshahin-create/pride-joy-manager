@@ -195,8 +195,22 @@ function TicketsPage() {
                     </Select>
                   </div>
                 </div>
-                <div><Label>التصنيف</Label><Input value={form.category ?? ""} onChange={(e) => setForm({ ...form, category: e.target.value })} /></div>
-                <div><Label>الوصف *</Label><Textarea rows={4} value={form.description ?? ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+                <div>
+                  <Label>التصنيف (اختياري — أصل مرتبط بالمكتب)</Label>
+                  <Select
+                    value={form.category ?? "__none__"}
+                    onValueChange={(v) => setForm({ ...form, category: v === "__none__" ? null : v })}
+                  >
+                    <SelectTrigger><SelectValue placeholder="بدون" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">بدون</SelectItem>
+                      {officeAssets.length === 0 && (
+                        <div className="px-2 py-1 text-xs text-muted-foreground">لا توجد أصول مرتبطة بالمكتب المختار</div>
+                      )}
+                      {officeAssets.map((a) => <SelectItem key={a.id} value={a.asset_name}>{a.asset_name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <DialogFooter><Button onClick={create}>حفظ</Button></DialogFooter>
             </DialogContent>

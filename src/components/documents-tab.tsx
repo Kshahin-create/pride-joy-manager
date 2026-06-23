@@ -282,10 +282,22 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
             {DOC_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
           </SelectContent>
         </Select>
-        <div className="ms-auto flex gap-2">
-          <Button variant="outline" onClick={downloadAllZip} disabled={zipping || filtered.length === 0}>
-            <Archive className="h-4 w-4 ms-1" /> تحميل الكل (ZIP)
+        <div className="ms-auto flex gap-2 flex-wrap">
+          <Button
+            variant={selectMode ? "default" : "outline"}
+            onClick={() => { setSelectMode((v) => !v); setSelected(new Set()); }}
+          >
+            <CheckSquare className="h-4 w-4 ms-1" /> {selectMode ? "إلغاء التحديد" : "تحديد ملفات"}
           </Button>
+          {selectMode ? (
+            <Button onClick={downloadSelectedZip} disabled={zipping || selected.size === 0}>
+              <Archive className="h-4 w-4 ms-1" /> تحميل المحدد ({selected.size})
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={downloadAllZip} disabled={zipping || filtered.length === 0}>
+              <Archive className="h-4 w-4 ms-1" /> تحميل الكل (ZIP)
+            </Button>
+          )}
           {canManage && (
             <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setFileItems([]); }}>
               <DialogTrigger asChild>

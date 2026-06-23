@@ -344,7 +344,7 @@ function UsersPage() {
                     </div>
                   </TableCell>
                   <TableCell className="px-4 text-xs text-muted-foreground hidden lg:table-cell">
-                    {new Date(r.created_at).toLocaleDateString("ar-EG")}
+                    {new Date(r.created_at).toLocaleDateString("en-US")}
                   </TableCell>
                   <TableCell className="px-4 text-end">
                     <DropdownMenu>

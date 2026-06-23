@@ -205,7 +205,7 @@ export function LinkedOfficesCard({ contractId, canManage }: { contractId: strin
                     {o.offices?.code} {o.is_primary && <Badge className="ms-2">رئيسي</Badge>}
                   </TableCell>
                   <TableCell>{o.offices?.floor ?? "—"}</TableCell>
-                  <TableCell>{o.rent_share != null ? Number(o.rent_share).toLocaleString("ar-EG") : "—"}</TableCell>
+                  <TableCell>{o.rent_share != null ? Number(o.rent_share).toLocaleString("en-US") : "—"}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{o.notes ?? "—"}</TableCell>
                   <TableCell>
                     {canManage && <Button size="icon" variant="ghost" onClick={() => remove(o.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}

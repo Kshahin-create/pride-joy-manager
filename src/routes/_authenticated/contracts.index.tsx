@@ -240,7 +240,7 @@ function ContractsPage() {
                       <TableCell>{c.offices?.code ?? "—"}</TableCell>
                       <TableCell>{c.start_date}</TableCell>
                       <TableCell>{c.end_date}</TableCell>
-                      <TableCell>{Number(c.rent_amount).toLocaleString("ar-EG")}</TableCell>
+                      <TableCell>{Number(c.rent_amount).toLocaleString("en-US")}</TableCell>
                       <TableCell><Badge className={CONTRACT_STATUS_STYLE[c.status]}>{c.status}</Badge></TableCell>
                     </TableRow>
                   ))}

@@ -36,7 +36,7 @@ type VendorPayment = {
 
 const CATEGORIES = ["صيانة","نظافة","أمن","كهرباء","مياه","مكتبية","مرافق","مقاولين","رواتب","تأمين","ضرائب ورسوم","أخرى"];
 const METHODS = ["نقدي","تحويل بنكي","شيك","بطاقة"];
-const fmt = (n: number) => Number(n || 0).toLocaleString("ar-EG") + " ر.س";
+const fmt = (n: number) => Number(n || 0).toLocaleString("en-US") + " ر.س";
 
 function ExpensesPage() {
   const { activePropertyId } = useActiveProperty();

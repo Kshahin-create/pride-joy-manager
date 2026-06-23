@@ -30,8 +30,8 @@ type Stats = {
   parking_occupied: number; parking_available: number; violations_open: number;
 };
 
-const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(n || 0);
-const fmtSAR = (n: number) => `${new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 0 }).format(n || 0)} ر.س`;
+const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n || 0);
+const fmtSAR = (n: number) => `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n || 0)} ر.س`;
 
 function Dashboard() {
   const { activePropertyId } = useActiveProperty();

@@ -110,7 +110,7 @@ function GuardDetailsPage() {
           <Info label="نهاية العقد" value={guard.contract_end_date ?? "—"} />
           <Info label="ساعات العمل" value={guard.working_hours ?? "—"} />
           <Info label="أيام العمل" value={guard.working_days ?? "—"} />
-          {isAdmin && <Info label="الراتب" value={guard.salary != null ? Number(guard.salary).toLocaleString("ar-EG") + " ر.س" : "—"} />}
+          {isAdmin && <Info label="الراتب" value={guard.salary != null ? Number(guard.salary).toLocaleString("en-US") + " ر.س" : "—"} />}
         </CardContent>
       </Card>
 

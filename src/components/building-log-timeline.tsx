@@ -108,7 +108,7 @@ export function Timeline({ items }: { items: BuildingLogRow[] }) {
           <ol className="relative border-s border-border ms-3 space-y-3">
             {rows.map((r) => {
               const s = eventStyle(r.event_type);
-              const time = new Date(r.created_at).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" });
+              const time = new Date(r.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
               return (
                 <li key={r.id} className="ms-4 relative">
                   <span className={`absolute -start-[1.4rem] flex h-7 w-7 items-center justify-center rounded-full ring-4 ring-background ${s.bg} ${s.color}`}>

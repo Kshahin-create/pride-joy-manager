@@ -105,7 +105,7 @@ function TicketDetail() {
         <CardContent className="grid sm:grid-cols-2 gap-3 text-sm">
           <div><span className="text-muted-foreground">المكتب: </span>{t.offices?.code ?? "—"}</div>
           <div><span className="text-muted-foreground">المستأجر: </span>{t.companies?.company_name ?? "—"}</div>
-          <div><span className="text-muted-foreground">تاريخ الإنشاء: </span>{new Date(t.created_at).toLocaleString("ar-EG")}</div>
+          <div><span className="text-muted-foreground">تاريخ الإنشاء: </span>{new Date(t.created_at).toLocaleString("en-US")}</div>
           <div>
             <span className="text-muted-foreground">طلب صيانة مرتبط: </span>
             {t.maintenance_requests ? t.maintenance_requests.request_number : "—"}

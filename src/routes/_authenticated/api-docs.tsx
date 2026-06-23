@@ -332,8 +332,8 @@ function ApiKeysSection() {
                       )}
                     </div>
                     <div className="text-xs text-muted-foreground mt-0.5">
-                      آخر استخدام: {k.last_used_at ? new Date(k.last_used_at).toLocaleString("ar-EG") : "لم يُستخدم"}
-                      {k.expires_at && ` · ينتهي ${new Date(k.expires_at).toLocaleDateString("ar-EG")}`}
+                      آخر استخدام: {k.last_used_at ? new Date(k.last_used_at).toLocaleString("en-US") : "لم يُستخدم"}
+                      {k.expires_at && ` · ينتهي ${new Date(k.expires_at).toLocaleDateString("en-US")}`}
                     </div>
                   </div>
                   <div className="flex gap-1">

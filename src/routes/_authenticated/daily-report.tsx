@@ -55,7 +55,7 @@ function DailyReportPage() {
 
   useEffect(() => { void load(date); }, [date]);
 
-  const fmt = (n: number) => new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 2 }).format(n);
+  const fmt = (n: number) => new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(n);
 
   return (
     <div className="p-6 space-y-6">
@@ -128,7 +128,7 @@ function DailyReportPage() {
                         </div>
                       </div>
                       <div className="text-xs text-muted-foreground whitespace-nowrap">
-                        {new Date(e.created_at).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}
+                        {new Date(e.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                       </div>
                     </li>
                   ))}

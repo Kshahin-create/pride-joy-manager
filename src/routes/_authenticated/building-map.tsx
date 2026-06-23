@@ -281,7 +281,7 @@ function Stat({
           {label}
         </div>
         <p className="text-2xl font-bold text-primary mt-1">
-          {value.toLocaleString("ar-EG")}
+          {value.toLocaleString("en-US")}
         </p>
         {sub && <p className="text-[11px] text-muted-foreground mt-0.5">{sub}</p>}
       </CardContent>

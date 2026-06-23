@@ -37,7 +37,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "destructive" | "
 };
 
 const fmtMoney = (n: number | null | undefined) =>
-  n == null ? "—" : Number(n).toLocaleString("ar-EG") + " ر.س";
+  n == null ? "—" : Number(n).toLocaleString("en-US") + " ر.س";
 
 type Vendor = { id: string; company_name: string };
 type CleaningContract = {
@@ -623,7 +623,7 @@ function CleaningContractsPage() {
                   <div className="text-xs text-muted-foreground flex items-center gap-2">
                     <Badge variant="outline" className="text-[10px]">{a.attachment_type}</Badge>
                     <Calendar className="h-3 w-3" />
-                    {new Date(a.created_at).toLocaleDateString("ar-EG")}
+                    {new Date(a.created_at).toLocaleDateString("en-US")}
                   </div>
                 </div>
                 <Button size="sm" variant="ghost" onClick={() => downloadAttachment(a)}><Download className="h-4 w-4" /></Button>

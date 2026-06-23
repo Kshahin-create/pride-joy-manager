@@ -176,9 +176,9 @@ function ContractDetailsPage() {
           <Info label="الحالة" value={<Badge className={CONTRACT_STATUS_STYLE[contract.status]}>{contract.status}</Badge>} />
           <Info label="من" value={contract.start_date} />
           <Info label="إلى" value={contract.end_date} />
-          <Info label="الإيجار" value={Number(contract.rent_amount).toLocaleString("ar-EG") + " ر.س"} />
-          <Info label="التأمين" value={Number(contract.deposit_amount).toLocaleString("ar-EG") + " ر.س"} />
-          <Info label="رسوم الخدمات" value={Number(contract.service_fees).toLocaleString("ar-EG") + " ر.س"} />
+          <Info label="الإيجار" value={Number(contract.rent_amount).toLocaleString("en-US") + " ر.س"} />
+          <Info label="التأمين" value={Number(contract.deposit_amount).toLocaleString("en-US") + " ر.س"} />
+          <Info label="رسوم الخدمات" value={Number(contract.service_fees).toLocaleString("en-US") + " ر.س"} />
           {contract.renewed_from_id && (
             <Info label="مُجدد من" value={
               <Link to="/contracts/$id" params={{ id: contract.renewed_from_id }} className="text-primary hover:underline">

@@ -95,7 +95,7 @@ function ContractsTableCard({
                   <TableCell>{secondColumn.render(c)}</TableCell>
                   <TableCell>{c.start_date}</TableCell>
                   <TableCell>{c.end_date}</TableCell>
-                  <TableCell>{Number(c.rent_amount).toLocaleString("ar-EG")}</TableCell>
+                  <TableCell>{Number(c.rent_amount).toLocaleString("en-US")}</TableCell>
                   <TableCell><Badge variant="outline">{c.status}</Badge></TableCell>
                 </TableRow>
               ))}

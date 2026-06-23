@@ -204,11 +204,11 @@ function PmPlansPage() {
                     <TableCell><Badge variant="secondary">{p.default_priority}</Badge></TableCell>
                     <TableCell>
                       <span className={overdue ? "text-red-600 font-semibold" : ""}>
-                        {new Date(p.next_due_at).toLocaleDateString("ar-SA")}
+                        {new Date(p.next_due_at).toLocaleDateString("en-US")}
                       </span>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
-                      {p.last_executed_at ? new Date(p.last_executed_at).toLocaleDateString("ar-SA") : "—"}
+                      {p.last_executed_at ? new Date(p.last_executed_at).toLocaleDateString("en-US") : "—"}
                     </TableCell>
                     <TableCell>
                       <Badge variant={p.is_active ? "default" : "outline"}>
@@ -242,7 +242,7 @@ function Stat({ label, value, color }: { label: string; value: number; color?: s
     <Card>
       <CardContent className="p-4">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className={`text-2xl font-bold mt-1 ${cls}`}>{value.toLocaleString("ar-SA")}</p>
+        <p className={`text-2xl font-bold mt-1 ${cls}`}>{value.toLocaleString("en-US")}</p>
       </CardContent>
     </Card>
   );

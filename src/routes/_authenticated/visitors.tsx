@@ -115,7 +115,7 @@ function VisitorsPage() {
     await load();
   };
 
-  const fmt = (s: string | null) => s ? new Date(s).toLocaleString("ar-EG", { hour12: false }) : "—";
+  const fmt = (s: string | null) => s ? new Date(s).toLocaleString("en-US", { hour12: false }) : "—";
 
   return (
     <div className="space-y-4 p-4" dir="rtl">

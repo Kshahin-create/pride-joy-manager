@@ -65,7 +65,7 @@ interface Payment {
 }
 
 function fmt(n: number) {
-  return Number(n || 0).toLocaleString("ar-EG") + " ر.س";
+  return Number(n || 0).toLocaleString("en-US") + " ر.س";
 }
 
 function FinancePage() {

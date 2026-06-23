@@ -85,7 +85,7 @@ function TelegramPage() {
               <div className="text-muted-foreground">Chat ID</div>
               <div className="font-mono">{sub.chat_id}</div>
               <div className="text-muted-foreground">تاريخ الربط</div>
-              <div>{new Date(sub.linked_at).toLocaleString("ar-SA")}</div>
+              <div>{new Date(sub.linked_at).toLocaleString("en-US")}</div>
             </div>
             <div className="flex items-center justify-between border-t pt-4">
               <Label htmlFor="enabled" className="cursor-pointer">تفعيل الإشعارات</Label>

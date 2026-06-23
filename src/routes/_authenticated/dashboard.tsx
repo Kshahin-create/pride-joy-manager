@@ -51,11 +51,14 @@ function Dashboard() {
   const isSecurity = hasAnyRole(["security_supervisor"]);
   const isReception = hasAnyRole(["receptionist"]);
 
+  // الأرقام المالية: super_admin و accountant فقط
+  const canSeeFinance = hasAnyRole(["super_admin", "accountant"]);
+
   const show = {
     occupancy: isAdmin,
-    revenueChart: isAdmin || isAccountant,
-    finance: isAdmin || isAccountant,
-    expenses: isAdmin || isAccountant || isMaintenance,
+    revenueChart: canSeeFinance,
+    finance: canSeeFinance,
+    expenses: canSeeFinance,
     operations: isAdmin || isMaintenance || isReception,
     workOrders: isAdmin || isMaintenance,
     contracts: isAdmin || isAccountant,

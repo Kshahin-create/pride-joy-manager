@@ -149,6 +149,14 @@ export function OfficeAssetsTab({ officeId }: { officeId: string }) {
         </Card>
       )}
 
+      <AssetLinkPickerDialog
+        open={openPicker}
+        onClose={() => setOpenPicker(false)}
+        officeId={officeId}
+        onLinked={() => { setOpenPicker(false); load(); }}
+        onCreateNew={() => { setOpenPicker(false); setOpenCreate(true); }}
+      />
+
       <AssetFormDialog
         open={openCreate}
         onClose={() => setOpenCreate(false)}

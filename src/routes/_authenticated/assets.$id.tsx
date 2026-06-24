@@ -161,6 +161,17 @@ function AssetDetail() {
         </Card>
       </div>
 
+      {asset.specs && Object.keys(asset.specs).length > 0 && (
+        <Card>
+          <CardHeader><CardTitle>مواصفات فنية تفصيلية</CardTitle></CardHeader>
+          <CardContent className="grid md:grid-cols-2 gap-x-6 text-sm">
+            {Object.entries(asset.specs).map(([k, v]) => (
+              <Row key={k} k={k} v={typeof v === "boolean" ? (v ? "نعم" : "لا") : (v ?? "—")} />
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>المرفقات ({attachments.length})</CardTitle>

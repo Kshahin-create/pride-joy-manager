@@ -86,7 +86,8 @@ function TicketsPage() {
         .order("created_at", { ascending: false }),
       (supabase as any).from("offices").select("id, code, space_id").order("code"),
       scoped((supabase as any).from("companies").select("id, company_name"), activePropertyId).order("company_name"),
-      (supabase as any).from("assets").select("id, asset_name, space_id").order("asset_name"),
+      (supabase as any).from("assets").select("id, asset_name, space_id, office_id").order("asset_name"),
+
     ]);
     if (t.error) toast.error(t.error.message);
     setItems((t.data ?? []) as Ticket[]);

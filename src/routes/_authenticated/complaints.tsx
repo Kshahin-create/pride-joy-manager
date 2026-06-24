@@ -178,7 +178,16 @@ function TicketsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>المكتب</Label>
-                    <Select value={form.office_id ?? "__none__"} onValueChange={(v) => setForm({ ...form, office_id: v === "__none__" ? null : v })}>
+                    <Select
+                      value={form.office_id ?? "__none__"}
+                      onValueChange={(v) =>
+                        setForm({
+                          ...form,
+                          office_id: v === "__none__" ? null : v,
+                          category: null,
+                        })
+                      }
+                    >
                       <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__none__">بدون</SelectItem>
@@ -198,16 +207,23 @@ function TicketsPage() {
                   </div>
                 </div>
                 <div>
-                  <Label>التصنيف (اختياري — أصل مرتبط بالمكتب)</Label>
+                  <Label>التصنيف (الأصل المرتبط بالمكتب)</Label>
                   <Select
                     value={form.category ?? "__none__"}
                     onValueChange={(v) => setForm({ ...form, category: v === "__none__" ? null : v })}
+                    disabled={!form.office_id}
                   >
-                    <SelectTrigger><SelectValue placeholder="بدون" /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={form.office_id ? "اختر الأصل" : "اختر المكتب أولاً"}
+                      />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="__none__">بدون</SelectItem>
-                      {officeAssets.length === 0 && (
-                        <div className="px-2 py-1 text-xs text-muted-foreground">لا توجد أصول مرتبطة بالمكتب المختار</div>
+                      {form.office_id && officeAssets.length === 0 && (
+                        <div className="px-2 py-1 text-xs text-muted-foreground">
+                          لا توجد أصول مرتبطة بالمكتب المختار
+                        </div>
                       )}
                       {officeAssets.map((a) => <SelectItem key={a.id} value={a.asset_name}>{a.asset_name}</SelectItem>)}
                     </SelectContent>

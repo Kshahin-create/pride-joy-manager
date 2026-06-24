@@ -69,7 +69,7 @@ function TicketsPage() {
   const [items, setItems] = useState<Ticket[]>([]);
   const [offices, setOffices] = useState<{ id: string; code: string; space_id: string | null }[]>([]);
   const [companies, setCompanies] = useState<{ id: string; company_name: string }[]>([]);
-  const [assets, setAssets] = useState<{ id: string; asset_name: string; space_id: string | null }[]>([]);
+  const [assets, setAssets] = useState<{ id: string; asset_name: string; space_id: string | null; office_id: string | null }[]>([]);
 
   const [fType, setFType] = useState<string>("all");
   const [fPriority, setFPriority] = useState<string>("all");

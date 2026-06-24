@@ -925,6 +925,7 @@ export type Database = {
           payment_frequency:
             | Database["public"]["Enums"]["cleaning_payment_frequency"]
             | null
+          payment_method: string | null
           property_id: string
           restroom_supplies: string[] | null
           scope_areas: string[] | null
@@ -973,6 +974,7 @@ export type Database = {
           payment_frequency?:
             | Database["public"]["Enums"]["cleaning_payment_frequency"]
             | null
+          payment_method?: string | null
           property_id?: string
           restroom_supplies?: string[] | null
           scope_areas?: string[] | null
@@ -1021,6 +1023,7 @@ export type Database = {
           payment_frequency?:
             | Database["public"]["Enums"]["cleaning_payment_frequency"]
             | null
+          payment_method?: string | null
           property_id?: string
           restroom_supplies?: string[] | null
           scope_areas?: string[] | null

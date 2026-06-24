@@ -358,7 +358,23 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
               <Input value={form.serial_number ?? ""} onChange={(e) => setForm({ ...form, serial_number: e.target.value })} />
             </Field>
             <Field label="المورد">
-              <Input value={form.supplier ?? ""} onChange={(e) => setForm({ ...form, supplier: e.target.value })} />
+              <div className="flex gap-1">
+                <Select
+                  value={form.supplier_vendor_id ?? ""}
+                  onValueChange={(v) => {
+                    const ven = vendors.find((x) => x.id === v);
+                    setForm({ ...form, supplier_vendor_id: v, supplier: ven?.company_name ?? form.supplier });
+                  }}
+                >
+                  <SelectTrigger className="flex-1"><SelectValue placeholder="اختر مورد…" /></SelectTrigger>
+                  <SelectContent>
+                    {vendors.map((v) => <SelectItem key={v.id} value={v.id}>{v.company_name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button type="button" variant="outline" size="icon" title="إضافة مورد جديد" onClick={() => setVendorQuickOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </Field>
             <Field label="العمر الافتراضي (سنوات)">
               <Input type="number" value={form.expected_lifespan_years ?? ""} onChange={(e) => setForm({ ...form, expected_lifespan_years: Number(e.target.value) || null })} />
@@ -369,10 +385,55 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
           </div>
         </Section>
 
-        {/* Maintenance company */}
+        {/* Type-specific tech specs */}
+        {form.asset_type && (
+          <Section title="مواصفات فنية تفصيلية">
+            <AssetSpecsFields
+              assetType={form.asset_type}
+              value={form.specs ?? {}}
+              onChange={(v) => setForm({ ...form, specs: v })}
+            />
+          </Section>
+        )}
+
+        {/* Maintenance company — picked from existing contracts */}
         <Section title="بيانات شركة الصيانة">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Field label="اسم شركة الصيانة">
+            <Field label="نوع عقد الصيانة">
+              <Select
+                value={form.maintenance_contract_type ?? ""}
+                onValueChange={(v) => {
+                  setForm({ ...form, maintenance_contract_type: v, maintenance_contract_id: null, maintenance_company: null });
+                  loadContracts(v as ContractKind);
+                }}
+              >
+                <SelectTrigger><SelectValue placeholder={suggestContractKind(form.asset_type) ? `مقترح: ${CONTRACT_TABLES[suggestContractKind(form.asset_type)!].label}` : "اختر نوع العقد…"} /></SelectTrigger>
+                <SelectContent>
+                  {(Object.entries(CONTRACT_TABLES) as [ContractKind, { label: string }][])
+                    .map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="العقد / شركة الصيانة">
+              <Select
+                value={form.maintenance_contract_id ?? ""}
+                onValueChange={(v) => {
+                  const c = contracts.find((x) => x.id === v);
+                  setForm({ ...form, maintenance_contract_id: v, maintenance_company: c?.vendor_name ?? form.maintenance_company });
+                }}
+                disabled={!form.maintenance_contract_type}
+              >
+                <SelectTrigger><SelectValue placeholder={form.maintenance_contract_type ? "اختر عقد…" : "اختر نوع العقد أولاً"} /></SelectTrigger>
+                <SelectContent>
+                  {contracts.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.contract_number ?? "—"}{c.vendor_name ? ` — ${c.vendor_name}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="اسم شركة الصيانة (يدوي إن لزم)">
               <Input value={form.maintenance_company ?? ""} onChange={(e) => setForm({ ...form, maintenance_company: e.target.value })} />
             </Field>
             <Field label="رقم جوال شركة الصيانة">

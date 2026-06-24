@@ -24,6 +24,7 @@ type Asset = {
   maintenance_frequency: string | null; custom_frequency_days: number | null;
   last_maintenance_date: string | null; next_maintenance_date: string | null;
   office_id: string | null; location_type: string | null; space_id: string | null;
+  specs: Record<string, any> | null;
 };
 
 type MR = {

@@ -150,6 +150,10 @@ function VendorsPage() {
           </h1>
           <p className="text-sm text-muted-foreground">إدارة الموردين والعقود والتقييمات</p>
         </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={exportCsv}>
+            <Download className="h-4 w-4 me-1" /> تصدير CSV
+          </Button>
         {canManage && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>

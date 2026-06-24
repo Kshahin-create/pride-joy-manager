@@ -10,6 +10,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Plus, Upload, X, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
+import { AssetSpecsFields } from "@/components/asset-specs-fields";
+
+type ContractKind = "ac" | "elevator" | "fire" | "cleaning" | "supply";
+const CONTRACT_TABLES: Record<ContractKind, { table: string; label: string }> = {
+  ac:       { table: "ac_contracts",       label: "عقود التكييف" },
+  elevator: { table: "elevator_contracts", label: "عقود المصاعد" },
+  fire:     { table: "fire_contracts",     label: "عقود أنظمة الحريق" },
+  cleaning: { table: "cleaning_contracts", label: "عقود النظافة" },
+  supply:   { table: "supply_contracts",   label: "عقود التوريد" },
+};
+// suggest a default contract kind based on asset type
+function suggestContractKind(type: string | null | undefined): ContractKind | null {
+  if (!type) return null;
+  if (/تكييف/.test(type)) return "ac";
+  if (/مصعد/.test(type)) return "elevator";
+  if (/حريق|إنذار/.test(type)) return "fire";
+  return null;
+}
 
 export type LocationType = "مكتب" | "مرفق مشترك" | "البرج";
 export type WarrantyStatus = "ساري" | "على وشك الانتهاء" | "منتهي" | "لا يوجد ضمان" | "غير معروف";

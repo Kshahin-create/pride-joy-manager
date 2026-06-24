@@ -105,6 +105,9 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
   const [attachments, setAttachments] = useState<Attachment[]>([]);
 
   const isEdit = !!asset?.id;
+  const [vendors, setVendors] = useState<{ id: string; company_name: string }[]>([]);
+  const [contracts, setContracts] = useState<{ id: string; contract_number: string | null; vendor_name: string | null }[]>([]);
+  const [vendorQuickOpen, setVendorQuickOpen] = useState(false);
 
   const loadTypes = useCallback(async () => {
     const { data } = await (supabase as any).from("asset_types").select("id,name").order("name");
@@ -116,11 +119,31 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
     const { data } = await q;
     setOffices((data ?? []) as OfficeOpt[]);
   }, [activePropertyId]);
+  const loadVendors = useCallback(async () => {
+    const { data } = await (supabase as any).from("vendors").select("id,company_name").order("company_name");
+    setVendors((data ?? []) as { id: string; company_name: string }[]);
+  }, []);
 
   const loadAttachments = useCallback(async (aid: string) => {
     const { data } = await (supabase as any)
       .from("asset_attachments").select("*").eq("asset_id", aid).order("created_at", { ascending: false });
     setAttachments((data ?? []) as Attachment[]);
+  }, []);
+
+  // Load contracts of the currently picked contract kind
+  const loadContracts = useCallback(async (kind: ContractKind | null) => {
+    if (!kind) { setContracts([]); return; }
+    const cfg = CONTRACT_TABLES[kind];
+    const cols = (kind === "supply")
+      ? "id, contract_number, company_name"
+      : "id, contract_number, vendor_name";
+    const { data } = await (supabase as any).from(cfg.table).select(cols).order("contract_number", { ascending: false }).limit(100);
+    const rows = (data ?? []).map((r: any) => ({
+      id: r.id,
+      contract_number: r.contract_number,
+      vendor_name: r.vendor_name ?? r.company_name ?? null,
+    }));
+    setContracts(rows);
   }, []);
 
   useEffect(() => {

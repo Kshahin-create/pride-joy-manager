@@ -109,6 +109,7 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
   const [vendors, setVendors] = useState<{ id: string; company_name: string }[]>([]);
   const [contracts, setContracts] = useState<{ id: string; contract_number: string | null; vendor_name: string | null }[]>([]);
   const [vendorQuickOpen, setVendorQuickOpen] = useState(false);
+  const [contractQuickOpen, setContractQuickOpen] = useState(false);
 
   const loadTypes = useCallback(async () => {
     const { data } = await (supabase as any).from("asset_types").select("id,name").order("name");

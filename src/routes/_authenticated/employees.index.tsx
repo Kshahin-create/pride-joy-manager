@@ -75,12 +75,40 @@ function EmployeesPage() {
   const [items, setItems] = useState<Employee[]>([]);
   const [employers, setEmployers] = useState<string[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
+  const [vendors, setVendors] = useState<{ company_name: string; activity: string | null }[]>([]);
   const [q, setQ] = useState("");
   const [filterDept, setFilterDept] = useState<string>("");
   const [filterEmp, setFilterEmp] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<Employee>>(EMPTY);
   const [saving, setSaving] = useState(false);
+
+  const INTERNAL_COMPANY = "نخبة تسكين العقارية";
+
+  // ربط جهة العمل بنوع القسم عبر نشاط المورد (vendors.activity)
+  const deptKeywords = (dept: string): string[] => {
+    const d = dept || "";
+    if (d.includes("نظاف")) return ["نظاف"];
+    if (d.includes("أمن") || d.includes("امن") || d.includes("حراس")) return ["أمن", "امن", "حراس"];
+    if (d.includes("صيان")) return ["صيان"];
+    if (d.includes("تكيي") || d.includes("تبريد")) return ["تكيي", "تبريد"];
+    if (d.includes("مصعد") || d.includes("مصاعد")) return ["مصعد", "مصاعد"];
+    if (d.includes("حريق") || d.includes("إطفاء") || d.includes("اطفاء")) return ["حريق", "إطفاء", "اطفاء"];
+    if (d.includes("كهرب")) return ["كهرب"];
+    if (d.includes("سباك") || d.includes("صحي")) return ["سباك", "صحي"];
+    return [];
+  };
+
+  const employerOptions = useMemo(() => {
+    const dept = form.department ?? "";
+    const keys = deptKeywords(dept);
+    const matched = keys.length
+      ? vendors
+          .filter((v) => v.activity && keys.some((k) => v.activity!.includes(k)))
+          .map((v) => v.company_name)
+      : vendors.map((v) => v.company_name);
+    return Array.from(new Set([INTERNAL_COMPANY, ...matched, ...employers]));
+  }, [form.department, vendors, employers]);
 
   const load = async () => {
     const { data, error } = await (supabase as any)
@@ -92,12 +120,14 @@ function EmployeesPage() {
   };
 
   const loadLookups = async () => {
-    const [{ data: emp }, { data: dep }] = await Promise.all([
+    const [{ data: emp }, { data: dep }, { data: vds }] = await Promise.all([
       (supabase as any).from("employee_employers").select("name").eq("is_active", true).order("name"),
       (supabase as any).from("employee_departments").select("name").eq("is_active", true).order("name"),
+      (supabase as any).from("vendors").select("company_name, activity").order("company_name"),
     ]);
     setEmployers((emp ?? []).map((r: any) => r.name));
     setDepartments((dep ?? []).map((r: any) => r.name));
+    setVendors((vds ?? []) as { company_name: string; activity: string | null }[]);
   };
 
   useEffect(() => {
@@ -192,6 +222,57 @@ function EmployeesPage() {
     URL.revokeObjectURL(url);
   };
 
+  const exportExcel = () => {
+    const headers = [
+      "الاسم",
+      "الجوال",
+      "الهوية/الإقامة",
+      "الجنسية",
+      "العنوان",
+      "جهة العمل",
+      "المسمى الوظيفي",
+      "القسم",
+      "تاريخ التعيين",
+      "الحالة",
+      "الملاحظات",
+    ];
+    const esc = (v: any) =>
+      String(v ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    const rowsHtml = filtered
+      .map(
+        (e) =>
+          `<tr>${[
+            e.full_name,
+            e.mobile,
+            e.national_id,
+            e.nationality,
+            e.address,
+            e.employer,
+            e.job_title,
+            e.department,
+            e.hire_date,
+            e.status,
+            (e.notes ?? "").replace(/\n/g, " "),
+          ]
+            .map((c) => `<td>${esc(c)}</td>`)
+            .join("")}</tr>`,
+      )
+      .join("");
+    const html = `<html dir="rtl"><head><meta charset="utf-8"/></head><body><table border="1"><thead><tr>${headers
+      .map((h) => `<th>${h}</th>`)
+      .join("")}</tr></thead><tbody>${rowsHtml}</tbody></table></body></html>`;
+    const blob = new Blob(["\ufeff" + html], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `employees-${new Date().toISOString().slice(0, 10)}.xls`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -204,6 +285,10 @@ function EmployeesPage() {
           <Button variant="outline" onClick={exportCsv}>
             <Download className="ms-1 h-4 w-4" />
             تصدير CSV
+          </Button>
+          <Button variant="outline" onClick={exportExcel}>
+            <Download className="ms-1 h-4 w-4" />
+            تصدير Excel
           </Button>
           <Button onClick={() => setOpen(true)}>
             <Plus className="ms-1 h-4 w-4" />
@@ -334,25 +419,13 @@ function EmployeesPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
-                <Label>جهة العمل *</Label>
-                <Select value={form.employer ?? ""} onValueChange={(v) => setForm({ ...form, employer: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employers.map((n) => (
-                      <SelectItem key={n} value={n}>
-                        {n}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-1.5">
                 <Label>القسم</Label>
-                <Select value={form.department ?? ""} onValueChange={(v) => setForm({ ...form, department: v })}>
+                <Select
+                  value={form.department ?? ""}
+                  onValueChange={(v) => setForm({ ...form, department: v, employer: "" })}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر" />
+                    <SelectValue placeholder="اختر القسم أولاً" />
                   </SelectTrigger>
                   <SelectContent>
                     {departments.map((n) => (
@@ -362,6 +435,38 @@ function EmployeesPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label>جهة العمل *</Label>
+                <Select value={form.employer ?? ""} onValueChange={(v) => setForm({ ...form, employer: v })}>
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        form.department
+                          ? `شركات ${form.department}`
+                          : "اختر القسم لعرض الشركات المرتبطة"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employerOptions.length === 0 ? (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">
+                        لا توجد شركات مسجلة لهذا القسم — أضفها من صفحة الموردين
+                      </div>
+                    ) : (
+                      employerOptions.map((n) => (
+                        <SelectItem key={n} value={n}>
+                          {n}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                {form.department && (
+                  <p className="text-[11px] text-muted-foreground">
+                    القائمة مفلترة حسب الموردين بنشاط: {form.department}
+                  </p>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">

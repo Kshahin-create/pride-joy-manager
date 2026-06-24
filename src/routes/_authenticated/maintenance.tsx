@@ -736,6 +736,13 @@ function MaintenancePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <MaintenanceRequestEditDialog
+        open={!!editRequestId}
+        requestId={editRequestId}
+        onClose={() => setEditRequestId(null)}
+        onSaved={load}
+      />
     </div>
   );
 }

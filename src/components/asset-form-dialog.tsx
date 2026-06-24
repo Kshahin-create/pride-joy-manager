@@ -576,6 +576,17 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <VendorQuickAddDialog
+      open={vendorQuickOpen}
+      onClose={() => setVendorQuickOpen(false)}
+      onCreated={(v) => {
+        setVendors((arr) => [...arr, v].sort((a, b) => a.company_name.localeCompare(b.company_name)));
+        setForm((f: any) => ({ ...f, supplier_vendor_id: v.id, supplier: v.company_name }));
+        setVendorQuickOpen(false);
+      }}
+    />
+    </>
   );
 }
 

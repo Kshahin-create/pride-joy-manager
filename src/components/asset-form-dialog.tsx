@@ -12,6 +12,7 @@ import { Loader2, Plus, Upload, X, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
 import { AssetSpecsFields } from "@/components/asset-specs-fields";
+import { ContractQuickAddDialog } from "@/components/contract-quick-add-dialog";
 
 type ContractKind = "ac" | "elevator" | "fire" | "cleaning" | "supply";
 const CONTRACT_TABLES: Record<ContractKind, { table: string; label: string }> = {
@@ -108,6 +109,7 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
   const [vendors, setVendors] = useState<{ id: string; company_name: string }[]>([]);
   const [contracts, setContracts] = useState<{ id: string; contract_number: string | null; vendor_name: string | null }[]>([]);
   const [vendorQuickOpen, setVendorQuickOpen] = useState(false);
+  const [contractQuickOpen, setContractQuickOpen] = useState(false);
 
   const loadTypes = useCallback(async () => {
     const { data } = await (supabase as any).from("asset_types").select("id,name").order("name");
@@ -416,23 +418,35 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
               </Select>
             </Field>
             <Field label="العقد / شركة الصيانة">
-              <Select
-                value={form.maintenance_contract_id ?? ""}
-                onValueChange={(v) => {
-                  const c = contracts.find((x) => x.id === v);
-                  setForm({ ...form, maintenance_contract_id: v, maintenance_company: c?.vendor_name ?? form.maintenance_company });
-                }}
-                disabled={!form.maintenance_contract_type}
-              >
-                <SelectTrigger><SelectValue placeholder={form.maintenance_contract_type ? "اختر عقد…" : "اختر نوع العقد أولاً"} /></SelectTrigger>
-                <SelectContent>
-                  {contracts.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.contract_number ?? "—"}{c.vendor_name ? ` — ${c.vendor_name}` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-1">
+                <Select
+                  value={form.maintenance_contract_id ?? ""}
+                  onValueChange={(v) => {
+                    const c = contracts.find((x) => x.id === v);
+                    setForm({ ...form, maintenance_contract_id: v, maintenance_company: c?.vendor_name ?? form.maintenance_company });
+                  }}
+                  disabled={!form.maintenance_contract_type}
+                >
+                  <SelectTrigger className="flex-1"><SelectValue placeholder={form.maintenance_contract_type ? "اختر عقد…" : "اختر نوع العقد أولاً"} /></SelectTrigger>
+                  <SelectContent>
+                    {contracts.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.contract_number ?? "—"}{c.vendor_name ? ` — ${c.vendor_name}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  title="إضافة عقد جديد"
+                  disabled={!form.maintenance_contract_type}
+                  onClick={() => setContractQuickOpen(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </Field>
             <Field label="اسم شركة الصيانة (يدوي إن لزم)">
               <Input value={form.maintenance_company ?? ""} onChange={(e) => setForm({ ...form, maintenance_company: e.target.value })} />
@@ -587,6 +601,23 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
         setVendorQuickOpen(false);
       }}
     />
+
+    {form.maintenance_contract_type && (
+      <ContractQuickAddDialog
+        open={contractQuickOpen}
+        kind={form.maintenance_contract_type as ContractKind}
+        onClose={() => setContractQuickOpen(false)}
+        onCreated={(c) => {
+          setContracts((arr) => [{ id: c.id, contract_number: c.contract_number, vendor_name: c.vendor_name }, ...arr]);
+          setForm((f: any) => ({
+            ...f,
+            maintenance_contract_id: c.id,
+            maintenance_company: c.vendor_name ?? f.maintenance_company,
+          }));
+          setContractQuickOpen(false);
+        }}
+      />
+    )}
     </>
   );
 }

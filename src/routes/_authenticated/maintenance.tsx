@@ -15,7 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Plus, AlertTriangle, Play, Pause, CheckCircle2, ShieldCheck, RotateCcw, Trash2 } from "lucide-react";
+import { Plus, AlertTriangle, Play, Pause, CheckCircle2, ShieldCheck, RotateCcw, Trash2, Pencil } from "lucide-react";
+import { MaintenanceRequestEditDialog } from "@/components/maintenance-request-edit-dialog";
 
 type Status =
   | "جديد"
@@ -125,6 +126,8 @@ function MaintenancePage() {
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [editRequestId, setEditRequestId] = useState<string | null>(null);
+
 
   // create dialog
   const [open, setOpen] = useState(false);
@@ -304,7 +307,7 @@ function MaintenancePage() {
   const openHold = (r: MR) => { setHoldFor(r); setHoldReason(r.hold_reason ?? ""); };
   const saveHold = async () => {
     if (!holdFor) return;
-    if (!holdReason.trim()) return toast.error("اكتب سبب التعليق");
+    // hold_reason is now optional per business rule
     const { data, error } = await supabase.from("maintenance_requests").update({
       status: "معلّق", hold_reason: holdReason.trim(),
     }).eq("id", holdFor.id).select("id");

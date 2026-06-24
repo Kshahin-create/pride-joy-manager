@@ -270,6 +270,13 @@ function EmployeesPage() {
     a.href = url;
     a.download = `employees-${new Date().toISOString().slice(0, 10)}.xls`;
     a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
           <Users className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold">الموظفون</h1>
           <Badge variant="secondary">{filtered.length}</Badge>
@@ -278,6 +285,10 @@ function EmployeesPage() {
           <Button variant="outline" onClick={exportCsv}>
             <Download className="ms-1 h-4 w-4" />
             تصدير CSV
+          </Button>
+          <Button variant="outline" onClick={exportExcel}>
+            <Download className="ms-1 h-4 w-4" />
+            تصدير Excel
           </Button>
           <Button onClick={() => setOpen(true)}>
             <Plus className="ms-1 h-4 w-4" />

@@ -98,10 +98,11 @@ function TicketsPage() {
   useEffect(() => { load(); }, []);
 
   const officeAssets = useMemo(() => {
-    if (!form.office_id) return assets;
+    if (!form.office_id) return [];
     const o = offices.find((x) => x.id === form.office_id);
-    if (!o?.space_id) return [];
-    return assets.filter((x) => x.space_id === o.space_id);
+    return assets.filter(
+      (x) => x.office_id === form.office_id || (o?.space_id && x.space_id === o.space_id),
+    );
   }, [assets, offices, form.office_id]);
 
   const filtered = useMemo(() => {

@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import logoWhiteAsset from "@/assets/icon_white.png.asset.json";
 import {
-  Building2, ShieldCheck, Wrench, Car, FileSignature, Wallet,
+  ShieldCheck, Wrench, Car, FileSignature, Wallet,
   LayoutDashboard, LogIn, ArrowLeft, Users, BarChart3, Sparkles,
   Cog, Sprout, FileSpreadsheet, MessageCircle, FileBarChart,
   CheckCircle2, PlayCircle, Cable, Flame, Camera, Zap, Gauge, Wind,

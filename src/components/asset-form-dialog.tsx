@@ -12,6 +12,7 @@ import { Loader2, Plus, Upload, X, FileText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
 import { AssetSpecsFields } from "@/components/asset-specs-fields";
+import { ContractQuickAddDialog } from "@/components/contract-quick-add-dialog";
 
 type ContractKind = "ac" | "elevator" | "fire" | "cleaning" | "supply";
 const CONTRACT_TABLES: Record<ContractKind, { table: string; label: string }> = {

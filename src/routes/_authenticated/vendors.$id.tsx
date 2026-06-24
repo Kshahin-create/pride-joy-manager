@@ -68,6 +68,8 @@ function VendorDetailsPage() {
   const [evals, setEvals] = useState<Evaluation[]>([]);
   const [cOpen, setCOpen] = useState(false);
   const [eOpen, setEOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<Partial<Vendor>>({});
   const [cForm, setCForm] = useState<Partial<Contract>>({});
   const [eForm, setEForm] = useState<Partial<Evaluation>>({
     quality_score: 5,
@@ -75,6 +77,23 @@ function VendorDetailsPage() {
     speed_score: 5,
     evaluation_date: new Date().toISOString().slice(0, 10),
   });
+
+  const saveVendor = async () => {
+    if (!form.company_name) return toast.error("اسم الشركة مطلوب");
+    const { error } = await (supabase as any).from("vendors").update({
+      company_name: form.company_name,
+      activity: form.activity ?? null,
+      contact_person: form.contact_person ?? null,
+      mobile: form.mobile ?? null,
+      email: form.email ?? null,
+      address: form.address ?? null,
+      notes: form.notes ?? null,
+    }).eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("تم تحديث بيانات المورد");
+    setEditing(false);
+    load();
+  };
 
   const load = async () => {
     const { data: v } = await (supabase as any).from("vendors").select("*").eq("id", id).maybeSingle();

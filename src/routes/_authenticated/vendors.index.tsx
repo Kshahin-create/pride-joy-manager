@@ -203,7 +203,9 @@ function VendorsPage() {
             </DialogContent>
           </Dialog>
         )}
+        </div>
       </div>
+
 
       {expiringCount > 0 && (
         <Card className="border-amber-500/40 bg-amber-50 dark:bg-amber-950/20">

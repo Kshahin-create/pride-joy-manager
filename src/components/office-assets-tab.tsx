@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Loader2, Plus, Eye, Pencil, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { AssetFormDialog } from "@/components/asset-form-dialog";
+import { AssetLinkPickerDialog } from "@/components/asset-link-picker-dialog";
 
 interface AssetRow {
   id: string;

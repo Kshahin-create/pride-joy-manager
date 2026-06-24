@@ -50,10 +50,12 @@ import { Route as AuthenticatedApiDocsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAcContractsRouteImport } from './routes/_authenticated/ac-contracts'
 import { Route as AuthenticatedVendorsIndexRouteImport } from './routes/_authenticated/vendors.index'
 import { Route as AuthenticatedOfficesIndexRouteImport } from './routes/_authenticated/offices.index'
+import { Route as AuthenticatedEmployeesIndexRouteImport } from './routes/_authenticated/employees.index'
 import { Route as AuthenticatedContractsIndexRouteImport } from './routes/_authenticated/contracts.index'
 import { Route as AuthenticatedVendorsIdRouteImport } from './routes/_authenticated/vendors.$id'
 import { Route as AuthenticatedTenantsIdRouteImport } from './routes/_authenticated/tenants.$id'
 import { Route as AuthenticatedOfficesIdRouteImport } from './routes/_authenticated/offices.$id'
+import { Route as AuthenticatedEmployeesIdRouteImport } from './routes/_authenticated/employees.$id'
 import { Route as AuthenticatedContractsIdRouteImport } from './routes/_authenticated/contracts.$id'
 import { Route as AuthenticatedComplaintsIdRouteImport } from './routes/_authenticated/complaints.$id'
 import { Route as AuthenticatedAssetsIdRouteImport } from './routes/_authenticated/assets.$id'
@@ -282,6 +284,12 @@ const AuthenticatedOfficesIndexRoute =
     path: '/offices/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEmployeesIndexRoute =
+  AuthenticatedEmployeesIndexRouteImport.update({
+    id: '/employees/',
+    path: '/employees/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContractsIndexRoute =
   AuthenticatedContractsIndexRouteImport.update({
     id: '/contracts/',
@@ -303,6 +311,12 @@ const AuthenticatedOfficesIdRoute = AuthenticatedOfficesIdRouteImport.update({
   path: '/offices/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEmployeesIdRoute =
+  AuthenticatedEmployeesIdRouteImport.update({
+    id: '/employees/$id',
+    path: '/employees/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContractsIdRoute =
   AuthenticatedContractsIdRouteImport.update({
     id: '/contracts/$id',
@@ -391,10 +405,12 @@ export interface FileRoutesByFullPath {
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/complaints/$id': typeof AuthenticatedComplaintsIdRoute
   '/contracts/$id': typeof AuthenticatedContractsIdRoute
+  '/employees/$id': typeof AuthenticatedEmployeesIdRoute
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/vendors/$id': typeof AuthenticatedVendorsIdRoute
   '/contracts/': typeof AuthenticatedContractsIndexRoute
+  '/employees/': typeof AuthenticatedEmployeesIndexRoute
   '/offices/': typeof AuthenticatedOfficesIndexRoute
   '/vendors/': typeof AuthenticatedVendorsIndexRoute
   '/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
@@ -445,10 +461,12 @@ export interface FileRoutesByTo {
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/complaints/$id': typeof AuthenticatedComplaintsIdRoute
   '/contracts/$id': typeof AuthenticatedContractsIdRoute
+  '/employees/$id': typeof AuthenticatedEmployeesIdRoute
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/vendors/$id': typeof AuthenticatedVendorsIdRoute
   '/contracts': typeof AuthenticatedContractsIndexRoute
+  '/employees': typeof AuthenticatedEmployeesIndexRoute
   '/offices': typeof AuthenticatedOfficesIndexRoute
   '/vendors': typeof AuthenticatedVendorsIndexRoute
   '/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
@@ -501,10 +519,12 @@ export interface FileRoutesById {
   '/_authenticated/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/_authenticated/complaints/$id': typeof AuthenticatedComplaintsIdRoute
   '/_authenticated/contracts/$id': typeof AuthenticatedContractsIdRoute
+  '/_authenticated/employees/$id': typeof AuthenticatedEmployeesIdRoute
   '/_authenticated/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/_authenticated/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/_authenticated/vendors/$id': typeof AuthenticatedVendorsIdRoute
   '/_authenticated/contracts/': typeof AuthenticatedContractsIndexRoute
+  '/_authenticated/employees/': typeof AuthenticatedEmployeesIndexRoute
   '/_authenticated/offices/': typeof AuthenticatedOfficesIndexRoute
   '/_authenticated/vendors/': typeof AuthenticatedVendorsIndexRoute
   '/_authenticated/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
@@ -557,10 +577,12 @@ export interface FileRouteTypes {
     | '/assets/$id'
     | '/complaints/$id'
     | '/contracts/$id'
+    | '/employees/$id'
     | '/offices/$id'
     | '/tenants/$id'
     | '/vendors/$id'
     | '/contracts/'
+    | '/employees/'
     | '/offices/'
     | '/vendors/'
     | '/security/guards/$id'
@@ -611,10 +633,12 @@ export interface FileRouteTypes {
     | '/assets/$id'
     | '/complaints/$id'
     | '/contracts/$id'
+    | '/employees/$id'
     | '/offices/$id'
     | '/tenants/$id'
     | '/vendors/$id'
     | '/contracts'
+    | '/employees'
     | '/offices'
     | '/vendors'
     | '/security/guards/$id'
@@ -666,10 +690,12 @@ export interface FileRouteTypes {
     | '/_authenticated/assets/$id'
     | '/_authenticated/complaints/$id'
     | '/_authenticated/contracts/$id'
+    | '/_authenticated/employees/$id'
     | '/_authenticated/offices/$id'
     | '/_authenticated/tenants/$id'
     | '/_authenticated/vendors/$id'
     | '/_authenticated/contracts/'
+    | '/_authenticated/employees/'
     | '/_authenticated/offices/'
     | '/_authenticated/vendors/'
     | '/_authenticated/security/guards/$id'
@@ -981,6 +1007,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOfficesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/employees/': {
+      id: '/_authenticated/employees/'
+      path: '/employees'
+      fullPath: '/employees/'
+      preLoaderRoute: typeof AuthenticatedEmployeesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/contracts/': {
       id: '/_authenticated/contracts/'
       path: '/contracts'
@@ -1007,6 +1040,13 @@ declare module '@tanstack/react-router' {
       path: '/offices/$id'
       fullPath: '/offices/$id'
       preLoaderRoute: typeof AuthenticatedOfficesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/employees/$id': {
+      id: '/_authenticated/employees/$id'
+      path: '/employees/$id'
+      fullPath: '/employees/$id'
+      preLoaderRoute: typeof AuthenticatedEmployeesIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contracts/$id': {
@@ -1152,9 +1192,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedVisitorsRoute: typeof AuthenticatedVisitorsRoute
   AuthenticatedContractsIdRoute: typeof AuthenticatedContractsIdRoute
+  AuthenticatedEmployeesIdRoute: typeof AuthenticatedEmployeesIdRoute
   AuthenticatedOfficesIdRoute: typeof AuthenticatedOfficesIdRoute
   AuthenticatedVendorsIdRoute: typeof AuthenticatedVendorsIdRoute
   AuthenticatedContractsIndexRoute: typeof AuthenticatedContractsIndexRoute
+  AuthenticatedEmployeesIndexRoute: typeof AuthenticatedEmployeesIndexRoute
   AuthenticatedOfficesIndexRoute: typeof AuthenticatedOfficesIndexRoute
   AuthenticatedVendorsIndexRoute: typeof AuthenticatedVendorsIndexRoute
 }
@@ -1194,9 +1236,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedVisitorsRoute: AuthenticatedVisitorsRoute,
   AuthenticatedContractsIdRoute: AuthenticatedContractsIdRoute,
+  AuthenticatedEmployeesIdRoute: AuthenticatedEmployeesIdRoute,
   AuthenticatedOfficesIdRoute: AuthenticatedOfficesIdRoute,
   AuthenticatedVendorsIdRoute: AuthenticatedVendorsIdRoute,
   AuthenticatedContractsIndexRoute: AuthenticatedContractsIndexRoute,
+  AuthenticatedEmployeesIndexRoute: AuthenticatedEmployeesIndexRoute,
   AuthenticatedOfficesIndexRoute: AuthenticatedOfficesIndexRoute,
   AuthenticatedVendorsIndexRoute: AuthenticatedVendorsIndexRoute,
 }

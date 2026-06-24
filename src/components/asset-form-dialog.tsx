@@ -248,6 +248,10 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
         next_maintenance_date: form.next_maintenance_date || null,
         criticality: form.criticality ?? "عادي",
         notes: form.notes ?? null,
+        supplier_vendor_id: form.supplier_vendor_id ?? null,
+        maintenance_contract_type: form.maintenance_contract_type ?? null,
+        maintenance_contract_id: form.maintenance_contract_id ?? null,
+        specs: form.specs ?? {},
       };
       if (form.asset_code?.trim()) payload.asset_code = form.asset_code.trim();
 

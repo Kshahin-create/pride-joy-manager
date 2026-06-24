@@ -69,7 +69,7 @@ function TicketsPage() {
   const [items, setItems] = useState<Ticket[]>([]);
   const [offices, setOffices] = useState<{ id: string; code: string; space_id: string | null }[]>([]);
   const [companies, setCompanies] = useState<{ id: string; company_name: string }[]>([]);
-  const [assets, setAssets] = useState<{ id: string; asset_name: string; space_id: string | null }[]>([]);
+  const [assets, setAssets] = useState<{ id: string; asset_name: string; space_id: string | null; office_id: string | null }[]>([]);
 
   const [fType, setFType] = useState<string>("all");
   const [fPriority, setFPriority] = useState<string>("all");
@@ -86,7 +86,8 @@ function TicketsPage() {
         .order("created_at", { ascending: false }),
       (supabase as any).from("offices").select("id, code, space_id").order("code"),
       scoped((supabase as any).from("companies").select("id, company_name"), activePropertyId).order("company_name"),
-      (supabase as any).from("assets").select("id, asset_name, space_id").order("asset_name"),
+      (supabase as any).from("assets").select("id, asset_name, space_id, office_id").order("asset_name"),
+
     ]);
     if (t.error) toast.error(t.error.message);
     setItems((t.data ?? []) as Ticket[]);
@@ -97,10 +98,11 @@ function TicketsPage() {
   useEffect(() => { load(); }, []);
 
   const officeAssets = useMemo(() => {
-    if (!form.office_id) return assets;
+    if (!form.office_id) return [];
     const o = offices.find((x) => x.id === form.office_id);
-    if (!o?.space_id) return [];
-    return assets.filter((x) => x.space_id === o.space_id);
+    return assets.filter(
+      (x) => x.office_id === form.office_id || (o?.space_id && x.space_id === o.space_id),
+    );
   }, [assets, offices, form.office_id]);
 
   const filtered = useMemo(() => {
@@ -176,7 +178,16 @@ function TicketsPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>المكتب</Label>
-                    <Select value={form.office_id ?? "__none__"} onValueChange={(v) => setForm({ ...form, office_id: v === "__none__" ? null : v })}>
+                    <Select
+                      value={form.office_id ?? "__none__"}
+                      onValueChange={(v) =>
+                        setForm({
+                          ...form,
+                          office_id: v === "__none__" ? null : v,
+                          category: null,
+                        })
+                      }
+                    >
                       <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__none__">بدون</SelectItem>
@@ -196,16 +207,23 @@ function TicketsPage() {
                   </div>
                 </div>
                 <div>
-                  <Label>التصنيف (اختياري — أصل مرتبط بالمكتب)</Label>
+                  <Label>التصنيف (الأصل المرتبط بالمكتب)</Label>
                   <Select
                     value={form.category ?? "__none__"}
                     onValueChange={(v) => setForm({ ...form, category: v === "__none__" ? null : v })}
+                    disabled={!form.office_id}
                   >
-                    <SelectTrigger><SelectValue placeholder="بدون" /></SelectTrigger>
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={form.office_id ? "اختر الأصل" : "اختر المكتب أولاً"}
+                      />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="__none__">بدون</SelectItem>
-                      {officeAssets.length === 0 && (
-                        <div className="px-2 py-1 text-xs text-muted-foreground">لا توجد أصول مرتبطة بالمكتب المختار</div>
+                      {form.office_id && officeAssets.length === 0 && (
+                        <div className="px-2 py-1 text-xs text-muted-foreground">
+                          لا توجد أصول مرتبطة بالمكتب المختار
+                        </div>
                       )}
                       {officeAssets.map((a) => <SelectItem key={a.id} value={a.asset_name}>{a.asset_name}</SelectItem>)}
                     </SelectContent>

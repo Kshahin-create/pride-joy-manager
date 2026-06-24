@@ -118,6 +118,29 @@ function VendorsPage() {
     load();
   };
 
+  const exportCsv = () => {
+    const headers = ["اسم الشركة", "النشاط", "مسؤول التواصل", "الجوال", "البريد", "العنوان", "ملاحظات", "متوسط التقييم"];
+    const rows = filtered.map((v) => [
+      v.company_name,
+      v.activity ?? "",
+      v.contact_person ?? "",
+      v.mobile ?? "",
+      v.email ?? "",
+      v.address ?? "",
+      (v.notes ?? "").replace(/\n/g, " "),
+      averages[v.id] != null ? averages[v.id].toFixed(2) : "",
+    ]);
+    const esc = (s: string) => `"${String(s).replace(/"/g, '""')}"`;
+    const csv = "\uFEFF" + [headers, ...rows].map((r) => r.map(esc).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `vendors-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-2 flex-wrap">

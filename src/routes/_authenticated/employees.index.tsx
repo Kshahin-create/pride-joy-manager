@@ -222,10 +222,54 @@ function EmployeesPage() {
     URL.revokeObjectURL(url);
   };
 
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+  const exportExcel = () => {
+    const headers = [
+      "الاسم",
+      "الجوال",
+      "الهوية/الإقامة",
+      "الجنسية",
+      "العنوان",
+      "جهة العمل",
+      "المسمى الوظيفي",
+      "القسم",
+      "تاريخ التعيين",
+      "الحالة",
+      "الملاحظات",
+    ];
+    const esc = (v: any) =>
+      String(v ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    const rowsHtml = filtered
+      .map(
+        (e) =>
+          `<tr>${[
+            e.full_name,
+            e.mobile,
+            e.national_id,
+            e.nationality,
+            e.address,
+            e.employer,
+            e.job_title,
+            e.department,
+            e.hire_date,
+            e.status,
+            (e.notes ?? "").replace(/\n/g, " "),
+          ]
+            .map((c) => `<td>${esc(c)}</td>`)
+            .join("")}</tr>`,
+      )
+      .join("");
+    const html = `<html dir="rtl"><head><meta charset="utf-8"/></head><body><table border="1"><thead><tr>${headers
+      .map((h) => `<th>${h}</th>`)
+      .join("")}</tr></thead><tbody>${rowsHtml}</tbody></table></body></html>`;
+    const blob = new Blob(["\ufeff" + html], { type: "application/vnd.ms-excel" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `employees-${new Date().toISOString().slice(0, 10)}.xls`;
+    a.click();
           <Users className="h-6 w-6 text-primary" />
           <h1 className="text-2xl font-bold">الموظفون</h1>
           <Badge variant="secondary">{filtered.length}</Badge>

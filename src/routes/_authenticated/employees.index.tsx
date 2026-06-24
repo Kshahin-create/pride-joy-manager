@@ -75,12 +75,40 @@ function EmployeesPage() {
   const [items, setItems] = useState<Employee[]>([]);
   const [employers, setEmployers] = useState<string[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
+  const [vendors, setVendors] = useState<{ company_name: string; activity: string | null }[]>([]);
   const [q, setQ] = useState("");
   const [filterDept, setFilterDept] = useState<string>("");
   const [filterEmp, setFilterEmp] = useState<string>("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<Employee>>(EMPTY);
   const [saving, setSaving] = useState(false);
+
+  const INTERNAL_COMPANY = "نخبة تسكين العقارية";
+
+  // ربط جهة العمل بنوع القسم عبر نشاط المورد (vendors.activity)
+  const deptKeywords = (dept: string): string[] => {
+    const d = dept || "";
+    if (d.includes("نظاف")) return ["نظاف"];
+    if (d.includes("أمن") || d.includes("امن") || d.includes("حراس")) return ["أمن", "امن", "حراس"];
+    if (d.includes("صيان")) return ["صيان"];
+    if (d.includes("تكيي") || d.includes("تبريد")) return ["تكيي", "تبريد"];
+    if (d.includes("مصعد") || d.includes("مصاعد")) return ["مصعد", "مصاعد"];
+    if (d.includes("حريق") || d.includes("إطفاء") || d.includes("اطفاء")) return ["حريق", "إطفاء", "اطفاء"];
+    if (d.includes("كهرب")) return ["كهرب"];
+    if (d.includes("سباك") || d.includes("صحي")) return ["سباك", "صحي"];
+    return [];
+  };
+
+  const employerOptions = useMemo(() => {
+    const dept = form.department ?? "";
+    const keys = deptKeywords(dept);
+    const matched = keys.length
+      ? vendors
+          .filter((v) => v.activity && keys.some((k) => v.activity!.includes(k)))
+          .map((v) => v.company_name)
+      : vendors.map((v) => v.company_name);
+    return Array.from(new Set([INTERNAL_COMPANY, ...matched, ...employers]));
+  }, [form.department, vendors, employers]);
 
   const load = async () => {
     const { data, error } = await (supabase as any)
@@ -92,12 +120,14 @@ function EmployeesPage() {
   };
 
   const loadLookups = async () => {
-    const [{ data: emp }, { data: dep }] = await Promise.all([
+    const [{ data: emp }, { data: dep }, { data: vds }] = await Promise.all([
       (supabase as any).from("employee_employers").select("name").eq("is_active", true).order("name"),
       (supabase as any).from("employee_departments").select("name").eq("is_active", true).order("name"),
+      (supabase as any).from("vendors").select("company_name, activity").order("company_name"),
     ]);
     setEmployers((emp ?? []).map((r: any) => r.name));
     setDepartments((dep ?? []).map((r: any) => r.name));
+    setVendors((vds ?? []) as { company_name: string; activity: string | null }[]);
   };
 
   useEffect(() => {

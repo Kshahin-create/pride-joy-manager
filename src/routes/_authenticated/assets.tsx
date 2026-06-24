@@ -8,12 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Plus, Wrench, AlertTriangle, X } from "lucide-react";
+import { Plus, Wrench, AlertTriangle, Eye, Pencil } from "lucide-react";
+import { AssetFormDialog } from "@/components/asset-form-dialog";
 
 type Asset = {
   id: string;
@@ -23,22 +22,35 @@ type Asset = {
   location: string | null;
   manufacturer: string | null;
   supplier: string | null;
-  serial_number: string | null;
   install_date: string | null;
   warranty_end_date: string | null;
+  warranty_status: string | null;
+  current_status: string | null;
   expected_lifespan_years: number | null;
   responsible_person: string | null;
   criticality: "حرج" | "عادي";
   space_id: string | null;
-  photo_urls: string[] | null;
+  office_id: string | null;
+  maintenance_company: string | null;
+  last_maintenance_date: string | null;
+  next_maintenance_date: string | null;
 };
-
 type AssetType = { id: string; name: string };
-type Space = { id: string; space_name: string; space_code: string };
+type OfficeOpt = { id: string; code: string };
 
 export const Route = createFileRoute("/_authenticated/assets")({
   component: AssetsPage,
 });
+
+const STATUS_COLOR: Record<string, string> = {
+  "يعمل": "bg-success text-success-foreground",
+  "يعمل مع ملاحظات": "bg-info text-info-foreground",
+  "يحتاج صيانة": "bg-warning text-warning-foreground",
+  "تحت الصيانة": "bg-warning/80 text-warning-foreground",
+  "معطل": "bg-destructive text-destructive-foreground",
+  "مستبدل": "bg-muted-foreground/70 text-background",
+  "خارج الخدمة": "bg-muted text-muted-foreground",
+};
 
 function AssetsPage() {
   const { activePropertyId } = useActiveProperty();
@@ -46,104 +58,65 @@ function AssetsPage() {
   const canManage = hasAnyRole(["super_admin", "maintenance_supervisor"]);
   const [items, setItems] = useState<Asset[]>([]);
   const [types, setTypes] = useState<AssetType[]>([]);
-  const [spaces, setSpaces] = useState<Space[]>([]);
+  const [offices, setOffices] = useState<OfficeOpt[]>([]);
   const [q, setQ] = useState("");
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<Partial<Asset>>({ criticality: "عادي" });
-  const [photos, setPhotos] = useState<File[]>([]);
-  const [newTypeOpen, setNewTypeOpen] = useState(false);
-  const [newTypeName, setNewTypeName] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [fType, setFType] = useState<string>("all");
+  const [fOffice, setFOffice] = useState<string>("all");
+  const [fStatus, setFStatus] = useState<string>("all");
+  const [fMfr, setFMfr] = useState<string>("all");
+  const [fMaint, setFMaint] = useState<string>("all");
+  const [fWarranty, setFWarranty] = useState<string>("all");
+  const [openCreate, setOpenCreate] = useState(false);
+  const [editing, setEditing] = useState<Asset | null>(null);
 
   const load = async () => {
-    const { data, error } = await scoped(supabase
-      .from("assets")
-      .select("*"), activePropertyId)
-      .order("criticality", { ascending: true })
-      .order("asset_code");
+    const { data, error } = await scoped(
+      (supabase as any).from("assets").select("*"),
+      activePropertyId
+    ).order("criticality", { ascending: true }).order("asset_code");
     if (error) return toast.error(error.message);
-    setItems((data ?? []) as unknown as Asset[]);
+    setItems((data ?? []) as Asset[]);
   };
   const loadTypes = async () => {
     const { data } = await (supabase as any).from("asset_types").select("id,name").order("name");
     setTypes((data ?? []) as AssetType[]);
   };
-  const loadSpaces = async () => {
-    const { data } = await scoped((supabase as any).from("spaces").select("id, space_name, space_code"), activePropertyId).order("space_code");
-    setSpaces((data ?? []) as Space[]);
+  const loadOffices = async () => {
+    const { data } = await scoped(
+      (supabase as any).from("offices").select("id, code"),
+      activePropertyId
+    ).order("code");
+    setOffices((data ?? []) as OfficeOpt[]);
   };
-  useEffect(() => { load(); loadTypes(); loadSpaces(); }, [activePropertyId]);
+  useEffect(() => { load(); loadTypes(); loadOffices(); }, [activePropertyId]);
+
+  const manufacturers = useMemo(
+    () => Array.from(new Set(items.map((i) => i.manufacturer).filter(Boolean))) as string[],
+    [items]
+  );
+  const maintCompanies = useMemo(
+    () => Array.from(new Set(items.map((i) => i.maintenance_company).filter(Boolean))) as string[],
+    [items]
+  );
 
   const filtered = useMemo(() => {
     const s = q.trim();
-    const sorted = [...items].sort((a, b) => {
-      if (a.criticality !== b.criticality) return a.criticality === "حرج" ? -1 : 1;
-      return a.asset_code.localeCompare(b.asset_code);
+    return items.filter((a) => {
+      if (fType !== "all" && a.asset_type !== fType) return false;
+      if (fOffice !== "all" && a.office_id !== fOffice) return false;
+      if (fStatus !== "all" && a.current_status !== fStatus) return false;
+      if (fMfr !== "all" && a.manufacturer !== fMfr) return false;
+      if (fMaint !== "all" && a.maintenance_company !== fMaint) return false;
+      if (fWarranty !== "all" && a.warranty_status !== fWarranty) return false;
+      if (s && ![a.asset_name, a.asset_code, a.location, a.responsible_person, a.asset_type]
+        .filter(Boolean).some((v) => String(v).includes(s))) return false;
+      return true;
     });
-    if (!s) return sorted;
-    return sorted.filter((a) =>
-      [a.asset_name, a.asset_code, a.location, a.responsible_person, a.asset_type]
-        .filter(Boolean).some((v) => String(v).includes(s))
-    );
-  }, [items, q]);
-
-  const addType = async () => {
-    const n = newTypeName.trim();
-    if (!n) return;
-    const { data, error } = await (supabase as any).from("asset_types").insert({ name: n }).select("id,name").single();
-    if (error) return toast.error(error.message);
-    setTypes((t) => [...t, data].sort((a, b) => a.name.localeCompare(b.name)));
-    setForm((f) => ({ ...f, asset_type: data.name }));
-    setNewTypeName("");
-    setNewTypeOpen(false);
-  };
-
-  const submit = async () => {
-    if (!form.asset_name) return toast.error("اسم الأصل مطلوب");
-    setBusy(true);
-    try {
-      const uploaded: string[] = [];
-      for (const f of photos) {
-        const path = `${Date.now()}-${Math.random().toString(36).slice(2)}-${f.name}`;
-        const { error: upErr } = await (supabase as any).storage.from("asset-photos").upload(path, f);
-        if (upErr) throw upErr;
-        uploaded.push(path);
-      }
-      const payload: any = {
-        asset_name: form.asset_name!,
-        asset_type: form.asset_type ?? null,
-        space_id: form.space_id ?? null,
-        location: form.location ?? null,
-        manufacturer: form.manufacturer ?? null,
-        supplier: form.supplier ?? null,
-        serial_number: form.serial_number ?? null,
-        install_date: form.install_date || null,
-        warranty_end_date: form.warranty_end_date || null,
-        expected_lifespan_years: form.expected_lifespan_years ?? null,
-        responsible_person: form.responsible_person ?? null,
-        criticality: (form.criticality as "حرج" | "عادي") ?? "عادي",
-        photo_urls: uploaded,
-      };
-      if (form.asset_code && String(form.asset_code).trim()) payload.asset_code = String(form.asset_code).trim();
-      if (activePropertyId && activePropertyId !== "all") payload.property_id = activePropertyId;
-      const { error } = await (supabase as any).from("assets").insert(payload);
-      if (error) throw error;
-      toast.success("تم إضافة الأصل");
-      setOpen(false);
-      setForm({ criticality: "عادي" });
-      setPhotos([]);
-      load();
-    } catch (e: any) {
-      toast.error(e.message ?? "تعذّر الحفظ");
-    } finally {
-      setBusy(false);
-    }
-  };
+  }, [items, q, fType, fOffice, fStatus, fMfr, fMaint, fWarranty]);
 
   const warrantyExpiringSoon = (d: string | null) => {
     if (!d) return false;
-    const days = (new Date(d).getTime() - Date.now()) / 86400000;
-    return days < 60;
+    return (new Date(d).getTime() - Date.now()) / 86400000 < 60;
   };
 
   return (
@@ -151,112 +124,94 @@ function AssetsPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold">الأصول</h1>
-          <p className="text-sm text-muted-foreground">إدارة أصول البرج وتتبع الضمانات والمسؤولين</p>
+          <p className="text-sm text-muted-foreground">السجل المركزي لجميع أصول المشروع</p>
         </div>
         <div className="flex gap-2">
           <Link to="/maintenance"><Button variant="outline"><Wrench className="ml-2 h-4 w-4" />طلبات الصيانة</Button></Link>
           {canManage && (
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild><Button><Plus className="ml-2 h-4 w-4" />إضافة أصل</Button></DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader><DialogTitle>إضافة أصل جديد</DialogTitle></DialogHeader>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="اسم الأصل *"><Input value={form.asset_name ?? ""} onChange={(e) => setForm({ ...form, asset_name: e.target.value })} /></Field>
-                  <Field label="كود الأصل (تلقائي إذا تُرك فارغ)"><Input value={form.asset_code ?? ""} onChange={(e) => setForm({ ...form, asset_code: e.target.value })} placeholder="AST-YYYY-####" /></Field>
-                  <Field label="نوع الأصل">
-                    <div className="flex gap-2">
-                      <Select value={form.asset_type ?? ""} onValueChange={(v) => setForm({ ...form, asset_type: v })}>
-                        <SelectTrigger><SelectValue placeholder="اختر نوع…" /></SelectTrigger>
-                        <SelectContent>
-                          {types.map((t) => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      <Button type="button" variant="outline" size="icon" onClick={() => setNewTypeOpen(true)} title="إضافة نوع جديد"><Plus className="h-4 w-4" /></Button>
-                    </div>
-                  </Field>
-                  <Field label="الموقع (مساحة)">
-                    <Select value={form.space_id ?? ""} onValueChange={(v) => setForm({ ...form, space_id: v })}>
-                      <SelectTrigger><SelectValue placeholder="اختر مساحة…" /></SelectTrigger>
-                      <SelectContent>
-                        {spaces.map((s) => <SelectItem key={s.id} value={s.id}>{s.space_code} — {s.space_name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field label="موقع نصي (اختياري)"><Input value={form.location ?? ""} onChange={(e) => setForm({ ...form, location: e.target.value })} /></Field>
-                  <Field label="المسؤول"><Input value={form.responsible_person ?? ""} onChange={(e) => setForm({ ...form, responsible_person: e.target.value })} /></Field>
-                  <Field label="الشركة المصنعة"><Input value={form.manufacturer ?? ""} onChange={(e) => setForm({ ...form, manufacturer: e.target.value })} /></Field>
-                  <Field label="المورد"><Input value={form.supplier ?? ""} onChange={(e) => setForm({ ...form, supplier: e.target.value })} /></Field>
-                  <Field label="الرقم التسلسلي"><Input value={form.serial_number ?? ""} onChange={(e) => setForm({ ...form, serial_number: e.target.value })} /></Field>
-                  <Field label="العمر المتوقع (سنوات)"><Input type="number" value={form.expected_lifespan_years ?? ""} onChange={(e) => setForm({ ...form, expected_lifespan_years: Number(e.target.value) || null })} /></Field>
-                  <Field label="تاريخ التركيب"><Input type="date" value={form.install_date ?? ""} onChange={(e) => setForm({ ...form, install_date: e.target.value })} /></Field>
-                  <Field label="انتهاء الضمان"><Input type="date" value={form.warranty_end_date ?? ""} onChange={(e) => setForm({ ...form, warranty_end_date: e.target.value })} /></Field>
-                  <Field label="التصنيف">
-                    <Select value={form.criticality ?? "عادي"} onValueChange={(v) => setForm({ ...form, criticality: v as "حرج" | "عادي" })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent><SelectItem value="عادي">عادي</SelectItem><SelectItem value="حرج">حرج</SelectItem></SelectContent>
-                    </Select>
-                  </Field>
-                  <div className="col-span-2">
-                    <Field label="صور (اختياري)">
-                      <Input type="file" multiple accept="image/*" onChange={(e) => setPhotos(Array.from(e.target.files ?? []))} />
-                      {photos.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {photos.map((f, i) => (
-                            <Badge key={i} variant="secondary" className="gap-1">
-                              {f.name}
-                              <button type="button" onClick={() => setPhotos((p) => p.filter((_, j) => j !== i))}>
-                                <X className="h-3 w-3" />
-                              </button>
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </Field>
-                  </div>
-                </div>
-                <DialogFooter><Button onClick={submit} disabled={busy}>{busy ? "جاري الحفظ…" : "حفظ"}</Button></DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <Button onClick={() => setOpenCreate(true)}><Plus className="ml-2 h-4 w-4" />إضافة أصل</Button>
           )}
         </div>
       </div>
 
-      {/* Add new type dialog */}
-      <Dialog open={newTypeOpen} onOpenChange={setNewTypeOpen}>
-        <DialogContent className="max-w-md" dir="rtl">
-          <DialogHeader><DialogTitle>إضافة نوع أصل جديد</DialogTitle></DialogHeader>
-          <Input value={newTypeName} onChange={(e) => setNewTypeName(e.target.value)} placeholder="مثال: نظام مراقبة" />
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setNewTypeOpen(false)}>إلغاء</Button>
-            <Button onClick={addType}>إضافة</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <Card>
-        <CardHeader><CardTitle>قائمة الأصول</CardTitle></CardHeader>
-        <CardContent>
-          <Input placeholder="بحث بالاسم أو الكود أو الموقع…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm mb-3" />
+        <CardHeader><CardTitle>قائمة الأصول ({filtered.length})</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+            <Input placeholder="بحث…" value={q} onChange={(e) => setQ(e.target.value)} />
+            <Select value={fType} onValueChange={setFType}>
+              <SelectTrigger><SelectValue placeholder="النوع" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الأنواع</SelectItem>
+                {types.map((t) => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={fOffice} onValueChange={setFOffice}>
+              <SelectTrigger><SelectValue placeholder="المكتب" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل المكاتب</SelectItem>
+                {offices.map((o) => <SelectItem key={o.id} value={o.id}>{o.code}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={fStatus} onValueChange={setFStatus}>
+              <SelectTrigger><SelectValue placeholder="الحالة" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل الحالات</SelectItem>
+                {Object.keys(STATUS_COLOR).map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={fMfr} onValueChange={setFMfr}>
+              <SelectTrigger><SelectValue placeholder="الشركة المصنعة" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل المصنعين</SelectItem>
+                {manufacturers.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={fMaint} onValueChange={setFMaint}>
+              <SelectTrigger><SelectValue placeholder="شركة الصيانة" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل شركات الصيانة</SelectItem>
+                {maintCompanies.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={fWarranty} onValueChange={setFWarranty}>
+              <SelectTrigger><SelectValue placeholder="حالة الضمان" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">كل حالات الضمان</SelectItem>
+                {["ساري", "على وشك الانتهاء", "منتهي", "لا يوجد ضمان", "غير معروف"].map((s) =>
+                  <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>الكود</TableHead>
                 <TableHead>الاسم</TableHead>
                 <TableHead>النوع</TableHead>
-                <TableHead>الموقع</TableHead>
-                <TableHead>المسؤول</TableHead>
-                <TableHead>انتهاء الضمان</TableHead>
-                <TableHead>التصنيف</TableHead>
+                <TableHead>المكتب</TableHead>
+                <TableHead>الحالة</TableHead>
+                <TableHead>المصنعة</TableHead>
+                <TableHead>شركة الصيانة</TableHead>
+                <TableHead>الضمان</TableHead>
+                <TableHead>إجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.map((a) => (
-                <TableRow key={a.id} className="cursor-pointer" onClick={() => window.location.assign(`/assets/${a.id}`)}>
+                <TableRow key={a.id}>
                   <TableCell className="font-mono text-xs">{a.asset_code}</TableCell>
                   <TableCell className="font-medium">{a.asset_name}</TableCell>
                   <TableCell>{a.asset_type ?? "—"}</TableCell>
-                  <TableCell>{spaces.find((s) => s.id === a.space_id)?.space_name ?? a.location ?? "—"}</TableCell>
-                  <TableCell>{a.responsible_person ?? "—"}</TableCell>
+                  <TableCell>{offices.find((o) => o.id === a.office_id)?.code ?? "—"}</TableCell>
+                  <TableCell>
+                    {a.current_status
+                      ? <Badge className={STATUS_COLOR[a.current_status] ?? ""}>{a.current_status}</Badge>
+                      : "—"}
+                  </TableCell>
+                  <TableCell>{a.manufacturer ?? "—"}</TableCell>
+                  <TableCell>{a.maintenance_company ?? "—"}</TableCell>
                   <TableCell>
                     {a.warranty_end_date ? (
                       <span className={warrantyExpiringSoon(a.warranty_end_date) ? "text-destructive font-medium" : ""}>
@@ -266,28 +221,38 @@ function AssetsPage() {
                     ) : "—"}
                   </TableCell>
                   <TableCell>
-                    {a.criticality === "حرج"
-                      ? <Badge variant="destructive">حرج</Badge>
-                      : <Badge variant="secondary">عادي</Badge>}
+                    <div className="flex gap-1">
+                      <Link to="/assets/$id" params={{ id: a.id }}>
+                        <Button size="sm" variant="ghost"><Eye className="h-4 w-4" /></Button>
+                      </Link>
+                      {canManage && (
+                        <Button size="sm" variant="ghost" onClick={() => setEditing(a)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">لا توجد أصول</TableCell></TableRow>
+                <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-8">لا توجد أصول</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
-    </div>
-  );
-}
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <Label className="text-xs">{label}</Label>
-      {children}
+      <AssetFormDialog
+        open={openCreate}
+        onClose={() => setOpenCreate(false)}
+        onSaved={() => { setOpenCreate(false); load(); }}
+      />
+      <AssetFormDialog
+        open={!!editing}
+        asset={editing}
+        onClose={() => setEditing(null)}
+        onSaved={() => { setEditing(null); load(); }}
+      />
     </div>
   );
 }

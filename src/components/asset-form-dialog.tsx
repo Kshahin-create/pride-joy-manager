@@ -601,6 +601,23 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
         setVendorQuickOpen(false);
       }}
     />
+
+    {form.maintenance_contract_type && (
+      <ContractQuickAddDialog
+        open={contractQuickOpen}
+        kind={form.maintenance_contract_type as ContractKind}
+        onClose={() => setContractQuickOpen(false)}
+        onCreated={(c) => {
+          setContracts((arr) => [{ id: c.id, contract_number: c.contract_number, vendor_name: c.vendor_name }, ...arr]);
+          setForm((f: any) => ({
+            ...f,
+            maintenance_contract_id: c.id,
+            maintenance_company: c.vendor_name ?? f.maintenance_company,
+          }));
+          setContractQuickOpen(false);
+        }}
+      />
+    )}
     </>
   );
 }

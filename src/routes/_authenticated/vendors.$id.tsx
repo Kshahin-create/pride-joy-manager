@@ -159,19 +159,46 @@ function VendorDetailsPage() {
 
         <TabsContent value="info">
           <Card>
-            <CardContent className="grid sm:grid-cols-2 gap-4 pt-6 text-sm">
-              <div><span className="text-muted-foreground">مسؤول التواصل: </span>{vendor.contact_person ?? "—"}</div>
-              <div><span className="text-muted-foreground">الجوال: </span>{vendor.mobile ?? "—"}</div>
-              <div><span className="text-muted-foreground">البريد: </span>{vendor.email ?? "—"}</div>
-              <div><span className="text-muted-foreground">العنوان: </span>{vendor.address ?? "—"}</div>
-              {vendor.notes && (
-                <div className="sm:col-span-2">
-                  <span className="text-muted-foreground">ملاحظات: </span>{vendor.notes}
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>بيانات المورد</CardTitle>
+              {canManage && !editing && (
+                <Button size="sm" variant="outline" onClick={() => { setForm(vendor); setEditing(true); }}>
+                  تعديل
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent className="pt-0">
+              {editing ? (
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div><Label>اسم الشركة *</Label><Input value={form.company_name ?? ""} onChange={(e) => setForm({ ...form, company_name: e.target.value })} /></div>
+                  <div><Label>النشاط</Label><Input value={form.activity ?? ""} onChange={(e) => setForm({ ...form, activity: e.target.value })} /></div>
+                  <div><Label>مسؤول التواصل</Label><Input value={form.contact_person ?? ""} onChange={(e) => setForm({ ...form, contact_person: e.target.value })} /></div>
+                  <div><Label>الجوال</Label><Input value={form.mobile ?? ""} onChange={(e) => setForm({ ...form, mobile: e.target.value })} /></div>
+                  <div><Label>البريد</Label><Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+                  <div><Label>العنوان</Label><Input value={form.address ?? ""} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
+                  <div className="sm:col-span-2"><Label>ملاحظات</Label><Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+                  <div className="sm:col-span-2 flex gap-2 justify-end">
+                    <Button variant="outline" onClick={() => setEditing(false)}>إلغاء</Button>
+                    <Button onClick={saveVendor}>حفظ التعديلات</Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                  <div><span className="text-muted-foreground">مسؤول التواصل: </span>{vendor.contact_person ?? "—"}</div>
+                  <div><span className="text-muted-foreground">الجوال: </span>{vendor.mobile ?? "—"}</div>
+                  <div><span className="text-muted-foreground">البريد: </span>{vendor.email ?? "—"}</div>
+                  <div><span className="text-muted-foreground">العنوان: </span>{vendor.address ?? "—"}</div>
+                  {vendor.notes && (
+                    <div className="sm:col-span-2">
+                      <span className="text-muted-foreground">ملاحظات: </span>{vendor.notes}
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
+
 
         <TabsContent value="contracts">
           <Card>

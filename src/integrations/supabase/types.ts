@@ -415,6 +415,50 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_attachments: {
+        Row: {
+          asset_id: string
+          attachment_name: string | null
+          created_at: string
+          file_name: string
+          id: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          asset_id: string
+          attachment_name?: string | null
+          created_at?: string
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          asset_id?: string
+          attachment_name?: string | null
+          created_at?: string
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_attachments_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asset_types: {
         Row: {
           created_at: string
@@ -441,15 +485,29 @@ export type Database = {
           asset_code: string
           asset_name: string
           asset_type: string | null
+          capacity: string | null
           created_at: string
           created_by: string | null
           criticality: Database["public"]["Enums"]["asset_criticality"]
+          current_status: Database["public"]["Enums"]["asset_current_status"]
+          custom_frequency_days: number | null
           expected_lifespan_years: number | null
           id: string
           install_date: string | null
+          last_maintenance_date: string | null
           location: string | null
+          location_type:
+            | Database["public"]["Enums"]["asset_location_type"]
+            | null
+          maintenance_company: string | null
+          maintenance_company_phone: string | null
+          maintenance_frequency:
+            | Database["public"]["Enums"]["asset_maintenance_frequency"]
+            | null
           manufacturer: string | null
+          next_maintenance_date: string | null
           notes: string | null
+          office_id: string | null
           photo_urls: string[]
           property_id: string
           responsible_person: string | null
@@ -458,20 +516,36 @@ export type Database = {
           supplier: string | null
           updated_at: string
           warranty_end_date: string | null
+          warranty_start_date: string | null
+          warranty_status: Database["public"]["Enums"]["warranty_status"] | null
         }
         Insert: {
           asset_code: string
           asset_name: string
           asset_type?: string | null
+          capacity?: string | null
           created_at?: string
           created_by?: string | null
           criticality?: Database["public"]["Enums"]["asset_criticality"]
+          current_status?: Database["public"]["Enums"]["asset_current_status"]
+          custom_frequency_days?: number | null
           expected_lifespan_years?: number | null
           id?: string
           install_date?: string | null
+          last_maintenance_date?: string | null
           location?: string | null
+          location_type?:
+            | Database["public"]["Enums"]["asset_location_type"]
+            | null
+          maintenance_company?: string | null
+          maintenance_company_phone?: string | null
+          maintenance_frequency?:
+            | Database["public"]["Enums"]["asset_maintenance_frequency"]
+            | null
           manufacturer?: string | null
+          next_maintenance_date?: string | null
           notes?: string | null
+          office_id?: string | null
           photo_urls?: string[]
           property_id?: string
           responsible_person?: string | null
@@ -480,20 +554,38 @@ export type Database = {
           supplier?: string | null
           updated_at?: string
           warranty_end_date?: string | null
+          warranty_start_date?: string | null
+          warranty_status?:
+            | Database["public"]["Enums"]["warranty_status"]
+            | null
         }
         Update: {
           asset_code?: string
           asset_name?: string
           asset_type?: string | null
+          capacity?: string | null
           created_at?: string
           created_by?: string | null
           criticality?: Database["public"]["Enums"]["asset_criticality"]
+          current_status?: Database["public"]["Enums"]["asset_current_status"]
+          custom_frequency_days?: number | null
           expected_lifespan_years?: number | null
           id?: string
           install_date?: string | null
+          last_maintenance_date?: string | null
           location?: string | null
+          location_type?:
+            | Database["public"]["Enums"]["asset_location_type"]
+            | null
+          maintenance_company?: string | null
+          maintenance_company_phone?: string | null
+          maintenance_frequency?:
+            | Database["public"]["Enums"]["asset_maintenance_frequency"]
+            | null
           manufacturer?: string | null
+          next_maintenance_date?: string | null
           notes?: string | null
+          office_id?: string | null
           photo_urls?: string[]
           property_id?: string
           responsible_person?: string | null
@@ -502,8 +594,19 @@ export type Database = {
           supplier?: string | null
           updated_at?: string
           warranty_end_date?: string | null
+          warranty_start_date?: string | null
+          warranty_status?:
+            | Database["public"]["Enums"]["warranty_status"]
+            | null
         }
         Relationships: [
+          {
+            foreignKeyName: "assets_office_id_fkey"
+            columns: ["office_id"]
+            isOneToOne: false
+            referencedRelation: "offices"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "assets_property_id_fkey"
             columns: ["property_id"]
@@ -5165,6 +5268,21 @@ export type Database = {
         | "receptionist"
         | "owner"
       asset_criticality: "حرج" | "عادي"
+      asset_current_status:
+        | "يعمل"
+        | "يعمل مع ملاحظات"
+        | "يحتاج صيانة"
+        | "تحت الصيانة"
+        | "معطل"
+        | "مستبدل"
+        | "خارج الخدمة"
+      asset_location_type: "مكتب" | "مرفق مشترك" | "البرج"
+      asset_maintenance_frequency:
+        | "شهري"
+        | "كل 3 أشهر"
+        | "كل 6 أشهر"
+        | "سنوي"
+        | "مدة مخصصة"
       camera_status: "تعمل" | "معطلة" | "تحت الصيانة"
       cleaning_contract_attachment_type:
         | "نسخة العقد"
@@ -5339,6 +5457,12 @@ export type Database = {
         | "صيانة خارجية"
         | "ضيف VIP"
         | "أخرى"
+      warranty_status:
+        | "ساري"
+        | "على وشك الانتهاء"
+        | "منتهي"
+        | "لا يوجد ضمان"
+        | "غير معروف"
       wo_priority: "طارئة" | "عالية" | "متوسطة" | "منخفضة"
       wo_request_source:
         | "مستأجر"
@@ -5483,6 +5607,23 @@ export const Constants = {
         "owner",
       ],
       asset_criticality: ["حرج", "عادي"],
+      asset_current_status: [
+        "يعمل",
+        "يعمل مع ملاحظات",
+        "يحتاج صيانة",
+        "تحت الصيانة",
+        "معطل",
+        "مستبدل",
+        "خارج الخدمة",
+      ],
+      asset_location_type: ["مكتب", "مرفق مشترك", "البرج"],
+      asset_maintenance_frequency: [
+        "شهري",
+        "كل 3 أشهر",
+        "كل 6 أشهر",
+        "سنوي",
+        "مدة مخصصة",
+      ],
       camera_status: ["تعمل", "معطلة", "تحت الصيانة"],
       cleaning_contract_attachment_type: [
         "نسخة العقد",
@@ -5674,6 +5815,13 @@ export const Constants = {
         "صيانة خارجية",
         "ضيف VIP",
         "أخرى",
+      ],
+      warranty_status: [
+        "ساري",
+        "على وشك الانتهاء",
+        "منتهي",
+        "لا يوجد ضمان",
+        "غير معروف",
       ],
       wo_priority: ["طارئة", "عالية", "متوسطة", "منخفضة"],
       wo_request_source: [

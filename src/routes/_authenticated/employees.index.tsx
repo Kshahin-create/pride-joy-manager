@@ -364,25 +364,13 @@ function EmployeesPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
-                <Label>جهة العمل *</Label>
-                <Select value={form.employer ?? ""} onValueChange={(v) => setForm({ ...form, employer: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="اختر" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employers.map((n) => (
-                      <SelectItem key={n} value={n}>
-                        {n}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-1.5">
                 <Label>القسم</Label>
-                <Select value={form.department ?? ""} onValueChange={(v) => setForm({ ...form, department: v })}>
+                <Select
+                  value={form.department ?? ""}
+                  onValueChange={(v) => setForm({ ...form, department: v, employer: "" })}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر" />
+                    <SelectValue placeholder="اختر القسم أولاً" />
                   </SelectTrigger>
                   <SelectContent>
                     {departments.map((n) => (
@@ -392,6 +380,38 @@ function EmployeesPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label>جهة العمل *</Label>
+                <Select value={form.employer ?? ""} onValueChange={(v) => setForm({ ...form, employer: v })}>
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        form.department
+                          ? `شركات ${form.department}`
+                          : "اختر القسم لعرض الشركات المرتبطة"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employerOptions.length === 0 ? (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">
+                        لا توجد شركات مسجلة لهذا القسم — أضفها من صفحة الموردين
+                      </div>
+                    ) : (
+                      employerOptions.map((n) => (
+                        <SelectItem key={n} value={n}>
+                          {n}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                {form.department && (
+                  <p className="text-[11px] text-muted-foreground">
+                    القائمة مفلترة حسب الموردين بنشاط: {form.department}
+                  </p>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">

@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Plus, Wrench, AlertTriangle, Eye, Pencil } from "lucide-react";
+import { Plus, Wrench, AlertTriangle, Eye, Pencil, Download } from "lucide-react";
 import { AssetFormDialog } from "@/components/asset-form-dialog";
 
 type Asset = {
@@ -38,7 +38,7 @@ type Asset = {
 type AssetType = { id: string; name: string };
 type OfficeOpt = { id: string; code: string };
 
-export const Route = createFileRoute("/_authenticated/assets")({
+export const Route = createFileRoute("/_authenticated/assets/")({
   component: AssetsPage,
 });
 
@@ -119,6 +119,36 @@ function AssetsPage() {
     return (new Date(d).getTime() - Date.now()) / 86400000 < 60;
   };
 
+  const exportCsv = () => {
+    const officeMap = new Map(offices.map((o) => [o.id, o.code]));
+    const header = [
+      "الكود","الاسم","النوع","الموقع","المكتب","الحالة","الخطورة",
+      "المصنعة","المورد","شركة الصيانة","المسؤول",
+      "تاريخ التركيب","نهاية الضمان","حالة الضمان",
+      "العمر المتوقع (سنوات)","آخر صيانة","الصيانة القادمة",
+    ];
+    const rows = filtered.map((a) => [
+      a.asset_code, a.asset_name, a.asset_type ?? "", a.location ?? "",
+      a.office_id ? (officeMap.get(a.office_id) ?? "") : "",
+      a.current_status ?? "", a.criticality,
+      a.manufacturer ?? "", a.supplier ?? "", a.maintenance_company ?? "",
+      a.responsible_person ?? "",
+      a.install_date ?? "", a.warranty_end_date ?? "", a.warranty_status ?? "",
+      a.expected_lifespan_years ?? "",
+      a.last_maintenance_date ?? "", a.next_maintenance_date ?? "",
+    ]);
+    const csv = [header, ...rows]
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `assets-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-6 space-y-6" dir="rtl">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -127,6 +157,7 @@ function AssetsPage() {
           <p className="text-sm text-muted-foreground">السجل المركزي لجميع أصول المشروع</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={exportCsv}><Download className="ml-2 h-4 w-4" />تصدير CSV</Button>
           <Link to="/maintenance"><Button variant="outline"><Wrench className="ml-2 h-4 w-4" />طلبات الصيانة</Button></Link>
           {canManage && (
             <Button onClick={() => setOpenCreate(true)}><Plus className="ml-2 h-4 w-4" />إضافة أصل</Button>

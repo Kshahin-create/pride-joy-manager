@@ -925,6 +925,7 @@ export type Database = {
           payment_frequency:
             | Database["public"]["Enums"]["cleaning_payment_frequency"]
             | null
+          payment_method: string | null
           property_id: string
           restroom_supplies: string[] | null
           scope_areas: string[] | null
@@ -973,6 +974,7 @@ export type Database = {
           payment_frequency?:
             | Database["public"]["Enums"]["cleaning_payment_frequency"]
             | null
+          payment_method?: string | null
           property_id?: string
           restroom_supplies?: string[] | null
           scope_areas?: string[] | null
@@ -1021,6 +1023,7 @@ export type Database = {
           payment_frequency?:
             | Database["public"]["Enums"]["cleaning_payment_frequency"]
             | null
+          payment_method?: string | null
           property_id?: string
           restroom_supplies?: string[] | null
           scope_areas?: string[] | null
@@ -2186,6 +2189,149 @@ export type Database = {
           },
         ]
       }
+      employee_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          created_at: string
+          description: string | null
+          employee_id: string
+          entity_id: string | null
+          entity_label: string | null
+          entity_type: string
+          id: string
+          role_on_entity: string | null
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          description?: string | null
+          employee_id: string
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type: string
+          id?: string
+          role_on_entity?: string | null
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          description?: string | null
+          employee_id?: string
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type?: string
+          id?: string
+          role_on_entity?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_departments: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      employee_employers: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      employees: {
+        Row: {
+          address: string | null
+          created_at: string
+          created_by: string | null
+          department: string | null
+          employer: string
+          full_name: string
+          hire_date: string | null
+          id: string
+          job_title: string | null
+          mobile: string | null
+          national_id: string | null
+          nationality: string | null
+          notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          employer: string
+          full_name: string
+          hire_date?: string | null
+          id?: string
+          job_title?: string | null
+          mobile?: string | null
+          national_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          employer?: string
+          full_name?: string
+          hire_date?: string | null
+          id?: string
+          job_title?: string | null
+          mobile?: string | null
+          national_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       expense_attachments: {
         Row: {
           created_at: string
@@ -3110,6 +3256,50 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      maintenance_request_attachments: {
+        Row: {
+          attachment_kind: string | null
+          created_at: string
+          file_name: string
+          file_path: string
+          id: string
+          mime_type: string | null
+          request_id: string
+          size_bytes: number | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          attachment_kind?: string | null
+          created_at?: string
+          file_name: string
+          file_path: string
+          id?: string
+          mime_type?: string | null
+          request_id: string
+          size_bytes?: number | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          attachment_kind?: string | null
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          mime_type?: string | null
+          request_id?: string
+          size_bytes?: number | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_request_attachments_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_requests"
             referencedColumns: ["id"]
           },
         ]

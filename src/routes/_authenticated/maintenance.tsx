@@ -15,7 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Plus, AlertTriangle, Play, Pause, CheckCircle2, ShieldCheck, RotateCcw, Trash2 } from "lucide-react";
+import { Plus, AlertTriangle, Play, Pause, CheckCircle2, ShieldCheck, RotateCcw, Trash2, Pencil } from "lucide-react";
+import { MaintenanceRequestEditDialog } from "@/components/maintenance-request-edit-dialog";
 
 type Status =
   | "جديد"
@@ -125,6 +126,8 @@ function MaintenancePage() {
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [editRequestId, setEditRequestId] = useState<string | null>(null);
+
 
   // create dialog
   const [open, setOpen] = useState(false);
@@ -304,7 +307,7 @@ function MaintenancePage() {
   const openHold = (r: MR) => { setHoldFor(r); setHoldReason(r.hold_reason ?? ""); };
   const saveHold = async () => {
     if (!holdFor) return;
-    if (!holdReason.trim()) return toast.error("اكتب سبب التعليق");
+    // hold_reason is now optional per business rule
     const { data, error } = await supabase.from("maintenance_requests").update({
       status: "معلّق", hold_reason: holdReason.trim(),
     }).eq("id", holdFor.id).select("id");
@@ -537,7 +540,12 @@ function MaintenancePage() {
                               {r.after_photo_url && <img src={r.after_photo_url} alt="بعد" className="h-12 w-12 object-cover rounded border" />}
                             </div>
                           )}
-                          {canManage && <CardActions r={r} moveTo={moveTo} />}
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => setEditRequestId(r.id)}>
+                              <Pencil className="h-3 w-3 ml-1" />تعديل
+                            </Button>
+                            {canManage && <CardActions r={r} moveTo={moveTo} />}
+                          </div>
                         </div>
                       );
                     })}
@@ -595,7 +603,14 @@ function MaintenancePage() {
                       <TableCell>{r.assigned_technician ?? (r.assigned_vendor_id ? vendorMap.get(r.assigned_vendor_id)?.company_name : "—")}</TableCell>
                       <TableCell>{(r.parts_cost || r.labor_cost) ? Number((r.parts_cost || 0) + (r.labor_cost || 0)).toLocaleString() : "—"}</TableCell>
                       <TableCell><Badge variant="outline" className={STATUS_STYLE[r.status]}>{r.status}</Badge></TableCell>
-                      <TableCell>{canManage && <CardActions r={r} moveTo={moveTo} compact />}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button size="icon" variant="ghost" title="تعديل البلاغ" onClick={() => setEditRequestId(r.id)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          {canManage && <CardActions r={r} moveTo={moveTo} compact />}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                   {filtered.length === 0 && (
@@ -655,7 +670,7 @@ function MaintenancePage() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>إنهاء العمل — {completeFor?.request_number}</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <Field label="صورة بعد الإصلاح *">
+            <Field label="صورة بعد الإصلاح (اختياري)">
               {completeAfterUrl && !completeAfterFile && (
                 <img src={completeAfterUrl} alt="بعد" className="h-24 w-24 object-cover rounded border mb-2" />
               )}
@@ -685,7 +700,7 @@ function MaintenancePage() {
               <Field label="ساعات العمل"><Input type="number" step="0.5" value={completeLaborHours} onChange={(e) => setCompleteLaborHours(e.target.value)} /></Field>
               <Field label="تكلفة العمالة"><Input type="number" value={completeLaborCost} onChange={(e) => setCompleteLaborCost(e.target.value)} /></Field>
             </div>
-            <Field label="ملاحظات الإنجاز *"><Textarea rows={3} value={completeNotes} onChange={(e) => setCompleteNotes(e.target.value)} /></Field>
+            <Field label="ملاحظات الإنجاز (اختياري)"><Textarea rows={3} value={completeNotes} onChange={(e) => setCompleteNotes(e.target.value)} /></Field>
           </div>
           <DialogFooter><Button onClick={saveComplete}>إنهاء وإرسال للاعتماد</Button></DialogFooter>
         </DialogContent>
@@ -721,6 +736,13 @@ function MaintenancePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <MaintenanceRequestEditDialog
+        open={!!editRequestId}
+        requestId={editRequestId}
+        onClose={() => setEditRequestId(null)}
+        onSaved={load}
+      />
     </div>
   );
 }

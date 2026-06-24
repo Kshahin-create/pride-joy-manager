@@ -101,6 +101,7 @@ const emptyForm = () => ({
   monthly_value: "",
   annual_value: "",
   payment_frequency: "شهري",
+  payment_method: "تحويل بنكي",
   taxable: true,
   tax_pct: 15,
   tax_inclusive: false,
@@ -238,6 +239,7 @@ function CleaningContractsPage() {
       monthly_value: form.monthly_value ? Number(form.monthly_value) : null,
       annual_value: form.annual_value ? Number(form.annual_value) : null,
       payment_frequency: form.payment_frequency,
+      payment_method: form.payment_method || null,
       taxable: !!form.taxable,
       tax_pct: Number(form.tax_pct) || 0,
       tax_inclusive: !!form.tax_inclusive,
@@ -540,10 +542,18 @@ function CleaningContractsPage() {
                 <Field label="قيمة العقد الإجمالية"><Input type="number" value={form.contract_value} onChange={(e) => setForm({ ...form, contract_value: e.target.value })} /></Field>
                 <Field label="القيمة الشهرية"><Input type="number" value={form.monthly_value} onChange={(e) => setForm({ ...form, monthly_value: e.target.value })} /></Field>
                 <Field label="القيمة السنوية"><Input type="number" value={form.annual_value} onChange={(e) => setForm({ ...form, annual_value: e.target.value })} /></Field>
-                <Field label="طريقة السداد">
+                <Field label="دورية السداد">
                   <Select value={form.payment_frequency} onValueChange={(v) => setForm({ ...form, payment_frequency: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>{PAY_FREQ.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                  </Select>
+                </Field>
+                <Field label="طريقة الدفع">
+                  <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {["تحويل بنكي","شيك","نقدي","بطاقة ائتمان"].map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                    </SelectContent>
                   </Select>
                 </Field>
                 <Field label="نسبة الضريبة %"><Input type="number" value={form.tax_pct} onChange={(e) => setForm({ ...form, tax_pct: e.target.value })} /></Field>

@@ -2186,6 +2186,149 @@ export type Database = {
           },
         ]
       }
+      employee_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          created_at: string
+          description: string | null
+          employee_id: string
+          entity_id: string | null
+          entity_label: string | null
+          entity_type: string
+          id: string
+          role_on_entity: string | null
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          description?: string | null
+          employee_id: string
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type: string
+          id?: string
+          role_on_entity?: string | null
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          description?: string | null
+          employee_id?: string
+          entity_id?: string | null
+          entity_label?: string | null
+          entity_type?: string
+          id?: string
+          role_on_entity?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_assignments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_departments: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      employee_employers: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
+      employees: {
+        Row: {
+          address: string | null
+          created_at: string
+          created_by: string | null
+          department: string | null
+          employer: string
+          full_name: string
+          hire_date: string | null
+          id: string
+          job_title: string | null
+          mobile: string | null
+          national_id: string | null
+          nationality: string | null
+          notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          employer: string
+          full_name: string
+          hire_date?: string | null
+          id?: string
+          job_title?: string | null
+          mobile?: string | null
+          national_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          employer?: string
+          full_name?: string
+          hire_date?: string | null
+          id?: string
+          job_title?: string | null
+          mobile?: string | null
+          national_id?: string | null
+          nationality?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       expense_attachments: {
         Row: {
           created_at: string

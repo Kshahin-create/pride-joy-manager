@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EmployeePicker } from "@/components/employee-picker";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/operations")({
@@ -212,10 +213,35 @@ function PhotoSlot({ label, path }: { label: string; path: string | null }) {
   );
 }
 
+type CleaningContractOpt = { id: string; vendor_name: string | null; contract_number: string | null };
+
 function PlanDialog({ open, onClose, onSaved }: { open: boolean; onClose: () => void; onSaved: () => void }) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ area: "", frequency: "يومي" as Frequency, contractor_company: "", supervisor: "", notes: "" });
-  useEffect(() => { if (open) setForm({ area: "", frequency: "يومي", contractor_company: "", supervisor: "", notes: "" }); }, [open]);
+  const [contracts, setContracts] = useState<CleaningContractOpt[]>([]);
+  const [selectedContractId, setSelectedContractId] = useState<string>("");
+  const [supervisorEmpId, setSupervisorEmpId] = useState<string | null>(null);
+  const [quickOpen, setQuickOpen] = useState(false);
+  const [quickForm, setQuickForm] = useState({ vendor_name: "", contract_number: "", start_date: "", end_date: "" });
+
+  const loadContracts = async () => {
+    const { data } = await (supabase as any)
+      .from("cleaning_contracts")
+      .select("id, vendor_name, contract_number, status")
+      .in("status", ["ساري", "مسودة", "قيد المراجعة", "بانتظار الاعتماد", "تحت التجديد"])
+      .order("vendor_name");
+    setContracts((data ?? []) as CleaningContractOpt[]);
+  };
+
+  useEffect(() => {
+    if (open) {
+      setForm({ area: "", frequency: "يومي", contractor_company: "", supervisor: "", notes: "" });
+      setSelectedContractId("");
+      setSupervisorEmpId(null);
+      loadContracts();
+    }
+  }, [open]);
+
   const submit = async () => {
     if (!form.area.trim()) { toast.error("الرجاء إدخال المنطقة"); return; }
     setSaving(true);
@@ -231,6 +257,28 @@ function PlanDialog({ open, onClose, onSaved }: { open: boolean; onClose: () => 
     toast.success("تمت إضافة الخطة");
     onSaved();
   };
+
+  const quickAddContract = async () => {
+    if (!quickForm.vendor_name.trim()) { toast.error("اسم شركة النظافة مطلوب"); return; }
+    const { data: u } = await supabase.auth.getUser();
+    const { data, error } = await (supabase as any).from("cleaning_contracts").insert({
+      vendor_name: quickForm.vendor_name.trim(),
+      contract_number: quickForm.contract_number || null,
+      start_date: quickForm.start_date || null,
+      end_date: quickForm.end_date || null,
+      cleaning_type: "عقد خدمات نظافة",
+      status: "مسودة",
+      created_by: u.user?.id,
+    }).select("id, vendor_name, contract_number").single();
+    if (error) { toast.error(error.message); return; }
+    toast.success("تم إنشاء العقد");
+    setContracts((p) => [...p, data as CleaningContractOpt]);
+    setSelectedContractId(data.id);
+    setForm((f) => ({ ...f, contractor_company: data.vendor_name ?? "" }));
+    setQuickOpen(false);
+    setQuickForm({ vendor_name: "", contract_number: "", start_date: "", end_date: "" });
+  };
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent dir="rtl">
@@ -244,8 +292,48 @@ function PlanDialog({ open, onClose, onSaved }: { open: boolean; onClose: () => 
               <SelectContent>{FREQS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div><Label>شركة المقاول</Label><Input value={form.contractor_company} onChange={(e) => setForm({ ...form, contractor_company: e.target.value })} /></div>
-          <div><Label>المشرف</Label><Input value={form.supervisor} onChange={(e) => setForm({ ...form, supervisor: e.target.value })} /></div>
+          <div>
+            <Label>شركة النظافة (من العقود)</Label>
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <Select
+                  value={selectedContractId}
+                  onValueChange={(v) => {
+                    setSelectedContractId(v);
+                    const c = contracts.find((x) => x.id === v);
+                    setForm((f) => ({ ...f, contractor_company: c?.vendor_name ?? "" }));
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="اختر عقد نظافة" /></SelectTrigger>
+                  <SelectContent>
+                    {contracts.length === 0 ? (
+                      <div className="px-2 py-1.5 text-xs text-muted-foreground">لا توجد عقود</div>
+                    ) : contracts.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.vendor_name ?? "—"} {c.contract_number ? `(${c.contract_number})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="button" variant="outline" size="icon" onClick={() => setQuickOpen(true)} title="إضافة عقد جديد">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <div>
+            <Label>المشرف (من الموظفين)</Label>
+            <EmployeePicker
+              value={supervisorEmpId}
+              onChange={(empId, emp) => {
+                setSupervisorEmpId(empId);
+                setForm((f) => ({ ...f, supervisor: emp?.full_name ?? "" }));
+              }}
+              defaultDepartment="النظافة"
+              defaultEmployer="شركة نظافة"
+              placeholder="اختر مشرف نظافة"
+            />
+          </div>
           <div><Label>ملاحظات</Label><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
         </div>
         <DialogFooter>
@@ -255,6 +343,27 @@ function PlanDialog({ open, onClose, onSaved }: { open: boolean; onClose: () => 
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <Dialog open={quickOpen} onOpenChange={setQuickOpen}>
+        <DialogContent dir="rtl" className="max-w-md">
+          <DialogHeader><DialogTitle>إضافة عقد نظافة سريع</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div><Label>اسم شركة النظافة *</Label><Input value={quickForm.vendor_name} onChange={(e) => setQuickForm({ ...quickForm, vendor_name: e.target.value })} /></div>
+            <div><Label>رقم العقد</Label><Input value={quickForm.contract_number} onChange={(e) => setQuickForm({ ...quickForm, contract_number: e.target.value })} /></div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label>تاريخ البداية</Label><Input type="date" value={quickForm.start_date} onChange={(e) => setQuickForm({ ...quickForm, start_date: e.target.value })} /></div>
+              <div><Label>تاريخ النهاية</Label><Input type="date" value={quickForm.end_date} onChange={(e) => setQuickForm({ ...quickForm, end_date: e.target.value })} /></div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              سيتم حفظ العقد بحالة "مسودة" في صفحة عقود النظافة لاستكمال بياناته لاحقًا.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setQuickOpen(false)}>إلغاء</Button>
+            <Button onClick={quickAddContract}>حفظ</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }

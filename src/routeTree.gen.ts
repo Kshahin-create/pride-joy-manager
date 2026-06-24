@@ -45,13 +45,13 @@ import { Route as AuthenticatedCommonAreasRouteImport } from './routes/_authenti
 import { Route as AuthenticatedCleaningContractsRouteImport } from './routes/_authenticated/cleaning-contracts'
 import { Route as AuthenticatedBuildingMapRouteImport } from './routes/_authenticated/building-map'
 import { Route as AuthenticatedBuildingLogRouteImport } from './routes/_authenticated/building-log'
-import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedApiDocsRouteImport } from './routes/_authenticated/api-docs'
 import { Route as AuthenticatedAcContractsRouteImport } from './routes/_authenticated/ac-contracts'
 import { Route as AuthenticatedVendorsIndexRouteImport } from './routes/_authenticated/vendors.index'
 import { Route as AuthenticatedOfficesIndexRouteImport } from './routes/_authenticated/offices.index'
 import { Route as AuthenticatedEmployeesIndexRouteImport } from './routes/_authenticated/employees.index'
 import { Route as AuthenticatedContractsIndexRouteImport } from './routes/_authenticated/contracts.index'
+import { Route as AuthenticatedAssetsIndexRouteImport } from './routes/_authenticated/assets.index'
 import { Route as AuthenticatedVendorsIdRouteImport } from './routes/_authenticated/vendors.$id'
 import { Route as AuthenticatedTenantsIdRouteImport } from './routes/_authenticated/tenants.$id'
 import { Route as AuthenticatedOfficesIdRouteImport } from './routes/_authenticated/offices.$id'
@@ -256,11 +256,6 @@ const AuthenticatedBuildingLogRoute =
     path: '/building-log',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAssetsRoute = AuthenticatedAssetsRouteImport.update({
-  id: '/assets',
-  path: '/assets',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedApiDocsRoute = AuthenticatedApiDocsRouteImport.update({
   id: '/api-docs',
   path: '/api-docs',
@@ -294,6 +289,12 @@ const AuthenticatedContractsIndexRoute =
   AuthenticatedContractsIndexRouteImport.update({
     id: '/contracts/',
     path: '/contracts/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssetsIndexRoute =
+  AuthenticatedAssetsIndexRouteImport.update({
+    id: '/assets/',
+    path: '/assets/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedVendorsIdRoute = AuthenticatedVendorsIdRouteImport.update({
@@ -330,9 +331,9 @@ const AuthenticatedComplaintsIdRoute =
     getParentRoute: () => AuthenticatedComplaintsRoute,
   } as any)
 const AuthenticatedAssetsIdRoute = AuthenticatedAssetsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AuthenticatedAssetsRoute,
+  id: '/assets/$id',
+  path: '/assets/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ApiPublicV1SplatRoute = ApiPublicV1SplatRouteImport.update({
   id: '/api/public/v1/$',
@@ -371,7 +372,6 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/ac-contracts': typeof AuthenticatedAcContractsRoute
   '/api-docs': typeof AuthenticatedApiDocsRoute
-  '/assets': typeof AuthenticatedAssetsRouteWithChildren
   '/building-log': typeof AuthenticatedBuildingLogRoute
   '/building-map': typeof AuthenticatedBuildingMapRoute
   '/cleaning-contracts': typeof AuthenticatedCleaningContractsRoute
@@ -409,6 +409,7 @@ export interface FileRoutesByFullPath {
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/vendors/$id': typeof AuthenticatedVendorsIdRoute
+  '/assets/': typeof AuthenticatedAssetsIndexRoute
   '/contracts/': typeof AuthenticatedContractsIndexRoute
   '/employees/': typeof AuthenticatedEmployeesIndexRoute
   '/offices/': typeof AuthenticatedOfficesIndexRoute
@@ -427,7 +428,6 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/ac-contracts': typeof AuthenticatedAcContractsRoute
   '/api-docs': typeof AuthenticatedApiDocsRoute
-  '/assets': typeof AuthenticatedAssetsRouteWithChildren
   '/building-log': typeof AuthenticatedBuildingLogRoute
   '/building-map': typeof AuthenticatedBuildingMapRoute
   '/cleaning-contracts': typeof AuthenticatedCleaningContractsRoute
@@ -465,6 +465,7 @@ export interface FileRoutesByTo {
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/vendors/$id': typeof AuthenticatedVendorsIdRoute
+  '/assets': typeof AuthenticatedAssetsIndexRoute
   '/contracts': typeof AuthenticatedContractsIndexRoute
   '/employees': typeof AuthenticatedEmployeesIndexRoute
   '/offices': typeof AuthenticatedOfficesIndexRoute
@@ -485,7 +486,6 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/ac-contracts': typeof AuthenticatedAcContractsRoute
   '/_authenticated/api-docs': typeof AuthenticatedApiDocsRoute
-  '/_authenticated/assets': typeof AuthenticatedAssetsRouteWithChildren
   '/_authenticated/building-log': typeof AuthenticatedBuildingLogRoute
   '/_authenticated/building-map': typeof AuthenticatedBuildingMapRoute
   '/_authenticated/cleaning-contracts': typeof AuthenticatedCleaningContractsRoute
@@ -523,6 +523,7 @@ export interface FileRoutesById {
   '/_authenticated/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/_authenticated/tenants/$id': typeof AuthenticatedTenantsIdRoute
   '/_authenticated/vendors/$id': typeof AuthenticatedVendorsIdRoute
+  '/_authenticated/assets/': typeof AuthenticatedAssetsIndexRoute
   '/_authenticated/contracts/': typeof AuthenticatedContractsIndexRoute
   '/_authenticated/employees/': typeof AuthenticatedEmployeesIndexRoute
   '/_authenticated/offices/': typeof AuthenticatedOfficesIndexRoute
@@ -543,7 +544,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/ac-contracts'
     | '/api-docs'
-    | '/assets'
     | '/building-log'
     | '/building-map'
     | '/cleaning-contracts'
@@ -581,6 +581,7 @@ export interface FileRouteTypes {
     | '/offices/$id'
     | '/tenants/$id'
     | '/vendors/$id'
+    | '/assets/'
     | '/contracts/'
     | '/employees/'
     | '/offices/'
@@ -599,7 +600,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/ac-contracts'
     | '/api-docs'
-    | '/assets'
     | '/building-log'
     | '/building-map'
     | '/cleaning-contracts'
@@ -637,6 +637,7 @@ export interface FileRouteTypes {
     | '/offices/$id'
     | '/tenants/$id'
     | '/vendors/$id'
+    | '/assets'
     | '/contracts'
     | '/employees'
     | '/offices'
@@ -656,7 +657,6 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/ac-contracts'
     | '/_authenticated/api-docs'
-    | '/_authenticated/assets'
     | '/_authenticated/building-log'
     | '/_authenticated/building-map'
     | '/_authenticated/cleaning-contracts'
@@ -694,6 +694,7 @@ export interface FileRouteTypes {
     | '/_authenticated/offices/$id'
     | '/_authenticated/tenants/$id'
     | '/_authenticated/vendors/$id'
+    | '/_authenticated/assets/'
     | '/_authenticated/contracts/'
     | '/_authenticated/employees/'
     | '/_authenticated/offices/'
@@ -972,13 +973,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBuildingLogRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/assets': {
-      id: '/_authenticated/assets'
-      path: '/assets'
-      fullPath: '/assets'
-      preLoaderRoute: typeof AuthenticatedAssetsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/api-docs': {
       id: '/_authenticated/api-docs'
       path: '/api-docs'
@@ -1019,6 +1013,13 @@ declare module '@tanstack/react-router' {
       path: '/contracts'
       fullPath: '/contracts/'
       preLoaderRoute: typeof AuthenticatedContractsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assets/': {
+      id: '/_authenticated/assets/'
+      path: '/assets'
+      fullPath: '/assets/'
+      preLoaderRoute: typeof AuthenticatedAssetsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/vendors/$id': {
@@ -1065,10 +1066,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/assets/$id': {
       id: '/_authenticated/assets/$id'
-      path: '/$id'
+      path: '/assets/$id'
       fullPath: '/assets/$id'
       preLoaderRoute: typeof AuthenticatedAssetsIdRouteImport
-      parentRoute: typeof AuthenticatedAssetsRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/v1/$': {
       id: '/api/public/v1/$'
@@ -1107,17 +1108,6 @@ declare module '@tanstack/react-router' {
     }
   }
 }
-
-interface AuthenticatedAssetsRouteChildren {
-  AuthenticatedAssetsIdRoute: typeof AuthenticatedAssetsIdRoute
-}
-
-const AuthenticatedAssetsRouteChildren: AuthenticatedAssetsRouteChildren = {
-  AuthenticatedAssetsIdRoute: AuthenticatedAssetsIdRoute,
-}
-
-const AuthenticatedAssetsRouteWithChildren =
-  AuthenticatedAssetsRoute._addFileChildren(AuthenticatedAssetsRouteChildren)
 
 interface AuthenticatedComplaintsRouteChildren {
   AuthenticatedComplaintsIdRoute: typeof AuthenticatedComplaintsIdRoute
@@ -1160,7 +1150,6 @@ const AuthenticatedTenantsRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAcContractsRoute: typeof AuthenticatedAcContractsRoute
   AuthenticatedApiDocsRoute: typeof AuthenticatedApiDocsRoute
-  AuthenticatedAssetsRoute: typeof AuthenticatedAssetsRouteWithChildren
   AuthenticatedBuildingLogRoute: typeof AuthenticatedBuildingLogRoute
   AuthenticatedBuildingMapRoute: typeof AuthenticatedBuildingMapRoute
   AuthenticatedCleaningContractsRoute: typeof AuthenticatedCleaningContractsRoute
@@ -1191,10 +1180,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTenantsRoute: typeof AuthenticatedTenantsRouteWithChildren
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedVisitorsRoute: typeof AuthenticatedVisitorsRoute
+  AuthenticatedAssetsIdRoute: typeof AuthenticatedAssetsIdRoute
   AuthenticatedContractsIdRoute: typeof AuthenticatedContractsIdRoute
   AuthenticatedEmployeesIdRoute: typeof AuthenticatedEmployeesIdRoute
   AuthenticatedOfficesIdRoute: typeof AuthenticatedOfficesIdRoute
   AuthenticatedVendorsIdRoute: typeof AuthenticatedVendorsIdRoute
+  AuthenticatedAssetsIndexRoute: typeof AuthenticatedAssetsIndexRoute
   AuthenticatedContractsIndexRoute: typeof AuthenticatedContractsIndexRoute
   AuthenticatedEmployeesIndexRoute: typeof AuthenticatedEmployeesIndexRoute
   AuthenticatedOfficesIndexRoute: typeof AuthenticatedOfficesIndexRoute
@@ -1204,7 +1195,6 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAcContractsRoute: AuthenticatedAcContractsRoute,
   AuthenticatedApiDocsRoute: AuthenticatedApiDocsRoute,
-  AuthenticatedAssetsRoute: AuthenticatedAssetsRouteWithChildren,
   AuthenticatedBuildingLogRoute: AuthenticatedBuildingLogRoute,
   AuthenticatedBuildingMapRoute: AuthenticatedBuildingMapRoute,
   AuthenticatedCleaningContractsRoute: AuthenticatedCleaningContractsRoute,
@@ -1235,10 +1225,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTenantsRoute: AuthenticatedTenantsRouteWithChildren,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedVisitorsRoute: AuthenticatedVisitorsRoute,
+  AuthenticatedAssetsIdRoute: AuthenticatedAssetsIdRoute,
   AuthenticatedContractsIdRoute: AuthenticatedContractsIdRoute,
   AuthenticatedEmployeesIdRoute: AuthenticatedEmployeesIdRoute,
   AuthenticatedOfficesIdRoute: AuthenticatedOfficesIdRoute,
   AuthenticatedVendorsIdRoute: AuthenticatedVendorsIdRoute,
+  AuthenticatedAssetsIndexRoute: AuthenticatedAssetsIndexRoute,
   AuthenticatedContractsIndexRoute: AuthenticatedContractsIndexRoute,
   AuthenticatedEmployeesIndexRoute: AuthenticatedEmployeesIndexRoute,
   AuthenticatedOfficesIndexRoute: AuthenticatedOfficesIndexRoute,

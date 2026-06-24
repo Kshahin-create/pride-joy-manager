@@ -588,6 +588,7 @@ function MaintenancePage() {
                     <TableHead>المُسنَد إليه</TableHead>
                     <TableHead>التكلفة</TableHead>
                     <TableHead>الحالة</TableHead>
+                    <TableHead>المرفقات</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>

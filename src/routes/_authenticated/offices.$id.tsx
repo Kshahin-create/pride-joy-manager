@@ -234,10 +234,7 @@ function OfficeDetailsPage() {
           <TabsTrigger value="tenant"><Building2 className="h-4 w-4 ms-1" />المستأجر</TabsTrigger>
           <TabsTrigger value="finance"><Receipt className="h-4 w-4 ms-1" />الفواتير والمدفوعات</TabsTrigger>
           <TabsTrigger value="maintenance"><Wrench className="h-4 w-4 ms-1" />الصيانة</TabsTrigger>
-          <TabsTrigger value="parking"><Car className="h-4 w-4 ms-1" />المواقف</TabsTrigger>
-          <TabsTrigger value="electricity"><Gauge className="h-4 w-4 ms-1" />الكهرباء</TabsTrigger>
-          <TabsTrigger value="ac"><Snowflake className="h-4 w-4 ms-1" />التكييف</TabsTrigger>
-          <TabsTrigger value="network"><Network className="h-4 w-4 ms-1" />الشبكات</TabsTrigger>
+          <TabsTrigger value="assets"><Gauge className="h-4 w-4 ms-1" />الأصول</TabsTrigger>
           <TabsTrigger value="files"><FolderOpen className="h-4 w-4 ms-1" />الملفات</TabsTrigger>
           <TabsTrigger value="tickets"><History className="h-4 w-4 ms-1" />التذاكر</TabsTrigger>
           <TabsTrigger value="log"><History className="h-4 w-4 ms-1" />السجل</TabsTrigger>
@@ -255,17 +252,8 @@ function OfficeDetailsPage() {
         <TabsContent value="maintenance" className="mt-4">
           <MaintenanceTab officeId={office.id} />
         </TabsContent>
-        <TabsContent value="parking" className="mt-4">
-          <ParkingTab officeId={office.id} />
-        </TabsContent>
-        <TabsContent value="electricity" className="mt-4">
-          <ElectricityTab officeId={office.id} canEdit={canEditUtility} />
-        </TabsContent>
-        <TabsContent value="ac" className="mt-4">
-          <AcTab officeId={office.id} canEdit={canEditUtility} />
-        </TabsContent>
-        <TabsContent value="network" className="mt-4">
-          <NetworkTab officeId={office.id} canEdit={isAdmin} />
+        <TabsContent value="assets" className="mt-4">
+          <OfficeAssetsTab officeId={office.id} />
         </TabsContent>
         <TabsContent value="files" className="mt-4">
           <FilesTab officeId={office.id} canEdit={isAdmin} />

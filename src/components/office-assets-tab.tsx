@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Loader2, Plus, Eye, Pencil, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { AssetFormDialog } from "@/components/asset-form-dialog";
+import { AssetLinkPickerDialog } from "@/components/asset-link-picker-dialog";
 
 interface AssetRow {
   id: string;
@@ -40,6 +41,7 @@ export function OfficeAssetsTab({ officeId }: { officeId: string }) {
   const canManage = hasAnyRole(["super_admin", "maintenance_supervisor"]);
   const [items, setItems] = useState<AssetRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openPicker, setOpenPicker] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
 
@@ -75,8 +77,8 @@ export function OfficeAssetsTab({ officeId }: { officeId: string }) {
       <div className="flex items-center justify-between">
         <h2 className="font-semibold">أصول المكتب</h2>
         {canManage && (
-          <Button size="sm" onClick={() => setOpenCreate(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
-            <Plus className="h-4 w-4 ms-1" /> إضافة أصل جديد
+          <Button size="sm" onClick={() => setOpenPicker(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
+            <Plus className="h-4 w-4 ms-1" /> إضافة أصل
           </Button>
         )}
       </div>
@@ -146,6 +148,14 @@ export function OfficeAssetsTab({ officeId }: { officeId: string }) {
           </CardContent>
         </Card>
       )}
+
+      <AssetLinkPickerDialog
+        open={openPicker}
+        onClose={() => setOpenPicker(false)}
+        officeId={officeId}
+        onLinked={() => { setOpenPicker(false); load(); }}
+        onCreateNew={() => { setOpenPicker(false); setOpenCreate(true); }}
+      />
 
       <AssetFormDialog
         open={openCreate}

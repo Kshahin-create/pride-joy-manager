@@ -501,6 +501,8 @@ export type Database = {
             | null
           maintenance_company: string | null
           maintenance_company_phone: string | null
+          maintenance_contract_id: string | null
+          maintenance_contract_type: string | null
           maintenance_frequency:
             | Database["public"]["Enums"]["asset_maintenance_frequency"]
             | null
@@ -513,7 +515,9 @@ export type Database = {
           responsible_person: string | null
           serial_number: string | null
           space_id: string | null
+          specs: Json
           supplier: string | null
+          supplier_vendor_id: string | null
           updated_at: string
           warranty_end_date: string | null
           warranty_start_date: string | null
@@ -539,6 +543,8 @@ export type Database = {
             | null
           maintenance_company?: string | null
           maintenance_company_phone?: string | null
+          maintenance_contract_id?: string | null
+          maintenance_contract_type?: string | null
           maintenance_frequency?:
             | Database["public"]["Enums"]["asset_maintenance_frequency"]
             | null
@@ -551,7 +557,9 @@ export type Database = {
           responsible_person?: string | null
           serial_number?: string | null
           space_id?: string | null
+          specs?: Json
           supplier?: string | null
+          supplier_vendor_id?: string | null
           updated_at?: string
           warranty_end_date?: string | null
           warranty_start_date?: string | null
@@ -579,6 +587,8 @@ export type Database = {
             | null
           maintenance_company?: string | null
           maintenance_company_phone?: string | null
+          maintenance_contract_id?: string | null
+          maintenance_contract_type?: string | null
           maintenance_frequency?:
             | Database["public"]["Enums"]["asset_maintenance_frequency"]
             | null
@@ -591,7 +601,9 @@ export type Database = {
           responsible_person?: string | null
           serial_number?: string | null
           space_id?: string | null
+          specs?: Json
           supplier?: string | null
+          supplier_vendor_id?: string | null
           updated_at?: string
           warranty_end_date?: string | null
           warranty_start_date?: string | null
@@ -619,6 +631,13 @@ export type Database = {
             columns: ["space_id"]
             isOneToOne: false
             referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_supplier_vendor_id_fkey"
+            columns: ["supplier_vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]

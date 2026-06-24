@@ -41,6 +41,7 @@ export function OfficeAssetsTab({ officeId }: { officeId: string }) {
   const canManage = hasAnyRole(["super_admin", "maintenance_supervisor"]);
   const [items, setItems] = useState<AssetRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openPicker, setOpenPicker] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
 

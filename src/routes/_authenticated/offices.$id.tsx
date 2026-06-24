@@ -53,6 +53,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Timeline, useBuildingLog } from "@/components/building-log-timeline";
+import { OfficeAssetsTab } from "@/components/office-assets-tab";
 
 export const Route = createFileRoute("/_authenticated/offices/$id")({
   component: OfficeDetailsPage,

@@ -670,7 +670,7 @@ function MaintenancePage() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>إنهاء العمل — {completeFor?.request_number}</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <Field label="صورة بعد الإصلاح *">
+            <Field label="صورة بعد الإصلاح (اختياري)">
               {completeAfterUrl && !completeAfterFile && (
                 <img src={completeAfterUrl} alt="بعد" className="h-24 w-24 object-cover rounded border mb-2" />
               )}
@@ -700,7 +700,7 @@ function MaintenancePage() {
               <Field label="ساعات العمل"><Input type="number" step="0.5" value={completeLaborHours} onChange={(e) => setCompleteLaborHours(e.target.value)} /></Field>
               <Field label="تكلفة العمالة"><Input type="number" value={completeLaborCost} onChange={(e) => setCompleteLaborCost(e.target.value)} /></Field>
             </div>
-            <Field label="ملاحظات الإنجاز *"><Textarea rows={3} value={completeNotes} onChange={(e) => setCompleteNotes(e.target.value)} /></Field>
+            <Field label="ملاحظات الإنجاز (اختياري)"><Textarea rows={3} value={completeNotes} onChange={(e) => setCompleteNotes(e.target.value)} /></Field>
           </div>
           <DialogFooter><Button onClick={saveComplete}>إنهاء وإرسال للاعتماد</Button></DialogFooter>
         </DialogContent>

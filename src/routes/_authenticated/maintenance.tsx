@@ -588,6 +588,7 @@ function MaintenancePage() {
                     <TableHead>المُسنَد إليه</TableHead>
                     <TableHead>التكلفة</TableHead>
                     <TableHead>الحالة</TableHead>
+                    <TableHead>المرفقات</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -604,6 +605,24 @@ function MaintenancePage() {
                       <TableCell>{(r.parts_cost || r.labor_cost) ? Number((r.parts_cost || 0) + (r.labor_cost || 0)).toLocaleString() : "—"}</TableCell>
                       <TableCell><Badge variant="outline" className={STATUS_STYLE[r.status]}>{r.status}</Badge></TableCell>
                       <TableCell>
+                        {(r.before_photo_url || r.after_photo_url) ? (
+                          <div className="flex gap-1">
+                            {r.before_photo_url && (
+                              <a href={r.before_photo_url} target="_blank" rel="noreferrer" title="قبل">
+                                <img src={r.before_photo_url} alt="قبل" loading="lazy" className="h-14 w-14 object-cover rounded border hover:ring-2 hover:ring-primary transition" />
+                              </a>
+                            )}
+                            {r.after_photo_url && (
+                              <a href={r.after_photo_url} target="_blank" rel="noreferrer" title="بعد">
+                                <img src={r.after_photo_url} alt="بعد" loading="lazy" className="h-14 w-14 object-cover rounded border hover:ring-2 hover:ring-primary transition" />
+                              </a>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-1">
                           <Button size="icon" variant="ghost" title="تعديل البلاغ" onClick={() => setEditRequestId(r.id)}>
                             <Pencil className="h-4 w-4" />
@@ -614,7 +633,7 @@ function MaintenancePage() {
                     </TableRow>
                   ))}
                   {filtered.length === 0 && (
-                    <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-6">لا توجد طلبات</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-6">لا توجد طلبات</TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>

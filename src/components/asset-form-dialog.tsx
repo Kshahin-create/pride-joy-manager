@@ -284,6 +284,7 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
   };
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader><DialogTitle>{isEdit ? "تعديل الأصل" : "إضافة أصل جديد"}</DialogTitle></DialogHeader>

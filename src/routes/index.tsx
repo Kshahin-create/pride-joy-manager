@@ -90,9 +90,11 @@ function LandingPage() {
       <header className="border-b border-border/60 backdrop-blur-md bg-background/80 sticky top-0 z-40">
         <div className="container mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-lg bg-primary grid place-items-center shadow">
-              <Building2 className="h-5 w-5 text-primary-foreground" />
-            </div>
+            <img
+              src={logoWhiteAsset.url}
+              alt="TAAM"
+              className="h-9 w-9 rounded-lg object-contain shadow"
+            />
             <div className="leading-tight">
               <div className="text-base font-extrabold text-primary tracking-wide">TAAM</div>
               <div className="text-[10px] text-muted-foreground">منصة إدارة وتشغيل العقارات</div>

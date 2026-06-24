@@ -51,7 +51,7 @@
   --radius: 0.625rem;
 
   /* الوضع النهاري - لوحة TAAM
-     #FFFFFF خلفية، #0F172A نص داكن، #0F766E أساسي، #14B8A6 لمعان، #E2E8F0 محايد */
+     #FFFFFF خلفية، #0F172A نص داكن، #086c6b أساسي، #2da2a1 لمعان، #E2E8F0 محايد */
   --background: oklch(1 0 0);
   --foreground: oklch(0.20 0.04 260);
 
@@ -60,12 +60,12 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.20 0.04 260);
 
-  /* الأساسي: تيل داكن #0F766E */
-  --primary: oklch(0.50 0.10 180);
+  /* الأساسي: تيل داكن #086c6b */
+  --primary: oklch(0.48 0.08 193.67);
   --primary-foreground: oklch(0.99 0 0);
 
-  /* ذهبي مستبدل بـ تيل فاتح #14B8A6 كلون مميز */
-  --gold: oklch(0.72 0.13 180);
+  /* تيل فاتح #2da2a1 كلون مميز */
+  --gold: oklch(0.65 0.10 193.67);
   --gold-foreground: oklch(0.18 0.04 260);
 
   /* ثانوي رمادي فاتح #E2E8F0 */
@@ -76,8 +76,8 @@
   --muted-foreground: oklch(0.48 0.03 250);
 
   /* لمسة Accent تيل فاتحة */
-  --accent: oklch(0.95 0.025 180);
-  --accent-foreground: oklch(0.30 0.08 180);
+  --accent: oklch(0.95 0.025 193.67);
+  --accent-foreground: oklch(0.30 0.08 193.67);
 
   --destructive: oklch(0.58 0.22 25);
   --destructive-foreground: oklch(0.99 0 0);
@@ -93,17 +93,17 @@
 
   --border: oklch(0.91 0.012 250);
   --input: oklch(0.91 0.012 250);
-  --ring: oklch(0.50 0.10 180);
+  --ring: oklch(0.48 0.08 193.67);
 
   /* الشريط الجانبي بالنيفي العميق #0F172A */
   --sidebar: oklch(0.22 0.04 260);
   --sidebar-foreground: oklch(0.93 0.013 250);
-  --sidebar-primary: oklch(0.72 0.13 180);
+  --sidebar-primary: oklch(0.65 0.10 193.67);
   --sidebar-primary-foreground: oklch(0.18 0.04 260);
   --sidebar-accent: oklch(0.28 0.05 260);
   --sidebar-accent-foreground: oklch(0.95 0.010 250);
   --sidebar-border: oklch(0.28 0.05 260);
-  --sidebar-ring: oklch(0.72 0.13 180);
+  --sidebar-ring: oklch(0.65 0.10 193.67);
 }
 
 

@@ -13,9 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
-import { Plus, Truck, Star, AlertTriangle } from "lucide-react";
+import { Plus, Truck, Star, AlertTriangle, Download } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/vendors")({
+export const Route = createFileRoute("/_authenticated/vendors/")({
   component: VendorsPage,
 });
 
@@ -118,6 +118,29 @@ function VendorsPage() {
     load();
   };
 
+  const exportCsv = () => {
+    const headers = ["اسم الشركة", "النشاط", "مسؤول التواصل", "الجوال", "البريد", "العنوان", "ملاحظات", "متوسط التقييم"];
+    const rows = filtered.map((v) => [
+      v.company_name,
+      v.activity ?? "",
+      v.contact_person ?? "",
+      v.mobile ?? "",
+      v.email ?? "",
+      v.address ?? "",
+      (v.notes ?? "").replace(/\n/g, " "),
+      averages[v.id] != null ? averages[v.id].toFixed(2) : "",
+    ]);
+    const esc = (s: string) => `"${String(s).replace(/"/g, '""')}"`;
+    const csv = "\uFEFF" + [headers, ...rows].map((r) => r.map(esc).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `vendors-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -127,6 +150,10 @@ function VendorsPage() {
           </h1>
           <p className="text-sm text-muted-foreground">إدارة الموردين والعقود والتقييمات</p>
         </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={exportCsv}>
+            <Download className="h-4 w-4 me-1" /> تصدير CSV
+          </Button>
         {canManage && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -176,7 +203,9 @@ function VendorsPage() {
             </DialogContent>
           </Dialog>
         )}
+        </div>
       </div>
+
 
       {expiringCount > 0 && (
         <Card className="border-amber-500/40 bg-amber-50 dark:bg-amber-950/20">

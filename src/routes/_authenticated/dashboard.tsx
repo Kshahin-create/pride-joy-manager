@@ -35,7 +35,7 @@ const fmtSAR = (n: number) => `${new Intl.NumberFormat("en-US", { maximumFractio
 
 function Dashboard() {
   const { activePropertyId } = useActiveProperty();
-  const { user, roles, hasAnyRole } = useAuth();
+  const { user, roles, hasAnyRole, hasPermission } = useAuth();
   const [stats, setStats] = useState<Stats | null>(null);
   const [monthly, setMonthly] = useState<{ month: string; revenue: number }[]>([]);
   const [events, setEvents] = useState<BuildingLogRow[]>([]);
@@ -51,21 +51,26 @@ function Dashboard() {
   const isSecurity = hasAnyRole(["security_supervisor"]);
   const isReception = hasAnyRole(["receptionist"]);
 
-  // الأرقام المالية: super_admin و accountant فقط
+  // الأرقام المالية: super_admin و accountant فقط (افتراضيًا)
   const canSeeFinance = hasAnyRole(["super_admin", "accountant"]);
 
+  // Widget visibility = default role-based access OR explicit permission granted from
+  // "إدارة الأدوار والصلاحيات → لوحة التحكم". This lets admins extend dashboard widgets
+  // to custom roles per employee without losing the built-in role presets.
+  const allow = (key: string, fallback: boolean) => fallback || hasPermission(key);
+
   const show = {
-    occupancy: isAdmin,
-    revenueChart: canSeeFinance,
-    finance: canSeeFinance,
-    expenses: canSeeFinance,
-    operations: isAdmin || isMaintenance || isReception,
-    workOrders: isAdmin || isMaintenance,
-    contracts: isAdmin || isAccountant,
-    security: isAdmin || isSecurity,
-    parking: isAdmin || isSecurity,
-    visitors: isAdmin || isSecurity || isReception,
-    events: isAdmin,
+    occupancy:    allow("dashboard.widget.occupancy",     isAdmin),
+    revenueChart: allow("dashboard.widget.revenue_chart", canSeeFinance),
+    finance:      allow("dashboard.widget.finance",       canSeeFinance),
+    expenses:     allow("dashboard.widget.expenses",      canSeeFinance),
+    operations:   allow("dashboard.widget.operations",    isAdmin || isMaintenance || isReception),
+    workOrders:   allow("dashboard.widget.work_orders",   isAdmin || isMaintenance),
+    contracts:    allow("dashboard.widget.contracts",     isAdmin || isAccountant),
+    security:     allow("dashboard.widget.security",      isAdmin || isSecurity),
+    parking:      allow("dashboard.widget.parking",       isAdmin || isSecurity),
+    visitors:     allow("dashboard.widget.visitors",      isAdmin || isSecurity || isReception),
+    events:       allow("dashboard.widget.events",        isAdmin),
   };
 
   useEffect(() => {

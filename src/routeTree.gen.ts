@@ -16,7 +16,6 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedVisitorsRouteImport } from './routes/_authenticated/visitors'
-import { Route as AuthenticatedVendorsRouteImport } from './routes/_authenticated/vendors'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedTenantsRouteImport } from './routes/_authenticated/tenants'
 import { Route as AuthenticatedTelegramRouteImport } from './routes/_authenticated/telegram'
@@ -49,6 +48,7 @@ import { Route as AuthenticatedBuildingLogRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAssetsRouteImport } from './routes/_authenticated/assets'
 import { Route as AuthenticatedApiDocsRouteImport } from './routes/_authenticated/api-docs'
 import { Route as AuthenticatedAcContractsRouteImport } from './routes/_authenticated/ac-contracts'
+import { Route as AuthenticatedVendorsIndexRouteImport } from './routes/_authenticated/vendors.index'
 import { Route as AuthenticatedOfficesIndexRouteImport } from './routes/_authenticated/offices.index'
 import { Route as AuthenticatedContractsIndexRouteImport } from './routes/_authenticated/contracts.index'
 import { Route as AuthenticatedVendorsIdRouteImport } from './routes/_authenticated/vendors.$id'
@@ -95,11 +95,6 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedVisitorsRoute = AuthenticatedVisitorsRouteImport.update({
   id: '/visitors',
   path: '/visitors',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedVendorsRoute = AuthenticatedVendorsRouteImport.update({
-  id: '/vendors',
-  path: '/vendors',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
@@ -275,6 +270,12 @@ const AuthenticatedAcContractsRoute =
     path: '/ac-contracts',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedVendorsIndexRoute =
+  AuthenticatedVendorsIndexRouteImport.update({
+    id: '/vendors/',
+    path: '/vendors/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOfficesIndexRoute =
   AuthenticatedOfficesIndexRouteImport.update({
     id: '/offices/',
@@ -288,9 +289,9 @@ const AuthenticatedContractsIndexRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedVendorsIdRoute = AuthenticatedVendorsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => AuthenticatedVendorsRoute,
+  id: '/vendors/$id',
+  path: '/vendors/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTenantsIdRoute = AuthenticatedTenantsIdRouteImport.update({
   id: '/$id',
@@ -386,7 +387,6 @@ export interface FileRoutesByFullPath {
   '/telegram': typeof AuthenticatedTelegramRoute
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/users': typeof AuthenticatedUsersRoute
-  '/vendors': typeof AuthenticatedVendorsRouteWithChildren
   '/visitors': typeof AuthenticatedVisitorsRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/complaints/$id': typeof AuthenticatedComplaintsIdRoute
@@ -396,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/vendors/$id': typeof AuthenticatedVendorsIdRoute
   '/contracts/': typeof AuthenticatedContractsIndexRoute
   '/offices/': typeof AuthenticatedOfficesIndexRoute
+  '/vendors/': typeof AuthenticatedVendorsIndexRoute
   '/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
   '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
   '/api/public/telegram/notify': typeof ApiPublicTelegramNotifyRoute
@@ -440,7 +441,6 @@ export interface FileRoutesByTo {
   '/telegram': typeof AuthenticatedTelegramRoute
   '/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/users': typeof AuthenticatedUsersRoute
-  '/vendors': typeof AuthenticatedVendorsRouteWithChildren
   '/visitors': typeof AuthenticatedVisitorsRoute
   '/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/complaints/$id': typeof AuthenticatedComplaintsIdRoute
@@ -450,6 +450,7 @@ export interface FileRoutesByTo {
   '/vendors/$id': typeof AuthenticatedVendorsIdRoute
   '/contracts': typeof AuthenticatedContractsIndexRoute
   '/offices': typeof AuthenticatedOfficesIndexRoute
+  '/vendors': typeof AuthenticatedVendorsIndexRoute
   '/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
   '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
   '/api/public/telegram/notify': typeof ApiPublicTelegramNotifyRoute
@@ -496,7 +497,6 @@ export interface FileRoutesById {
   '/_authenticated/telegram': typeof AuthenticatedTelegramRoute
   '/_authenticated/tenants': typeof AuthenticatedTenantsRouteWithChildren
   '/_authenticated/users': typeof AuthenticatedUsersRoute
-  '/_authenticated/vendors': typeof AuthenticatedVendorsRouteWithChildren
   '/_authenticated/visitors': typeof AuthenticatedVisitorsRoute
   '/_authenticated/assets/$id': typeof AuthenticatedAssetsIdRoute
   '/_authenticated/complaints/$id': typeof AuthenticatedComplaintsIdRoute
@@ -506,6 +506,7 @@ export interface FileRoutesById {
   '/_authenticated/vendors/$id': typeof AuthenticatedVendorsIdRoute
   '/_authenticated/contracts/': typeof AuthenticatedContractsIndexRoute
   '/_authenticated/offices/': typeof AuthenticatedOfficesIndexRoute
+  '/_authenticated/vendors/': typeof AuthenticatedVendorsIndexRoute
   '/_authenticated/security/guards/$id': typeof AuthenticatedSecurityGuardsIdRoute
   '/api/public/telegram/daily-report': typeof ApiPublicTelegramDailyReportRoute
   '/api/public/telegram/notify': typeof ApiPublicTelegramNotifyRoute
@@ -552,7 +553,6 @@ export interface FileRouteTypes {
     | '/telegram'
     | '/tenants'
     | '/users'
-    | '/vendors'
     | '/visitors'
     | '/assets/$id'
     | '/complaints/$id'
@@ -562,6 +562,7 @@ export interface FileRouteTypes {
     | '/vendors/$id'
     | '/contracts/'
     | '/offices/'
+    | '/vendors/'
     | '/security/guards/$id'
     | '/api/public/telegram/daily-report'
     | '/api/public/telegram/notify'
@@ -606,7 +607,6 @@ export interface FileRouteTypes {
     | '/telegram'
     | '/tenants'
     | '/users'
-    | '/vendors'
     | '/visitors'
     | '/assets/$id'
     | '/complaints/$id'
@@ -616,6 +616,7 @@ export interface FileRouteTypes {
     | '/vendors/$id'
     | '/contracts'
     | '/offices'
+    | '/vendors'
     | '/security/guards/$id'
     | '/api/public/telegram/daily-report'
     | '/api/public/telegram/notify'
@@ -661,7 +662,6 @@ export interface FileRouteTypes {
     | '/_authenticated/telegram'
     | '/_authenticated/tenants'
     | '/_authenticated/users'
-    | '/_authenticated/vendors'
     | '/_authenticated/visitors'
     | '/_authenticated/assets/$id'
     | '/_authenticated/complaints/$id'
@@ -671,6 +671,7 @@ export interface FileRouteTypes {
     | '/_authenticated/vendors/$id'
     | '/_authenticated/contracts/'
     | '/_authenticated/offices/'
+    | '/_authenticated/vendors/'
     | '/_authenticated/security/guards/$id'
     | '/api/public/telegram/daily-report'
     | '/api/public/telegram/notify'
@@ -740,13 +741,6 @@ declare module '@tanstack/react-router' {
       path: '/visitors'
       fullPath: '/visitors'
       preLoaderRoute: typeof AuthenticatedVisitorsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/vendors': {
-      id: '/_authenticated/vendors'
-      path: '/vendors'
-      fullPath: '/vendors'
-      preLoaderRoute: typeof AuthenticatedVendorsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/users': {
@@ -973,6 +967,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAcContractsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/vendors/': {
+      id: '/_authenticated/vendors/'
+      path: '/vendors'
+      fullPath: '/vendors/'
+      preLoaderRoute: typeof AuthenticatedVendorsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/offices/': {
       id: '/_authenticated/offices/'
       path: '/offices'
@@ -989,10 +990,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/vendors/$id': {
       id: '/_authenticated/vendors/$id'
-      path: '/$id'
+      path: '/vendors/$id'
       fullPath: '/vendors/$id'
       preLoaderRoute: typeof AuthenticatedVendorsIdRouteImport
-      parentRoute: typeof AuthenticatedVendorsRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/tenants/$id': {
       id: '/_authenticated/tenants/$id'
@@ -1116,17 +1117,6 @@ const AuthenticatedTenantsRouteChildren: AuthenticatedTenantsRouteChildren = {
 const AuthenticatedTenantsRouteWithChildren =
   AuthenticatedTenantsRoute._addFileChildren(AuthenticatedTenantsRouteChildren)
 
-interface AuthenticatedVendorsRouteChildren {
-  AuthenticatedVendorsIdRoute: typeof AuthenticatedVendorsIdRoute
-}
-
-const AuthenticatedVendorsRouteChildren: AuthenticatedVendorsRouteChildren = {
-  AuthenticatedVendorsIdRoute: AuthenticatedVendorsIdRoute,
-}
-
-const AuthenticatedVendorsRouteWithChildren =
-  AuthenticatedVendorsRoute._addFileChildren(AuthenticatedVendorsRouteChildren)
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAcContractsRoute: typeof AuthenticatedAcContractsRoute
   AuthenticatedApiDocsRoute: typeof AuthenticatedApiDocsRoute
@@ -1160,12 +1150,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTelegramRoute: typeof AuthenticatedTelegramRoute
   AuthenticatedTenantsRoute: typeof AuthenticatedTenantsRouteWithChildren
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
-  AuthenticatedVendorsRoute: typeof AuthenticatedVendorsRouteWithChildren
   AuthenticatedVisitorsRoute: typeof AuthenticatedVisitorsRoute
   AuthenticatedContractsIdRoute: typeof AuthenticatedContractsIdRoute
   AuthenticatedOfficesIdRoute: typeof AuthenticatedOfficesIdRoute
+  AuthenticatedVendorsIdRoute: typeof AuthenticatedVendorsIdRoute
   AuthenticatedContractsIndexRoute: typeof AuthenticatedContractsIndexRoute
   AuthenticatedOfficesIndexRoute: typeof AuthenticatedOfficesIndexRoute
+  AuthenticatedVendorsIndexRoute: typeof AuthenticatedVendorsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1201,12 +1192,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTelegramRoute: AuthenticatedTelegramRoute,
   AuthenticatedTenantsRoute: AuthenticatedTenantsRouteWithChildren,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
-  AuthenticatedVendorsRoute: AuthenticatedVendorsRouteWithChildren,
   AuthenticatedVisitorsRoute: AuthenticatedVisitorsRoute,
   AuthenticatedContractsIdRoute: AuthenticatedContractsIdRoute,
   AuthenticatedOfficesIdRoute: AuthenticatedOfficesIdRoute,
+  AuthenticatedVendorsIdRoute: AuthenticatedVendorsIdRoute,
   AuthenticatedContractsIndexRoute: AuthenticatedContractsIndexRoute,
   AuthenticatedOfficesIndexRoute: AuthenticatedOfficesIndexRoute,
+  AuthenticatedVendorsIndexRoute: AuthenticatedVendorsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

@@ -148,21 +148,24 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
 
   useEffect(() => {
     if (!open) return;
-    loadTypes(); loadOffices();
+    loadTypes(); loadOffices(); loadVendors();
     if (isEdit) {
-      setForm({ ...asset });
+      setForm({ ...asset, specs: asset.specs ?? {} });
       loadAttachments(asset.id);
+      if (asset.maintenance_contract_type) loadContracts(asset.maintenance_contract_type as ContractKind);
     } else {
       setForm({
         criticality: "عادي",
         current_status: "يعمل",
         location_type: defaultLocationType ?? (defaultOfficeId ? "مكتب" : null),
         office_id: defaultOfficeId ?? null,
+        specs: {},
       });
       setAttachments([]);
+      setContracts([]);
     }
     setPendingFiles([]);
-  }, [open, asset, isEdit, defaultOfficeId, defaultLocationType, loadTypes, loadOffices, loadAttachments]);
+  }, [open, asset, isEdit, defaultOfficeId, defaultLocationType, loadTypes, loadOffices, loadVendors, loadAttachments, loadContracts]);
 
   const officeForCode = useMemo(
     () => offices.find((o) => o.id === form.office_id) ?? null,

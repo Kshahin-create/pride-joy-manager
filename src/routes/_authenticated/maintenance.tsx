@@ -540,7 +540,12 @@ function MaintenancePage() {
                               {r.after_photo_url && <img src={r.after_photo_url} alt="بعد" className="h-12 w-12 object-cover rounded border" />}
                             </div>
                           )}
-                          {canManage && <CardActions r={r} moveTo={moveTo} />}
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => setEditRequestId(r.id)}>
+                              <Pencil className="h-3 w-3 ml-1" />تعديل
+                            </Button>
+                            {canManage && <CardActions r={r} moveTo={moveTo} />}
+                          </div>
                         </div>
                       );
                     })}
@@ -598,7 +603,14 @@ function MaintenancePage() {
                       <TableCell>{r.assigned_technician ?? (r.assigned_vendor_id ? vendorMap.get(r.assigned_vendor_id)?.company_name : "—")}</TableCell>
                       <TableCell>{(r.parts_cost || r.labor_cost) ? Number((r.parts_cost || 0) + (r.labor_cost || 0)).toLocaleString() : "—"}</TableCell>
                       <TableCell><Badge variant="outline" className={STATUS_STYLE[r.status]}>{r.status}</Badge></TableCell>
-                      <TableCell>{canManage && <CardActions r={r} moveTo={moveTo} compact />}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button size="icon" variant="ghost" title="تعديل البلاغ" onClick={() => setEditRequestId(r.id)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          {canManage && <CardActions r={r} moveTo={moveTo} compact />}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                   {filtered.length === 0 && (

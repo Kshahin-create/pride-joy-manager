@@ -77,8 +77,8 @@ export function OfficeAssetsTab({ officeId }: { officeId: string }) {
       <div className="flex items-center justify-between">
         <h2 className="font-semibold">أصول المكتب</h2>
         {canManage && (
-          <Button size="sm" onClick={() => setOpenCreate(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
-            <Plus className="h-4 w-4 ms-1" /> إضافة أصل جديد
+          <Button size="sm" onClick={() => setOpenPicker(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
+            <Plus className="h-4 w-4 ms-1" /> إضافة أصل
           </Button>
         )}
       </div>

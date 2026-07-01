@@ -413,6 +413,8 @@ function MaintenancePage() {
           <h1 className="text-2xl font-bold">أوامر العمل</h1>
           <p className="text-sm text-muted-foreground">دورة العمل: مفتوح ← معلّق للتعيين ← جاري العمل ← مكتمل مبدئياً ← مغلق (مع إمكانية التعليق)</p>
         </div>
+        <div className="flex items-center gap-2">
+        <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild><Button><Plus className="ml-2 h-4 w-4" />بلاغ جديد</Button></DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

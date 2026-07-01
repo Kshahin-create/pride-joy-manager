@@ -17,7 +17,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, AlertTriangle, Play, Pause, CheckCircle2, ShieldCheck, RotateCcw, Trash2, Pencil } from "lucide-react";
 import { MaintenanceRequestEditDialog } from "@/components/maintenance-request-edit-dialog";
-import { ArchivedFilterToggle } from "@/components/delete-archive-menu";
+import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 type Status =
   | "جديد"

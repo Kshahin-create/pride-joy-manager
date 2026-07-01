@@ -58,6 +58,7 @@ type Assignment = {
 
 function EmployeeDetailPage() {
   const { id } = useParams({ from: "/_authenticated/employees/$id" });
+  const nav = useNavigate();
   const { hasRole, isSuperAdmin } = useAuth();
   const canManage =
     isSuperAdmin || hasRole("maintenance_supervisor") || hasRole("security_supervisor");

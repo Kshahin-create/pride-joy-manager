@@ -135,11 +135,14 @@ function CleaningTab() {
                     <TableCell>{p.contractor_company || "—"}</TableCell>
                     <TableCell>{p.supervisor || "—"}</TableCell>
                     <TableCell>
-                      {canManage && (
-                        <Button size="sm" variant="outline" onClick={() => { setSelectedPlanId(p.id); setLogOpen(true); }}>
-                          + تنفيذ
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-1 justify-end">
+                        {canManage && (
+                          <Button size="sm" variant="outline" onClick={() => { setSelectedPlanId(p.id); setLogOpen(true); }}>
+                            + تنفيذ
+                          </Button>
+                        )}
+                        <DeleteArchiveMenu table="cleaning_plans" id={p.id} entityLabel={p.area} onDone={load} compact />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -159,6 +159,14 @@ function ContractDetailsPage() {
               <Ban className="h-4 w-4 ms-1" /> إلغاء
             </Button>
           )}
+          <DeleteArchiveMenu
+            table="contracts"
+            id={contract.id}
+            isArchived={!!(contract as any).archived_at}
+            entityLabel={contract.contract_number}
+            onDone={() => nav({ to: "/contracts" })}
+            asButtons
+          />
         </div>
       </div>
 

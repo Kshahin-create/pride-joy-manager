@@ -32,6 +32,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Download, Users } from "lucide-react";
+import { DeleteArchiveMenu, ArchivedFilterToggle } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/employees/")({
   component: EmployeesPage,
@@ -51,6 +52,7 @@ type Employee = {
   status: string;
   notes: string | null;
   created_at: string;
+  archived_at?: string | null;
 };
 
 const EMPTY: Partial<Employee> = {
@@ -82,6 +84,7 @@ function EmployeesPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<Employee>>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   const INTERNAL_COMPANY = "نخبة تسكين العقارية";
 
@@ -111,10 +114,9 @@ function EmployeesPage() {
   }, [form.department, vendors, employers]);
 
   const load = async () => {
-    const { data, error } = await (supabase as any)
-      .from("employees")
-      .select("*")
-      .order("created_at", { ascending: false });
+    let q1 = (supabase as any).from("employees").select("*");
+    q1 = showArchived ? q1.not("archived_at", "is", null) : q1.is("archived_at", null);
+    const { data, error } = await q1.order("created_at", { ascending: false });
     if (error) return toast.error(error.message);
     setItems((data ?? []) as Employee[]);
   };
@@ -132,6 +134,8 @@ function EmployeesPage() {
 
   useEffect(() => {
     load();
+  }, [showArchived]);
+  useEffect(() => {
     loadLookups();
   }, []);
 
@@ -282,6 +286,7 @@ function EmployeesPage() {
           <Badge variant="secondary">{filtered.length}</Badge>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
           <Button variant="outline" onClick={exportCsv}>
             <Download className="ms-1 h-4 w-4" />
             تصدير CSV
@@ -348,12 +353,13 @@ function EmployeesPage() {
                 <TableHead>الجوال</TableHead>
                 <TableHead>تاريخ التعيين</TableHead>
                 <TableHead>الحالة</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                     لا توجد بيانات
                   </TableCell>
                 </TableRow>
@@ -374,6 +380,16 @@ function EmployeesPage() {
                     <TableCell>{e.hire_date ?? "—"}</TableCell>
                     <TableCell>
                       <Badge variant={e.status === "نشط" ? "default" : "secondary"}>{e.status}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DeleteArchiveMenu
+                        table="employees"
+                        id={e.id}
+                        isArchived={!!e.archived_at}
+                        entityLabel={e.full_name}
+                        onDone={load}
+                        compact
+                      />
                     </TableCell>
                   </TableRow>
                 ))

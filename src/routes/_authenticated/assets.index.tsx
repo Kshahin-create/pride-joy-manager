@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Wrench, AlertTriangle, Eye, Pencil, Download } from "lucide-react";
 import { AssetFormDialog } from "@/components/asset-form-dialog";
+import { DeleteArchiveMenu, ArchivedFilterToggle } from "@/components/delete-archive-menu";
 
 type Asset = {
   id: string;
@@ -34,6 +35,7 @@ type Asset = {
   maintenance_company: string | null;
   last_maintenance_date: string | null;
   next_maintenance_date: string | null;
+  archived_at?: string | null;
 };
 type AssetType = { id: string; name: string };
 type OfficeOpt = { id: string; code: string };
@@ -68,12 +70,13 @@ function AssetsPage() {
   const [fWarranty, setFWarranty] = useState<string>("all");
   const [openCreate, setOpenCreate] = useState(false);
   const [editing, setEditing] = useState<Asset | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = async () => {
-    const { data, error } = await scoped(
-      (supabase as any).from("assets").select("*"),
-      activePropertyId
-    ).order("criticality", { ascending: true }).order("asset_code");
+    let query = (supabase as any).from("assets").select("*");
+    query = showArchived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
+    const { data, error } = await scoped(query, activePropertyId)
+      .order("criticality", { ascending: true }).order("asset_code");
     if (error) return toast.error(error.message);
     setItems((data ?? []) as Asset[]);
   };
@@ -88,7 +91,7 @@ function AssetsPage() {
     ).order("code");
     setOffices((data ?? []) as OfficeOpt[]);
   };
-  useEffect(() => { load(); loadTypes(); loadOffices(); }, [activePropertyId]);
+  useEffect(() => { load(); loadTypes(); loadOffices(); }, [activePropertyId, showArchived]);
 
   const manufacturers = useMemo(
     () => Array.from(new Set(items.map((i) => i.manufacturer).filter(Boolean))) as string[],
@@ -157,6 +160,7 @@ function AssetsPage() {
           <p className="text-sm text-muted-foreground">السجل المركزي لجميع أصول المشروع</p>
         </div>
         <div className="flex gap-2">
+          <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
           <Button variant="outline" onClick={exportCsv}><Download className="ml-2 h-4 w-4" />تصدير CSV</Button>
           <Link to="/maintenance"><Button variant="outline"><Wrench className="ml-2 h-4 w-4" />طلبات الصيانة</Button></Link>
           {canManage && (
@@ -261,6 +265,14 @@ function AssetsPage() {
                           <Pencil className="h-4 w-4" />
                         </Button>
                       )}
+                      <DeleteArchiveMenu
+                        table="assets"
+                        id={a.id}
+                        isArchived={!!a.archived_at}
+                        entityLabel={a.asset_name}
+                        onDone={load}
+                        compact
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

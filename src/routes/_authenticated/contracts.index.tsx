@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { CompanyFormDialog } from "./tenants";
+import { DeleteArchiveMenu, ArchivedFilterToggle } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/contracts/")({
   component: ContractsPage,
@@ -110,17 +111,20 @@ function ContractsPage() {
   const [companyFilter, setCompanyFilter] = useState<"all" | string>("all");
   const [companies, setCompanies] = useState<{ id: string; company_name: string }[]>([]);
   const [formOpen, setFormOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await scoped(supabase
+    let q = supabase
       .from("contracts")
-      .select("*, companies(id, company_name), offices(id, code)"), activePropertyId)
+      .select("*, companies(id, company_name), offices(id, code)");
+    q = (showArchived ? q.not("archived_at", "is", null) : q.is("archived_at", null)) as typeof q;
+    const { data, error } = await scoped(q, activePropertyId)
       .order("created_at", { ascending: false });
     if (error) toast.error("فشل تحميل العقود: " + error.message);
     setRows((data as ContractWithRefs[]) ?? []);
     setLoading(false);
-  }, []);
+  }, [showArchived, activePropertyId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -158,11 +162,14 @@ function ContractsPage() {
           </h1>
           <p className="text-sm text-muted-foreground">إدارة عقود الإيجار وتجديداتها</p>
         </div>
-        {canCreate && (
-          <Button onClick={() => setFormOpen(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
-            <Plus className="h-4 w-4 ms-1" /> عقد جديد
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
+          {canCreate && (
+            <Button onClick={() => setFormOpen(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
+              <Plus className="h-4 w-4 ms-1" /> عقد جديد
+            </Button>
+          )}
+        </div>
       </div>
 
       {expiringSoon.length > 0 && (
@@ -228,11 +235,12 @@ function ContractsPage() {
                     <TableHead>إلى</TableHead>
                     <TableHead>الإيجار</TableHead>
                     <TableHead>الحالة</TableHead>
+                    <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.length === 0 ? (
-                    <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-10">لا توجد عقود</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-10">لا توجد عقود</TableCell></TableRow>
                   ) : filtered.map(c => (
                     <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50"
                       onClick={() => navigate({ to: "/contracts/$id", params: { id: c.id } })}>
@@ -243,6 +251,16 @@ function ContractsPage() {
                       <TableCell>{c.end_date}</TableCell>
                       <TableCell>{Number(c.rent_amount).toLocaleString("en-US")}</TableCell>
                       <TableCell><Badge className={CONTRACT_STATUS_STYLE[c.status]}>{c.status}</Badge></TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <DeleteArchiveMenu
+                          table="contracts"
+                          id={c.id}
+                          isArchived={!!(c as any).archived_at}
+                          entityLabel={c.contract_number}
+                          onDone={load}
+                          compact
+                        />
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

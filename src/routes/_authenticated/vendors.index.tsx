@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Truck, Star, AlertTriangle, Download } from "lucide-react";
+import { DeleteArchiveMenu, ArchivedFilterToggle } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/vendors/")({
   component: VendorsPage,
@@ -28,6 +29,7 @@ type Vendor = {
   email: string | null;
   address: string | null;
   notes: string | null;
+  archived_at?: string | null;
 };
 
 function StarRating({ value }: { value: number }) {
@@ -55,9 +57,12 @@ function VendorsPage() {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<Vendor>>({});
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = async () => {
-    const { data: vs, error } = await (supabase as any).from("vendors").select("*").order("company_name");
+    let q1 = (supabase as any).from("vendors").select("*");
+    q1 = showArchived ? q1.not("archived_at", "is", null) : q1.is("archived_at", null);
+    const { data: vs, error } = await q1.order("company_name");
     if (error) return toast.error(error.message);
     setItems((vs ?? []) as Vendor[]);
 
@@ -86,7 +91,7 @@ function VendorsPage() {
   };
   useEffect(() => {
     load();
-  }, []);
+  }, [showArchived]);
 
   const filtered = useMemo(() => {
     const s = q.trim();
@@ -151,6 +156,7 @@ function VendorsPage() {
           <p className="text-sm text-muted-foreground">إدارة الموردين والعقود والتقييمات</p>
         </div>
         <div className="flex items-center gap-2">
+          <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
           <Button variant="outline" onClick={exportCsv}>
             <Download className="h-4 w-4 me-1" /> تصدير CSV
           </Button>
@@ -253,9 +259,19 @@ function VendorsPage() {
                     {averages[v.id] != null ? <StarRating value={averages[v.id]} /> : <Badge variant="secondary">لا يوجد</Badge>}
                   </TableCell>
                   <TableCell>
-                    <Link to="/vendors/$id" params={{ id: v.id }}>
-                      <Button variant="outline" size="sm">تفاصيل</Button>
-                    </Link>
+                    <div className="flex gap-1 justify-end">
+                      <Link to="/vendors/$id" params={{ id: v.id }}>
+                        <Button variant="outline" size="sm">تفاصيل</Button>
+                      </Link>
+                      <DeleteArchiveMenu
+                        table="vendors"
+                        id={v.id}
+                        isArchived={!!v.archived_at}
+                        entityLabel={v.company_name}
+                        onDone={load}
+                        compact
+                      />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

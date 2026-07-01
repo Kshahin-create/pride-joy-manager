@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Car, Plus, ClipboardCheck, Sparkles, AlertOctagon, LayoutGrid, Table as TableIcon } from "lucide-react";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/parking")({ component: ParkingPage });
 

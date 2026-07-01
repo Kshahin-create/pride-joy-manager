@@ -315,9 +315,12 @@ function TicketsPage() {
                   <TableCell className="max-w-xs truncate text-muted-foreground">{t.description}</TableCell>
                   <TableCell>{statusBadge(t.status)}</TableCell>
                   <TableCell>
-                    <Link to="/complaints/$id" params={{ id: t.id }}>
-                      <Button size="sm" variant="outline">تفاصيل</Button>
-                    </Link>
+                    <div className="flex items-center gap-1 justify-end">
+                      <Link to="/complaints/$id" params={{ id: t.id }}>
+                        <Button size="sm" variant="outline">تفاصيل</Button>
+                      </Link>
+                      <DeleteArchiveMenu table="tickets" id={t.id} entityLabel={t.ticket_number} onDone={load} compact />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

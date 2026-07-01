@@ -71,12 +71,12 @@ function SupplyContractsPage() {
     payment_frequency: "حسب التوريد",
   });
   const [vendorAddOpen, setVendorAddOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = async () => {
-    const { data, error } = await scoped(
-      (supabase as any).from("supply_contracts").select("*"),
-      activePropertyId,
-    ).order("created_at", { ascending: false });
+    let cq: any = (supabase as any).from("supply_contracts").select("*");
+    cq = showArchived ? cq.not("archived_at", "is", null) : cq.is("archived_at", null);
+    const { data, error } = await scoped(cq, activePropertyId).order("created_at", { ascending: false });
     if (error) return toast.error(error.message);
     setItems(data ?? []);
     const { data: vs } = await (supabase as any)
@@ -87,7 +87,8 @@ function SupplyContractsPage() {
   };
   useEffect(() => {
     load();
-  }, [activePropertyId]);
+  }, [activePropertyId, showArchived]);
+
 
   const filtered = useMemo(() => {
     let arr = items;

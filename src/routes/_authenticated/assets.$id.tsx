@@ -53,6 +53,7 @@ function AssetDetail() {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [officeCode, setOfficeCode] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { items: logItems } = useBuildingLog({});
   const assetEvents = logItems.filter((e) => e.module === "assets" && e.entity_id === id);

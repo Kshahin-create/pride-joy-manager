@@ -55,6 +55,7 @@ interface NavItem {
   icon: typeof LayoutDashboard;
   /** الصلاحية المطلوبة لإظهار العنصر — لو متعددة، أي واحدة تكفي */
   perms?: string[];
+  superAdminOnly?: boolean;
 }
 
 const NAV: { label: string; items: NavItem[] }[] = [

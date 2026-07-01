@@ -346,6 +346,7 @@ function ParkingPage() {
                   <TableHead>التاريخ</TableHead>
                   {CHECK_ITEMS.map(([k, l]) => <TableHead key={k}>{l}</TableHead>)}
                   <TableHead>القادم</TableHead>
+                  <TableHead></TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
                   {checks.map((c) => (
@@ -357,9 +358,10 @@ function ParkingPage() {
                         </TableCell>
                       ))}
                       <TableCell>{c.next_check_date ?? "—"}</TableCell>
+                      <TableCell><DeleteArchiveMenu table="parking_maintenance_checks" id={c.id} entityLabel={c.check_date} onDone={load} compact /></TableCell>
                     </TableRow>
                   ))}
-                  {checks.length === 0 && <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">لا توجد فحوصات.</TableCell></TableRow>}
+                  {checks.length === 0 && <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-6">لا توجد فحوصات.</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </CardContent>

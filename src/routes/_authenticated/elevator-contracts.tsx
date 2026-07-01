@@ -238,7 +238,10 @@ function ElevatorContractsPage() {
           </h1>
           <p className="text-muted-foreground">إدارة عقود صيانة المصاعد، نطاق الخدمة وSLA</p>
         </div>
-        <Button onClick={startNew}><Plus className="ml-2 h-4 w-4" /> عقد جديد</Button>
+        <div className="flex gap-2">
+          <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
+          <Button onClick={startNew}><Plus className="ml-2 h-4 w-4" /> عقد جديد</Button>
+        </div>
       </div>
 
       <Card>

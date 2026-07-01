@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { Plus, FileSignature, AlertTriangle } from "lucide-react";
 import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
+import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/supply-contracts")({
   component: SupplyContractsPage,
@@ -70,12 +71,12 @@ function SupplyContractsPage() {
     payment_frequency: "حسب التوريد",
   });
   const [vendorAddOpen, setVendorAddOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = async () => {
-    const { data, error } = await scoped(
-      (supabase as any).from("supply_contracts").select("*"),
-      activePropertyId,
-    ).order("created_at", { ascending: false });
+    let cq: any = (supabase as any).from("supply_contracts").select("*");
+    cq = showArchived ? cq.not("archived_at", "is", null) : cq.is("archived_at", null);
+    const { data, error } = await scoped(cq, activePropertyId).order("created_at", { ascending: false });
     if (error) return toast.error(error.message);
     setItems(data ?? []);
     const { data: vs } = await (supabase as any)
@@ -86,7 +87,8 @@ function SupplyContractsPage() {
   };
   useEffect(() => {
     load();
-  }, [activePropertyId]);
+  }, [activePropertyId, showArchived]);
+
 
   const filtered = useMemo(() => {
     let arr = items;
@@ -466,6 +468,7 @@ function SupplyContractsPage() {
           <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
             <span>قائمة العقود</span>
             <div className="flex gap-2">
+              <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
               <Select value={statusF} onValueChange={setStatusF}>
                 <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -496,6 +499,7 @@ function SupplyContractsPage() {
                 <TableHead>النهاية</TableHead>
                 <TableHead>القيمة</TableHead>
                 <TableHead>الحالة</TableHead>
+                <TableHead className="text-end">إجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -514,11 +518,14 @@ function SupplyContractsPage() {
                   <TableCell>
                     <Badge variant="secondary">{c.status}</Badge>
                   </TableCell>
+                  <TableCell className="text-end">
+                    <DeleteArchiveMenu table="supply_contracts" id={c.id} isArchived={showArchived} entityLabel={c.contract_name || c.contract_number || undefined} onDone={load} compact />
+                  </TableCell>
                 </TableRow>
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                     لا توجد عقود.
                   </TableCell>
                 </TableRow>

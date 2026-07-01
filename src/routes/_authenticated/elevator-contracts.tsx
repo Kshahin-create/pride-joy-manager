@@ -17,6 +17,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, FileText, ArrowUpDown } from "lucide-react";
 import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
+import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/elevator-contracts")({
   component: ElevatorContractsPage,
@@ -102,11 +103,14 @@ function ElevatorContractsPage() {
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
   const [vendorAddOpen, setVendorAddOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = async () => {
     setLoading(true);
+    let cq: any = supabase.from("elevator_contracts").select("*");
+    cq = showArchived ? cq.not("archived_at", "is", null) : cq.is("archived_at", null);
     const [{ data: cs }, { data: vs }, { data: as }] = await Promise.all([
-      scoped(supabase.from("elevator_contracts").select("*").order("created_at", { ascending: false }), activePropertyId),
+      scoped(cq.order("created_at", { ascending: false }), activePropertyId),
       supabase.from("vendors").select("id, company_name").order("company_name"),
       scoped(supabase.from("assets").select("id, asset_name, asset_code, category").ilike("category", "%مصعد%").order("asset_name"), activePropertyId),
     ]);
@@ -116,7 +120,8 @@ function ElevatorContractsPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId, showArchived]);
+
 
   const filtered = useMemo(() => {
     return contracts.filter(c => {
@@ -233,7 +238,10 @@ function ElevatorContractsPage() {
           </h1>
           <p className="text-muted-foreground">إدارة عقود صيانة المصاعد، نطاق الخدمة وSLA</p>
         </div>
-        <Button onClick={startNew}><Plus className="ml-2 h-4 w-4" /> عقد جديد</Button>
+        <div className="flex gap-2">
+          <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
+          <Button onClick={startNew}><Plus className="ml-2 h-4 w-4" /> عقد جديد</Button>
+        </div>
       </div>
 
       <Card>
@@ -281,7 +289,7 @@ function ElevatorContractsPage() {
                     <TableCell>
                       <div className="flex gap-1">
                         <Button size="sm" variant="ghost" onClick={() => startEdit(c)}><Pencil className="h-4 w-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => remove(c)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        <DeleteArchiveMenu table="elevator_contracts" id={c.id} isArchived={showArchived} entityLabel={c.contract_name || c.contract_number || undefined} onDone={load} compact />
                       </div>
                     </TableCell>
                   </TableRow>

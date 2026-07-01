@@ -28,6 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 import {
   Dialog,
   DialogContent,
@@ -141,14 +142,16 @@ function OfficesPage() {
   const [editing, setEditing] = useState<Office | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<Office | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    let q = supabase
+    let q: any = supabase
       .from("offices")
       .select("*")
       .order("floor", { ascending: true })
       .order("office_number", { ascending: true });
+    q = showArchived ? q.not("archived_at", "is", null) : q.is("archived_at", null);
     if (activePropertyId && activePropertyId !== "all") {
       q = q.eq("property_id", activePropertyId);
     }
@@ -160,7 +163,7 @@ function OfficesPage() {
     }
     setOffices((data ?? []) as Office[]);
     setLoading(false);
-  }, [activePropertyId]);
+  }, [activePropertyId, showArchived]);
 
   useEffect(() => {
     load();
@@ -269,6 +272,7 @@ function OfficesPage() {
               جدول
             </button>
           </div>
+          <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
           {canEdit && (
             <Button
               onClick={() => setCreating(true)}

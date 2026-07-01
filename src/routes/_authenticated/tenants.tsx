@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/tenants")({
   component: ClientsPage,
@@ -73,15 +74,17 @@ function ClientsPage() {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Company | null>(null);
   const [deleting, setDeleting] = useState<Company | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await scoped(supabase
-      .from("companies").select("*"), activePropertyId).order("created_at", { ascending: false });
+    let query = supabase.from("companies").select("*") as any;
+    query = showArchived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
+    const { data, error } = await scoped(query, activePropertyId).order("created_at", { ascending: false });
     if (error) { toast.error("تعذّر التحميل"); setLoading(false); return; }
     setRows((data ?? []) as Company[]);
     setLoading(false);
-  }, []);
+  }, [activePropertyId, showArchived]);
   useEffect(() => { load(); }, [load]);
 
   const counts = useMemo(() => {
@@ -120,11 +123,14 @@ function ClientsPage() {
           <h1 className="text-2xl font-bold text-primary">العملاء</h1>
           <p className="text-sm text-muted-foreground mt-1">إدارة العملاء عبر مراحل الـ Pipeline.</p>
         </div>
-        {canEdit && (
-          <Button onClick={() => setCreating(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
-            <Plus className="h-4 w-4 ms-1" /> إضافة عميل
-          </Button>
-        )}
+        <div className="flex gap-2">
+          <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
+          {canEdit && (
+            <Button onClick={() => setCreating(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
+              <Plus className="h-4 w-4 ms-1" /> إضافة عميل
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Pipeline */}
@@ -199,7 +205,7 @@ function ClientsPage() {
                   {canEdit && (
                     <TableCell className="text-end" onClick={(e) => e.stopPropagation()}>
                       <Button size="sm" variant="ghost" onClick={() => setEditing(c)}><Pencil className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="ghost" onClick={() => setDeleting(c)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      <DeleteArchiveMenu table="companies" id={c.id} isArchived={showArchived} entityLabel={c.company_name} onDone={load} compact />
                     </TableCell>
                   )}
                 </TableRow>

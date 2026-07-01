@@ -17,6 +17,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, FileText, Snowflake } from "lucide-react";
 import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
+import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/ac-contracts")({
   component: AcContractsPage,
@@ -102,12 +103,15 @@ function AcContractsPage() {
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
   const [vendorAddOpen, setVendorAddOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = async () => {
     setLoading(true);
     const sb = supabase as any;
+    let cq = sb.from("ac_contracts").select("*");
+    cq = showArchived ? cq.not("archived_at", "is", null) : cq.is("archived_at", null);
     const [{ data: cs }, { data: vs }, { data: us }] = await Promise.all([
-      scoped(sb.from("ac_contracts").select("*").order("created_at", { ascending: false }), activePropertyId),
+      scoped(cq.order("created_at", { ascending: false }), activePropertyId),
       sb.from("vendors").select("id, company_name").order("company_name"),
       scoped(sb.from("ac_units").select("*").order("unit_code"), activePropertyId),
     ]);
@@ -117,7 +121,7 @@ function AcContractsPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId, showArchived]);
 
   const filtered = useMemo(() => {
     return contracts.filter(c => {
@@ -237,7 +241,10 @@ function AcContractsPage() {
           </h1>
           <p className="text-muted-foreground">إدارة عقود صيانة وحدات التكييف، نطاق الخدمة وSLA</p>
         </div>
-        <Button onClick={startNew}><Plus className="ml-2 h-4 w-4" /> عقد جديد</Button>
+        <div className="flex gap-2">
+          <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
+          <Button onClick={startNew}><Plus className="ml-2 h-4 w-4" /> عقد جديد</Button>
+        </div>
       </div>
 
       <Card>
@@ -285,7 +292,7 @@ function AcContractsPage() {
                     <TableCell>
                       <div className="flex gap-1">
                         <Button size="sm" variant="ghost" onClick={() => startEdit(c)}><Pencil className="h-4 w-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => remove(c)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        <DeleteArchiveMenu table="ac_contracts" id={c.id} isArchived={showArchived} entityLabel={c.contract_name || c.contract_number || undefined} onDone={load} compact />
                       </div>
                     </TableCell>
                   </TableRow>

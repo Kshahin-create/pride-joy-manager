@@ -17,6 +17,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, AlertTriangle, Play, Pause, CheckCircle2, ShieldCheck, RotateCcw, Trash2, Pencil } from "lucide-react";
 import { MaintenanceRequestEditDialog } from "@/components/maintenance-request-edit-dialog";
+import { ArchivedFilterToggle } from "@/components/delete-archive-menu";
 
 type Status =
   | "جديد"
@@ -162,9 +163,16 @@ function MaintenancePage() {
   const [approveFor, setApproveFor] = useState<MR | null>(null);
   const [approveNote, setApproveNote] = useState("");
 
+  const [showArchived, setShowArchived] = useState(false);
+
   const load = async () => {
-    const [m, a, o, s, v] = await Promise.all([scoped(supabase.from("maintenance_requests").select("*"), activePropertyId).order("created_at", { ascending: false }),scoped(supabase.from("assets").select("id,asset_name,asset_code,criticality"), activePropertyId).order("asset_code"),
-      supabase.from("offices").select("id,code,floor,space_id").order("floor").order("code"),scoped(supabase.from("spaces").select("id,space_code,space_name,space_type,floor"), activePropertyId).order("floor").order("space_code"),
+    let mq: any = supabase.from("maintenance_requests").select("*");
+    mq = showArchived ? mq.not("archived_at", "is", null) : mq.is("archived_at", null);
+    const [m, a, o, s, v] = await Promise.all([
+      scoped(mq, activePropertyId).order("created_at", { ascending: false }),
+      scoped(supabase.from("assets").select("id,asset_name,asset_code,criticality"), activePropertyId).order("asset_code"),
+      supabase.from("offices").select("id,code,floor,space_id").order("floor").order("code"),
+      scoped(supabase.from("spaces").select("id,space_code,space_name,space_type,floor"), activePropertyId).order("floor").order("space_code"),
       supabase.from("vendors").select("id,company_name").order("company_name"),
     ]);
     if (m.error) toast.error(m.error.message);
@@ -174,7 +182,7 @@ function MaintenancePage() {
     if (!s.error) setSpaces((s.data ?? []) as Space[]);
     if (!v.error) setVendors((v.data ?? []) as Vendor[]);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId, showArchived]);
 
   const assetMap = useMemo(() => new Map(assets.map((a) => [a.id, a])), [assets]);
   const vendorMap = useMemo(() => new Map(vendors.map((v) => [v.id, v])), [vendors]);
@@ -405,6 +413,8 @@ function MaintenancePage() {
           <h1 className="text-2xl font-bold">أوامر العمل</h1>
           <p className="text-sm text-muted-foreground">دورة العمل: مفتوح ← معلّق للتعيين ← جاري العمل ← مكتمل مبدئياً ← مغلق (مع إمكانية التعليق)</p>
         </div>
+        <div className="flex items-center gap-2">
+        <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild><Button><Plus className="ml-2 h-4 w-4" />بلاغ جديد</Button></DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -480,6 +490,7 @@ function MaintenancePage() {
             <DialogFooter><Button onClick={create}>إنشاء</Button></DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Tabs defaultValue="kanban">

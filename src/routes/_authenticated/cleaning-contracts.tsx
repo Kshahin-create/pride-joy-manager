@@ -17,6 +17,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Sparkles, FileText, Upload, Trash2, Pencil, Download, Calendar, Users } from "lucide-react";
 import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
+import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/cleaning-contracts")({
   component: CleaningContractsPage,
@@ -132,15 +133,20 @@ function CleaningContractsPage() {
   const [attachType, setAttachType] = useState<string>("نسخة العقد");
   const [uploading, setUploading] = useState(false);
 
+  const [showArchived, setShowArchived] = useState(false);
+
   const load = async () => {
-    const [c, v] = await Promise.all([scoped(supabase.from("cleaning_contracts").select("*"), activePropertyId).order("created_at", { ascending: false }),
+    let cq: any = supabase.from("cleaning_contracts").select("*");
+    cq = showArchived ? cq.not("archived_at", "is", null) : cq.is("archived_at", null);
+    const [c, v] = await Promise.all([
+      scoped(cq, activePropertyId).order("created_at", { ascending: false }),
       supabase.from("vendors").select("id,company_name").order("company_name"),
     ]);
     if (c.error) toast.error(c.error.message);
     else setRows((c.data ?? []) as any);
     if (!v.error) setVendors((v.data ?? []) as Vendor[]);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId, showArchived]);
 
   const filtered = useMemo(() => {
     return rows.filter((r) => {
@@ -340,6 +346,7 @@ function CleaningContractsPage() {
           <div className="flex flex-wrap items-center gap-2 justify-between">
             <CardTitle>قائمة العقود</CardTitle>
             <div className="flex flex-wrap gap-2">
+              <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
               <Input
                 placeholder="بحث: رقم، شركة، مسؤول"
                 value={search}
@@ -409,9 +416,7 @@ function CleaningContractsPage() {
                           <Button size="sm" variant="ghost" onClick={() => openEdit(r)} title="تعديل">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={() => remove(r)} title="حذف">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          <DeleteArchiveMenu table="cleaning_contracts" id={r.id} isArchived={showArchived} entityLabel={r.contract_number || undefined} onDone={load} compact />
                         </>
                       )}
                     </TableCell>

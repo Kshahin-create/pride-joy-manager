@@ -159,14 +159,24 @@ function VendorDetailsPage() {
           <h1 className="text-2xl font-bold mt-1">{vendor.company_name}</h1>
           {vendor.activity && <p className="text-sm text-muted-foreground">{vendor.activity}</p>}
         </div>
-        {avg && (
-          <Card className="px-4 py-2">
-            <div className="flex items-center gap-2">
-              <Stars value={avg.overall} />
-              <span className="text-sm font-medium">{avg.overall.toFixed(2)} / 5</span>
-            </div>
-          </Card>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {avg && (
+            <Card className="px-4 py-2">
+              <div className="flex items-center gap-2">
+                <Stars value={avg.overall} />
+                <span className="text-sm font-medium">{avg.overall.toFixed(2)} / 5</span>
+              </div>
+            </Card>
+          )}
+          <DeleteArchiveMenu
+            table="vendors"
+            id={vendor.id}
+            isArchived={!!(vendor as any).archived_at}
+            entityLabel={vendor.company_name}
+            onDone={() => nav({ to: "/vendors" })}
+            asButtons
+          />
+        </div>
       </div>
 
       <Tabs defaultValue="info">

@@ -218,9 +218,12 @@ function PmPlansPage() {
                     </TableCell>
                     {canManage && (
                       <TableCell>
-                        <Button size="sm" variant="ghost" onClick={() => toggleActive(p)}>
-                          {p.is_active ? "إيقاف" : "تفعيل"}
-                        </Button>
+                        <div className="flex items-center gap-1 justify-end">
+                          <Button size="sm" variant="ghost" onClick={() => toggleActive(p)}>
+                            {p.is_active ? "إيقاف" : "تفعيل"}
+                          </Button>
+                          <DeleteArchiveMenu table="pm_plans" id={p.id} entityLabel={p.plan_name} onDone={load} compact />
+                        </div>
                       </TableCell>
                     )}
                   </TableRow>

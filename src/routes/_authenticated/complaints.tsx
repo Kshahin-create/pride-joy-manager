@@ -80,15 +80,16 @@ function TicketsPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<Ticket>>({ ticket_type: "شكوى", priority: "متوسطة" });
 
+  const [showArchived, setShowArchived] = useState(false);
+
   const load = async () => {
-    const [t, o, c, a] = await Promise.all([scoped((supabase as any)
-        .from("tickets")
-        .select("*, offices(code), companies(company_name)"), activePropertyId)
-        .order("created_at", { ascending: false }),
+    let tq: any = (supabase as any).from("tickets").select("*, offices(code), companies(company_name)");
+    tq = showArchived ? tq.not("archived_at", "is", null) : tq.is("archived_at", null);
+    const [t, o, c, a] = await Promise.all([
+      scoped(tq, activePropertyId).order("created_at", { ascending: false }),
       (supabase as any).from("offices").select("id, code, space_id").order("code"),
       scoped((supabase as any).from("companies").select("id, company_name"), activePropertyId).order("company_name"),
       (supabase as any).from("assets").select("id, asset_name, space_id, office_id").order("asset_name"),
-
     ]);
     if (t.error) toast.error(t.error.message);
     setItems((t.data ?? []) as Ticket[]);
@@ -96,7 +97,8 @@ function TicketsPage() {
     setCompanies(c.data ?? []);
     setAssets(a.data ?? []);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId, showArchived]);
+
 
   const officeAssets = useMemo(() => {
     if (!form.office_id) return [];

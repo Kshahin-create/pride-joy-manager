@@ -346,6 +346,7 @@ function CleaningContractsPage() {
           <div className="flex flex-wrap items-center gap-2 justify-between">
             <CardTitle>قائمة العقود</CardTitle>
             <div className="flex flex-wrap gap-2">
+              <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
               <Input
                 placeholder="بحث: رقم، شركة، مسؤول"
                 value={search}

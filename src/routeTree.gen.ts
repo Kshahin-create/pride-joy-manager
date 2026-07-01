@@ -45,6 +45,7 @@ import { Route as AuthenticatedCommonAreasRouteImport } from './routes/_authenti
 import { Route as AuthenticatedCleaningContractsRouteImport } from './routes/_authenticated/cleaning-contracts'
 import { Route as AuthenticatedBuildingMapRouteImport } from './routes/_authenticated/building-map'
 import { Route as AuthenticatedBuildingLogRouteImport } from './routes/_authenticated/building-log'
+import { Route as AuthenticatedAuditLogRouteImport } from './routes/_authenticated/audit-log'
 import { Route as AuthenticatedApiDocsRouteImport } from './routes/_authenticated/api-docs'
 import { Route as AuthenticatedAcContractsRouteImport } from './routes/_authenticated/ac-contracts'
 import { Route as AuthenticatedVendorsIndexRouteImport } from './routes/_authenticated/vendors.index'
@@ -256,6 +257,11 @@ const AuthenticatedBuildingLogRoute =
     path: '/building-log',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAuditLogRoute = AuthenticatedAuditLogRouteImport.update({
+  id: '/audit-log',
+  path: '/audit-log',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedApiDocsRoute = AuthenticatedApiDocsRouteImport.update({
   id: '/api-docs',
   path: '/api-docs',
@@ -372,6 +378,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/ac-contracts': typeof AuthenticatedAcContractsRoute
   '/api-docs': typeof AuthenticatedApiDocsRoute
+  '/audit-log': typeof AuthenticatedAuditLogRoute
   '/building-log': typeof AuthenticatedBuildingLogRoute
   '/building-map': typeof AuthenticatedBuildingMapRoute
   '/cleaning-contracts': typeof AuthenticatedCleaningContractsRoute
@@ -428,6 +435,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/ac-contracts': typeof AuthenticatedAcContractsRoute
   '/api-docs': typeof AuthenticatedApiDocsRoute
+  '/audit-log': typeof AuthenticatedAuditLogRoute
   '/building-log': typeof AuthenticatedBuildingLogRoute
   '/building-map': typeof AuthenticatedBuildingMapRoute
   '/cleaning-contracts': typeof AuthenticatedCleaningContractsRoute
@@ -486,6 +494,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/ac-contracts': typeof AuthenticatedAcContractsRoute
   '/_authenticated/api-docs': typeof AuthenticatedApiDocsRoute
+  '/_authenticated/audit-log': typeof AuthenticatedAuditLogRoute
   '/_authenticated/building-log': typeof AuthenticatedBuildingLogRoute
   '/_authenticated/building-map': typeof AuthenticatedBuildingMapRoute
   '/_authenticated/cleaning-contracts': typeof AuthenticatedCleaningContractsRoute
@@ -544,6 +553,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/ac-contracts'
     | '/api-docs'
+    | '/audit-log'
     | '/building-log'
     | '/building-map'
     | '/cleaning-contracts'
@@ -600,6 +610,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/ac-contracts'
     | '/api-docs'
+    | '/audit-log'
     | '/building-log'
     | '/building-map'
     | '/cleaning-contracts'
@@ -657,6 +668,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/ac-contracts'
     | '/_authenticated/api-docs'
+    | '/_authenticated/audit-log'
     | '/_authenticated/building-log'
     | '/_authenticated/building-map'
     | '/_authenticated/cleaning-contracts'
@@ -973,6 +985,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBuildingLogRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/audit-log': {
+      id: '/_authenticated/audit-log'
+      path: '/audit-log'
+      fullPath: '/audit-log'
+      preLoaderRoute: typeof AuthenticatedAuditLogRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/api-docs': {
       id: '/_authenticated/api-docs'
       path: '/api-docs'
@@ -1150,6 +1169,7 @@ const AuthenticatedTenantsRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAcContractsRoute: typeof AuthenticatedAcContractsRoute
   AuthenticatedApiDocsRoute: typeof AuthenticatedApiDocsRoute
+  AuthenticatedAuditLogRoute: typeof AuthenticatedAuditLogRoute
   AuthenticatedBuildingLogRoute: typeof AuthenticatedBuildingLogRoute
   AuthenticatedBuildingMapRoute: typeof AuthenticatedBuildingMapRoute
   AuthenticatedCleaningContractsRoute: typeof AuthenticatedCleaningContractsRoute
@@ -1195,6 +1215,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAcContractsRoute: AuthenticatedAcContractsRoute,
   AuthenticatedApiDocsRoute: AuthenticatedApiDocsRoute,
+  AuthenticatedAuditLogRoute: AuthenticatedAuditLogRoute,
   AuthenticatedBuildingLogRoute: AuthenticatedBuildingLogRoute,
   AuthenticatedBuildingMapRoute: AuthenticatedBuildingMapRoute,
   AuthenticatedCleaningContractsRoute: AuthenticatedCleaningContractsRoute,

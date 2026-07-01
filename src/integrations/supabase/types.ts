@@ -71,6 +71,9 @@ export type Database = {
       ac_contracts: {
         Row: {
           alert_thresholds_days: number[] | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           contract_name: string
           contract_number: string | null
           contract_type: string
@@ -110,6 +113,9 @@ export type Database = {
         }
         Insert: {
           alert_thresholds_days?: number[] | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           contract_name: string
           contract_number?: string | null
           contract_type?: string
@@ -149,6 +155,9 @@ export type Database = {
         }
         Update: {
           alert_thresholds_days?: number[] | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           contract_name?: string
           contract_number?: string | null
           contract_type?: string
@@ -461,18 +470,27 @@ export type Database = {
       }
       asset_types: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           created_at: string
           created_by: string | null
           id: string
           name: string
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           name: string
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -482,6 +500,9 @@ export type Database = {
       }
       assets: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           asset_code: string
           asset_name: string
           asset_type: string | null
@@ -524,6 +545,9 @@ export type Database = {
           warranty_status: Database["public"]["Enums"]["warranty_status"] | null
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           asset_code: string
           asset_name: string
           asset_type?: string | null
@@ -568,6 +592,9 @@ export type Database = {
             | null
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           asset_code?: string
           asset_name?: string
           asset_type?: string | null
@@ -641,6 +668,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string | null
+          entity_name: string | null
+          entity_type: string
+          id: string
+          metadata: Json | null
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_name?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+        }
+        Relationships: []
       }
       building_identity: {
         Row: {
@@ -903,6 +966,9 @@ export type Database = {
         Row: {
           alert_thresholds_days: number[] | null
           annual_value: number | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           cleaning_supplies: string[] | null
           cleaning_type: Database["public"]["Enums"]["cleaning_contract_type"]
           contract_number: string | null
@@ -952,6 +1018,9 @@ export type Database = {
         Insert: {
           alert_thresholds_days?: number[] | null
           annual_value?: number | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           cleaning_supplies?: string[] | null
           cleaning_type?: Database["public"]["Enums"]["cleaning_contract_type"]
           contract_number?: string | null
@@ -1001,6 +1070,9 @@ export type Database = {
         Update: {
           alert_thresholds_days?: number[] | null
           annual_value?: number | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           cleaning_supplies?: string[] | null
           cleaning_type?: Database["public"]["Enums"]["cleaning_contract_type"]
           contract_number?: string | null
@@ -1260,6 +1332,9 @@ export type Database = {
       companies: {
         Row: {
           activity: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           commercial_register: string | null
           company_name: string
           created_at: string
@@ -1275,6 +1350,9 @@ export type Database = {
         }
         Insert: {
           activity?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           commercial_register?: string | null
           company_name: string
           created_at?: string
@@ -1290,6 +1368,9 @@ export type Database = {
         }
         Update: {
           activity?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           commercial_register?: string | null
           company_name?: string
           created_at?: string
@@ -1705,6 +1786,9 @@ export type Database = {
         Row: {
           alert_thresholds_days: number[]
           annual_increase_pct: number | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           auto_renew: boolean
           company_id: string
           contract_name: string | null
@@ -1743,6 +1827,9 @@ export type Database = {
         Insert: {
           alert_thresholds_days?: number[]
           annual_increase_pct?: number | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           auto_renew?: boolean
           company_id: string
           contract_name?: string | null
@@ -1781,6 +1868,9 @@ export type Database = {
         Update: {
           alert_thresholds_days?: number[]
           annual_increase_pct?: number | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           auto_renew?: boolean
           company_id?: string
           contract_name?: string | null
@@ -1849,6 +1939,9 @@ export type Database = {
       }
       documents: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           category: Database["public"]["Enums"]["doc_category"]
           created_at: string
           entity_id: string | null
@@ -1867,6 +1960,9 @@ export type Database = {
           uploaded_by: string | null
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           category?: Database["public"]["Enums"]["doc_category"]
           created_at?: string
           entity_id?: string | null
@@ -1885,6 +1981,9 @@ export type Database = {
           uploaded_by?: string | null
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           category?: Database["public"]["Enums"]["doc_category"]
           created_at?: string
           entity_id?: string | null
@@ -2057,6 +2156,9 @@ export type Database = {
       elevator_contracts: {
         Row: {
           alert_thresholds_days: number[] | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           contract_name: string
           contract_number: string | null
           contract_type: string
@@ -2096,6 +2198,9 @@ export type Database = {
         }
         Insert: {
           alert_thresholds_days?: number[] | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           contract_name: string
           contract_number?: string | null
           contract_type?: string
@@ -2135,6 +2240,9 @@ export type Database = {
         }
         Update: {
           alert_thresholds_days?: number[] | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           contract_name?: string
           contract_number?: string | null
           contract_type?: string
@@ -2238,18 +2346,27 @@ export type Database = {
       }
       employee_departments: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           created_at: string
           id: string
           is_active: boolean
           name: string
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
           name: string
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -2259,18 +2376,27 @@ export type Database = {
       }
       employee_employers: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           created_at: string
           id: string
           is_active: boolean
           name: string
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
           name: string
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -2281,6 +2407,9 @@ export type Database = {
       employees: {
         Row: {
           address: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           created_at: string
           created_by: string | null
           department: string | null
@@ -2298,6 +2427,9 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           created_by?: string | null
           department?: string | null
@@ -2315,6 +2447,9 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           created_by?: string | null
           department?: string | null
@@ -2537,6 +2672,9 @@ export type Database = {
       fire_contracts: {
         Row: {
           alert_thresholds_days: number[] | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           certification_expiry_date: string | null
           commercial_register: string | null
           company_name: string | null
@@ -2582,6 +2720,9 @@ export type Database = {
         }
         Insert: {
           alert_thresholds_days?: number[] | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           certification_expiry_date?: string | null
           commercial_register?: string | null
           company_name?: string | null
@@ -2627,6 +2768,9 @@ export type Database = {
         }
         Update: {
           alert_thresholds_days?: number[] | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           certification_expiry_date?: string | null
           commercial_register?: string | null
           company_name?: string | null
@@ -3188,6 +3332,9 @@ export type Database = {
         Row: {
           amount_due: number
           amount_paid: number
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           company_id: string
           contract_id: string | null
           created_at: string
@@ -3205,6 +3352,9 @@ export type Database = {
         Insert: {
           amount_due: number
           amount_paid?: number
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           company_id: string
           contract_id?: string | null
           created_at?: string
@@ -3222,6 +3372,9 @@ export type Database = {
         Update: {
           amount_due?: number
           amount_paid?: number
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           company_id?: string
           contract_id?: string | null
           created_at?: string
@@ -3309,6 +3462,9 @@ export type Database = {
           after_photo_url: string | null
           approved_at: string | null
           approved_by: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           asset_id: string | null
           assigned_technician: string | null
           assigned_vendor_id: string | null
@@ -3356,6 +3512,9 @@ export type Database = {
           after_photo_url?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           asset_id?: string | null
           assigned_technician?: string | null
           assigned_vendor_id?: string | null
@@ -3403,6 +3562,9 @@ export type Database = {
           after_photo_url?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           asset_id?: string | null
           assigned_technician?: string | null
           assigned_vendor_id?: string | null
@@ -3663,6 +3825,9 @@ export type Database = {
       }
       offices: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           area_sqm: number | null
           code: string
           created_at: string
@@ -3680,6 +3845,9 @@ export type Database = {
           view_type: string | null
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           area_sqm?: number | null
           code: string
           created_at?: string
@@ -3697,6 +3865,9 @@ export type Database = {
           view_type?: string | null
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           area_sqm?: number | null
           code?: string
           created_at?: string
@@ -3819,6 +3990,9 @@ export type Database = {
       }
       parking_spots: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           camera_id: string | null
           coverage_notes: string | null
           created_at: string
@@ -3835,6 +4009,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           camera_id?: string | null
           coverage_notes?: string | null
           created_at?: string
@@ -3851,6 +4028,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           camera_id?: string | null
           coverage_notes?: string | null
           created_at?: string
@@ -4425,6 +4605,9 @@ export type Database = {
       }
       spaces: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           area_sqm: number | null
           created_at: string
           created_by: string | null
@@ -4440,6 +4623,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           area_sqm?: number | null
           created_at?: string
           created_by?: string | null
@@ -4455,6 +4641,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           area_sqm?: number | null
           created_at?: string
           created_by?: string | null
@@ -4530,6 +4719,9 @@ export type Database = {
       supply_contracts: {
         Row: {
           alert_thresholds_days: number[] | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           contract_name: string
           contract_number: string | null
           contract_type: string
@@ -4563,6 +4755,9 @@ export type Database = {
         }
         Insert: {
           alert_thresholds_days?: number[] | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           contract_name: string
           contract_number?: string | null
           contract_type?: string
@@ -4596,6 +4791,9 @@ export type Database = {
         }
         Update: {
           alert_thresholds_days?: number[] | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           contract_name?: string
           contract_number?: string | null
           contract_type?: string
@@ -4712,6 +4910,9 @@ export type Database = {
       }
       tickets: {
         Row: {
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           assigned_to: string | null
           category: string | null
           closed_at: string | null
@@ -4733,6 +4934,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           assigned_to?: string | null
           category?: string | null
           closed_at?: string | null
@@ -4754,6 +4958,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           assigned_to?: string | null
           category?: string | null
           closed_at?: string | null
@@ -5094,6 +5301,9 @@ export type Database = {
         Row: {
           activity: string | null
           address: string | null
+          archive_reason: string | null
+          archived_at: string | null
+          archived_by: string | null
           company_name: string
           contact_person: string | null
           created_at: string
@@ -5107,6 +5317,9 @@ export type Database = {
         Insert: {
           activity?: string | null
           address?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           company_name: string
           contact_person?: string | null
           created_at?: string
@@ -5120,6 +5333,9 @@ export type Database = {
         Update: {
           activity?: string | null
           address?: string | null
+          archive_reason?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           company_name?: string
           contact_person?: string | null
           created_at?: string
@@ -5366,8 +5582,21 @@ export type Database = {
       }
     }
     Functions: {
+      _entity_display_name: {
+        Args: { _id: string; _table: string }
+        Returns: string
+      }
+      _is_archivable_table: { Args: { _table: string }; Returns: boolean }
+      archive_record: {
+        Args: { _id: string; _reason?: string; _table: string }
+        Returns: undefined
+      }
       can_manage_security: { Args: { _uid: string }; Returns: boolean }
       create_telegram_link_code: { Args: never; Returns: string }
+      delete_record: {
+        Args: { _id: string; _reason?: string; _table: string }
+        Returns: undefined
+      }
       escalate_critical_notifications: { Args: never; Returns: undefined }
       generate_daily_notifications: { Args: never; Returns: undefined }
       generate_due_pm_work_orders: { Args: never; Returns: number }
@@ -5455,6 +5684,10 @@ export type Database = {
           _new_start: string
         }
         Returns: string
+      }
+      restore_record: {
+        Args: { _id: string; _table: string }
+        Returns: undefined
       }
       user_has_property: {
         Args: { _property_id: string; _user_id: string }

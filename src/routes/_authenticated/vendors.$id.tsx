@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { DocumentsTab } from "@/components/documents-tab";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
 import { ArrowRight, Plus, Star, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/vendors/$id")({
@@ -59,6 +60,7 @@ function Stars({ value }: { value: number }) {
 
 function VendorDetailsPage() {
   const { id } = useParams({ from: "/_authenticated/vendors/$id" });
+  const nav = useNavigate();
   const { hasRole, hasAnyRole } = useAuth();
   const canManage = hasRole("super_admin");
   const canEvaluate = hasAnyRole(["super_admin", "maintenance_supervisor"]);
@@ -158,14 +160,24 @@ function VendorDetailsPage() {
           <h1 className="text-2xl font-bold mt-1">{vendor.company_name}</h1>
           {vendor.activity && <p className="text-sm text-muted-foreground">{vendor.activity}</p>}
         </div>
-        {avg && (
-          <Card className="px-4 py-2">
-            <div className="flex items-center gap-2">
-              <Stars value={avg.overall} />
-              <span className="text-sm font-medium">{avg.overall.toFixed(2)} / 5</span>
-            </div>
-          </Card>
-        )}
+        <div className="flex items-center gap-2 flex-wrap">
+          {avg && (
+            <Card className="px-4 py-2">
+              <div className="flex items-center gap-2">
+                <Stars value={avg.overall} />
+                <span className="text-sm font-medium">{avg.overall.toFixed(2)} / 5</span>
+              </div>
+            </Card>
+          )}
+          <DeleteArchiveMenu
+            table="vendors"
+            id={vendor.id}
+            isArchived={!!(vendor as any).archived_at}
+            entityLabel={vendor.company_name}
+            onDone={() => nav({ to: "/vendors" })}
+            asButtons
+          />
+        </div>
       </div>
 
       <Tabs defaultValue="info">

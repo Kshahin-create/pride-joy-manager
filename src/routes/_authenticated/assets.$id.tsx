@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { DocumentsTab } from "@/components/documents-tab";
 import { AssetFormDialog } from "@/components/asset-form-dialog";
 import { Timeline, useBuildingLog } from "@/components/building-log-timeline";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
+import { useNavigate } from "@tanstack/react-router";
 
 type Asset = {
   id: string; asset_name: string; asset_code: string; asset_type: string | null;
@@ -51,6 +53,7 @@ function AssetDetail() {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [officeCode, setOfficeCode] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { items: logItems } = useBuildingLog({});
   const assetEvents = logItems.filter((e) => e.module === "assets" && e.entity_id === id);
@@ -109,10 +112,18 @@ function AssetDetail() {
             {asset.current_status && <Badge variant="outline">{asset.current_status}</Badge>}
           </h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center flex-wrap">
           {canManage && (
             <Button onClick={() => setEditOpen(true)}><Pencil className="ml-2 h-4 w-4" />تعديل</Button>
           )}
+          <DeleteArchiveMenu
+            table="assets"
+            id={asset.id}
+            isArchived={!!(asset as any).archived_at}
+            entityLabel={asset.asset_name}
+            onDone={() => navigate({ to: "/assets" })}
+            asButtons
+          />
           <Link to="/assets"><Button variant="outline"><ArrowRight className="ml-2 h-4 w-4" />رجوع</Button></Link>
         </div>
       </div>

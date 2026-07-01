@@ -55,6 +55,7 @@ interface NavItem {
   icon: typeof LayoutDashboard;
   /** الصلاحية المطلوبة لإظهار العنصر — لو متعددة، أي واحدة تكفي */
   perms?: string[];
+  superAdminOnly?: boolean;
 }
 
 const NAV: { label: string; items: NavItem[] }[] = [
@@ -121,6 +122,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { title: "بوت تيليجرام", url: "/telegram", icon: Send, perms: ["telegram.view"] },
       { title: "مركز الإشعارات", url: "/notifications", icon: Bell },
       { title: "واجهة الـ API", url: "/api-docs", icon: Code2, perms: ["api_keys.view"] },
+      { title: "سجل التدقيق", url: "/audit-log", icon: ScrollText, superAdminOnly: true },
     ],
   },
 ];
@@ -145,8 +147,10 @@ export function AppSidebar() {
       });
   }, [user]);
 
-  const visible = (item: NavItem) =>
-    !item.perms || isSuperAdmin || hasAnyPermission(item.perms);
+  const visible = (item: NavItem) => {
+    if (item.superAdminOnly && !isSuperAdmin) return false;
+    return !item.perms || isSuperAdmin || hasAnyPermission(item.perms);
+  };
 
   const initials = (fullName || user?.email || "؟").trim().slice(0, 2).toUpperCase();
   const primaryRole = roles[0];

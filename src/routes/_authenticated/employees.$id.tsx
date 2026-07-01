@@ -1,4 +1,5 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,6 +58,7 @@ type Assignment = {
 
 function EmployeeDetailPage() {
   const { id } = useParams({ from: "/_authenticated/employees/$id" });
+  const nav = useNavigate();
   const { hasRole, isSuperAdmin } = useAuth();
   const canManage =
     isSuperAdmin || hasRole("maintenance_supervisor") || hasRole("security_supervisor");
@@ -160,12 +162,24 @@ function EmployeeDetailPage() {
             {employee.status}
           </Badge>
         </div>
-        {canManage && !editing && (
-          <Button onClick={() => setEditing(true)}>
-            <Pencil className="ms-1 h-4 w-4" />
-            تعديل
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {canManage && !editing && (
+            <Button onClick={() => setEditing(true)}>
+              <Pencil className="ms-1 h-4 w-4" />
+              تعديل
+            </Button>
+          )}
+          {!editing && (
+            <DeleteArchiveMenu
+              table="employees"
+              id={employee.id}
+              isArchived={!!(employee as any).archived_at}
+              entityLabel={employee.full_name}
+              onDone={() => nav({ to: "/employees" })}
+              asButtons
+            />
+          )}
+        </div>
         {editing && (
           <div className="flex gap-2">
             <Button

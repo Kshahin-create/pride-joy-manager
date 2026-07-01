@@ -1,4 +1,5 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
 import { useCallback, useEffect, useState } from "react";
 import {
   ArrowRight, Loader2, RotateCw, Ban, Upload, Download, Trash2, FileText, Receipt, Pencil,
@@ -65,6 +66,7 @@ interface Attachment {
 
 function ContractDetailsPage() {
   const { id } = useParams({ from: "/_authenticated/contracts/$id" });
+  const nav = useNavigate();
   const { hasRole } = useAuth();
   const isAdmin = hasRole("super_admin");
   const canUpload = isAdmin || hasRole("accountant");
@@ -157,6 +159,14 @@ function ContractDetailsPage() {
               <Ban className="h-4 w-4 ms-1" /> إلغاء
             </Button>
           )}
+          <DeleteArchiveMenu
+            table="contracts"
+            id={contract.id}
+            isArchived={!!(contract as any).archived_at}
+            entityLabel={contract.contract_number}
+            onDone={() => nav({ to: "/contracts" })}
+            asButtons
+          />
         </div>
       </div>
 

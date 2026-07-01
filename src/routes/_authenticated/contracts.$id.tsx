@@ -1,4 +1,5 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
 import { useCallback, useEffect, useState } from "react";
 import {
   ArrowRight, Loader2, RotateCw, Ban, Upload, Download, Trash2, FileText, Receipt, Pencil,

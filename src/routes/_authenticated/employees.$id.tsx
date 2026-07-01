@@ -162,12 +162,24 @@ function EmployeeDetailPage() {
             {employee.status}
           </Badge>
         </div>
-        {canManage && !editing && (
-          <Button onClick={() => setEditing(true)}>
-            <Pencil className="ms-1 h-4 w-4" />
-            تعديل
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {canManage && !editing && (
+            <Button onClick={() => setEditing(true)}>
+              <Pencil className="ms-1 h-4 w-4" />
+              تعديل
+            </Button>
+          )}
+          {!editing && (
+            <DeleteArchiveMenu
+              table="employees"
+              id={employee.id}
+              isArchived={!!(employee as any).archived_at}
+              entityLabel={employee.full_name}
+              onDone={() => nav({ to: "/employees" })}
+              asButtons
+            />
+          )}
+        </div>
         {editing && (
           <div className="flex gap-2">
             <Button

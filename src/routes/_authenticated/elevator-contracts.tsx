@@ -103,11 +103,14 @@ function ElevatorContractsPage() {
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
   const [vendorAddOpen, setVendorAddOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = async () => {
     setLoading(true);
+    let cq: any = supabase.from("elevator_contracts").select("*");
+    cq = showArchived ? cq.not("archived_at", "is", null) : cq.is("archived_at", null);
     const [{ data: cs }, { data: vs }, { data: as }] = await Promise.all([
-      scoped(supabase.from("elevator_contracts").select("*").order("created_at", { ascending: false }), activePropertyId),
+      scoped(cq.order("created_at", { ascending: false }), activePropertyId),
       supabase.from("vendors").select("id, company_name").order("company_name"),
       scoped(supabase.from("assets").select("id, asset_name, asset_code, category").ilike("category", "%مصعد%").order("asset_name"), activePropertyId),
     ]);
@@ -117,7 +120,8 @@ function ElevatorContractsPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId, showArchived]);
+
 
   const filtered = useMemo(() => {
     return contracts.filter(c => {

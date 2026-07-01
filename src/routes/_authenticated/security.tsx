@@ -591,11 +591,14 @@ function IncidentsTab() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {canManage && i.status === "مفتوح" && (
-                        <Button size="sm" variant="outline" onClick={() => setCloseIncident(i)}>
-                          إغلاق
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-1 justify-end">
+                        {canManage && i.status === "مفتوح" && (
+                          <Button size="sm" variant="outline" onClick={() => setCloseIncident(i)}>
+                            إغلاق
+                          </Button>
+                        )}
+                        <DeleteArchiveMenu table="security_incidents" id={i.id} entityLabel={i.incident_number} onDone={load} compact />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

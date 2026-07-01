@@ -154,6 +154,8 @@ function TicketsPage() {
           </h1>
           <p className="text-sm text-muted-foreground">إدارة تذاكر العملاء والطلبات الداخلية</p>
         </div>
+        <div className="flex items-center gap-2">
+        <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
         {canCreate && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>

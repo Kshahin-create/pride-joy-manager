@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmployeePicker } from "@/components/employee-picker";
 import { toast } from "sonner";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/operations")({
   component: OperationsPage,

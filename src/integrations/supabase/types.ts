@@ -867,6 +867,8 @@ export type Database = {
       }
       cameras: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           camera_number: string
           camera_type: string | null
           created_at: string
@@ -880,6 +882,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           camera_number: string
           camera_type?: string | null
           created_at?: string
@@ -893,6 +897,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           camera_number?: string
           camera_type?: string | null
           created_at?: string
@@ -1195,6 +1201,8 @@ export type Database = {
       }
       cleaning_plans: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           area: string
           contractor_company: string | null
           created_at: string
@@ -1207,6 +1215,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           area: string
           contractor_company?: string | null
           created_at?: string
@@ -1219,6 +1229,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           area?: string
           contractor_company?: string | null
           created_at?: string
@@ -3089,6 +3101,8 @@ export type Database = {
       guards: {
         Row: {
           address: string | null
+          archived_at: string | null
+          archived_by: string | null
           birth_date: string | null
           contract_end_date: string | null
           created_at: string
@@ -3114,6 +3128,8 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           birth_date?: string | null
           contract_end_date?: string | null
           created_at?: string
@@ -3139,6 +3155,8 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           birth_date?: string | null
           contract_end_date?: string | null
           created_at?: string
@@ -3904,6 +3922,8 @@ export type Database = {
       parking_cleaning_logs: {
         Row: {
           after_photo_url: string | null
+          archived_at: string | null
+          archived_by: string | null
           before_photo_url: string | null
           cleaning_date: string
           created_at: string
@@ -3915,6 +3935,8 @@ export type Database = {
         }
         Insert: {
           after_photo_url?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           before_photo_url?: string | null
           cleaning_date?: string
           created_at?: string
@@ -3926,6 +3948,8 @@ export type Database = {
         }
         Update: {
           after_photo_url?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           before_photo_url?: string | null
           cleaning_date?: string
           created_at?: string
@@ -3939,6 +3963,8 @@ export type Database = {
       }
       parking_maintenance_checks: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           bumpers_status: Database["public"]["Enums"]["parking_check_status"]
           check_date: string
           created_at: string
@@ -3955,6 +3981,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           bumpers_status?: Database["public"]["Enums"]["parking_check_status"]
           check_date?: string
           created_at?: string
@@ -3971,6 +3999,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           bumpers_status?: Database["public"]["Enums"]["parking_check_status"]
           check_date?: string
           created_at?: string
@@ -4079,6 +4109,8 @@ export type Database = {
       }
       parking_violations: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -4092,6 +4124,8 @@ export type Database = {
           violation_type: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -4105,6 +4139,8 @@ export type Database = {
           violation_type: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -4180,6 +4216,8 @@ export type Database = {
       }
       patrols: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           created_at: string
           created_by: string | null
           end_time: string | null
@@ -4192,6 +4230,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           created_by?: string | null
           end_time?: string | null
@@ -4204,6 +4244,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           created_at?: string
           created_by?: string | null
           end_time?: string | null
@@ -4301,6 +4343,8 @@ export type Database = {
       }
       pm_plans: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           asset_id: string | null
           assigned_to: string | null
           checklist_items: string[]
@@ -4319,6 +4363,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           asset_id?: string | null
           assigned_to?: string | null
           checklist_items?: string[]
@@ -4337,6 +4383,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           asset_id?: string | null
           assigned_to?: string | null
           checklist_items?: string[]
@@ -4531,6 +4579,8 @@ export type Database = {
       security_incidents: {
         Row: {
           actions_taken: string | null
+          archived_at: string | null
+          archived_by: string | null
           closed_at: string | null
           closed_by: string | null
           closure_report: string | null
@@ -4550,6 +4600,8 @@ export type Database = {
         }
         Insert: {
           actions_taken?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           closed_at?: string | null
           closed_by?: string | null
           closure_report?: string | null
@@ -4569,6 +4621,8 @@ export type Database = {
         }
         Update: {
           actions_taken?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           closed_at?: string | null
           closed_by?: string | null
           closure_report?: string | null
@@ -5350,6 +5404,8 @@ export type Database = {
       }
       visitors: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           badge_number: string | null
           check_in_at: string
           check_out_at: string | null
@@ -5377,6 +5433,8 @@ export type Database = {
           visitor_type: Database["public"]["Enums"]["visitor_type"]
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           badge_number?: string | null
           check_in_at?: string
           check_out_at?: string | null
@@ -5404,6 +5462,8 @@ export type Database = {
           visitor_type?: Database["public"]["Enums"]["visitor_type"]
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           badge_number?: string | null
           check_in_at?: string
           check_out_at?: string | null

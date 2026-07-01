@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { Plus, FileSignature, AlertTriangle } from "lucide-react";
 import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
+import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/supply-contracts")({
   component: SupplyContractsPage,

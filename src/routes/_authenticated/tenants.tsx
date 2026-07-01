@@ -74,15 +74,17 @@ function ClientsPage() {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Company | null>(null);
   const [deleting, setDeleting] = useState<Company | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await scoped(supabase
-      .from("companies").select("*"), activePropertyId).order("created_at", { ascending: false });
+    let query = supabase.from("companies").select("*") as any;
+    query = showArchived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
+    const { data, error } = await scoped(query, activePropertyId).order("created_at", { ascending: false });
     if (error) { toast.error("تعذّر التحميل"); setLoading(false); return; }
     setRows((data ?? []) as Company[]);
     setLoading(false);
-  }, []);
+  }, [activePropertyId, showArchived]);
   useEffect(() => { load(); }, [load]);
 
   const counts = useMemo(() => {

@@ -416,9 +416,7 @@ function CleaningContractsPage() {
                           <Button size="sm" variant="ghost" onClick={() => openEdit(r)} title="تعديل">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={() => remove(r)} title="حذف">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
+                          <DeleteArchiveMenu table="cleaning_contracts" id={r.id} isArchived={showArchived} entityLabel={r.contract_number || undefined} onDone={load} compact />
                         </>
                       )}
                     </TableCell>

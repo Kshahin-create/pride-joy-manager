@@ -565,11 +565,14 @@ function CamerasTab() {
                     <TableCell><Badge className={CAM_STATUS_STYLE[c.status]}>{c.status}</Badge></TableCell>
                     <TableCell>{c.next_maintenance_date || "—"}</TableCell>
                     <TableCell>
-                      {canManage && (
-                        <Button size="sm" variant="outline" onClick={() => { setSelectedCam(c); setMaintOpen(true); }}>
-                          <Wrench className="h-3 w-3 ms-1" /> صيانة
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-1 justify-end">
+                        {canManage && (
+                          <Button size="sm" variant="outline" onClick={() => { setSelectedCam(c); setMaintOpen(true); }}>
+                            <Wrench className="h-3 w-3 ms-1" /> صيانة
+                          </Button>
+                        )}
+                        <DeleteArchiveMenu table="cameras" id={c.id} entityLabel={c.camera_number} onDone={load} compact />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -289,7 +289,7 @@ function ElevatorContractsPage() {
                     <TableCell>
                       <div className="flex gap-1">
                         <Button size="sm" variant="ghost" onClick={() => startEdit(c)}><Pencil className="h-4 w-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => remove(c)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        <DeleteArchiveMenu table="elevator_contracts" id={c.id} isArchived={showArchived} entityLabel={c.contract_name || c.contract_number || undefined} onDone={load} compact />
                       </div>
                     </TableCell>
                   </TableRow>

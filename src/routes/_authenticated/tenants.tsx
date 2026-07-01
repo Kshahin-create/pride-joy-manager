@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/tenants")({
   component: ClientsPage,

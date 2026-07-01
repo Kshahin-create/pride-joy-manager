@@ -499,6 +499,7 @@ function SupplyContractsPage() {
                 <TableHead>النهاية</TableHead>
                 <TableHead>القيمة</TableHead>
                 <TableHead>الحالة</TableHead>
+                <TableHead className="text-end">إجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

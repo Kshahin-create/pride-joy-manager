@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { DocumentsTab } from "@/components/documents-tab";
 import { AssetFormDialog } from "@/components/asset-form-dialog";
 import { Timeline, useBuildingLog } from "@/components/building-log-timeline";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
+import { useNavigate } from "@tanstack/react-router";
 
 type Asset = {
   id: string; asset_name: string; asset_code: string; asset_type: string | null;

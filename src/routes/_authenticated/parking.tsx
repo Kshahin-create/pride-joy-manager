@@ -471,9 +471,12 @@ function ParkingPage() {
                       </TableCell>
                       <TableCell><Badge variant={v.status === "محلولة" ? "secondary" : "destructive"}>{v.status}</Badge></TableCell>
                       <TableCell>
-                        {canManage && v.status === "مفتوحة" && (
-                          <Button size="sm" variant="outline" onClick={() => resolveViolation(v.id)}>إغلاق</Button>
-                        )}
+                        <div className="flex items-center gap-1 justify-end">
+                          {canManage && v.status === "مفتوحة" && (
+                            <Button size="sm" variant="outline" onClick={() => resolveViolation(v.id)}>إغلاق</Button>
+                          )}
+                          <DeleteArchiveMenu table="parking_violations" id={v.id} entityLabel={v.violation_type} onDone={load} compact />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

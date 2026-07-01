@@ -271,6 +271,7 @@ function OfficesPage() {
               جدول
             </button>
           </div>
+          <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
           {canEdit && (
             <Button
               onClick={() => setCreating(true)}

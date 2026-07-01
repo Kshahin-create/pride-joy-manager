@@ -155,9 +155,12 @@ function GuardsTab() {
                     <TableCell>{g.mobile ?? "—"}</TableCell>
                     {isAdmin && <TableCell>{g.salary != null ? Number(g.salary).toLocaleString("en-US") : "—"}</TableCell>}
                     <TableCell>
-                      <Link to="/security/guards/$id" params={{ id: g.id }}>
-                        <Button size="icon" variant="ghost"><Eye className="h-4 w-4" /></Button>
-                      </Link>
+                      <div className="flex items-center gap-1 justify-end">
+                        <Link to="/security/guards/$id" params={{ id: g.id }}>
+                          <Button size="icon" variant="ghost"><Eye className="h-4 w-4" /></Button>
+                        </Link>
+                        <DeleteArchiveMenu table="guards" id={g.id} entityLabel={g.full_name} onDone={load} compact />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

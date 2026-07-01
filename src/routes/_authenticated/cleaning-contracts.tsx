@@ -17,6 +17,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Sparkles, FileText, Upload, Trash2, Pencil, Download, Calendar, Users } from "lucide-react";
 import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
+import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/cleaning-contracts")({
   component: CleaningContractsPage,

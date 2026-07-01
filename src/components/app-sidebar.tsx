@@ -147,8 +147,10 @@ export function AppSidebar() {
       });
   }, [user]);
 
-  const visible = (item: NavItem) =>
-    !item.perms || isSuperAdmin || hasAnyPermission(item.perms);
+  const visible = (item: NavItem) => {
+    if (item.superAdminOnly && !isSuperAdmin) return false;
+    return !item.perms || isSuperAdmin || hasAnyPermission(item.perms);
+  };
 
   const initials = (fullName || user?.email || "؟").trim().slice(0, 2).toUpperCase();
   const primaryRole = roles[0];

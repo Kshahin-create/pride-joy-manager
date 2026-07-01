@@ -468,6 +468,7 @@ function SupplyContractsPage() {
           <CardTitle className="flex items-center justify-between gap-2 flex-wrap">
             <span>قائمة العقود</span>
             <div className="flex gap-2">
+              <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
               <Select value={statusF} onValueChange={setStatusF}>
                 <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
                 <SelectContent>

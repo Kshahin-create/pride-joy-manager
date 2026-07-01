@@ -17,6 +17,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, FileText, Snowflake } from "lucide-react";
 import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
+import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/ac-contracts")({
   component: AcContractsPage,

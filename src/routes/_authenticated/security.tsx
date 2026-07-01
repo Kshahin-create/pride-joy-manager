@@ -378,7 +378,10 @@ function PatrolsTab() {
                           {p.end_time && " → " + new Date(p.end_time).toLocaleString("en-US")}
                         </div>
                       </div>
-                      <Badge variant="outline">{cps.length} نقطة</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{cps.length} نقطة</Badge>
+                        <DeleteArchiveMenu table="patrols" id={p.id} entityLabel={p.patrol_number} onDone={load} compact />
+                      </div>
                     </div>
                     {cps.length > 0 && (
                       <ul className="text-sm space-y-1">

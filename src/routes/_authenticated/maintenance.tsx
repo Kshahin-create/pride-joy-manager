@@ -639,7 +639,7 @@ function MaintenancePage() {
                             <Pencil className="h-4 w-4" />
                           </Button>
                           {canManage && <CardActions r={r} moveTo={moveTo} compact />}
-                          <DeleteArchiveMenu table="maintenance_requests" id={r.id} entityLabel={r.request_number} onDone={load} compact />
+                          <DeleteArchiveMenu table="maintenance_requests" id={r.id} entityLabel={r.request_number ?? undefined} onDone={load} compact />
                         </div>
                       </TableCell>
                     </TableRow>

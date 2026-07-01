@@ -123,11 +123,14 @@ function ClientsPage() {
           <h1 className="text-2xl font-bold text-primary">العملاء</h1>
           <p className="text-sm text-muted-foreground mt-1">إدارة العملاء عبر مراحل الـ Pipeline.</p>
         </div>
-        {canEdit && (
-          <Button onClick={() => setCreating(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
-            <Plus className="h-4 w-4 ms-1" /> إضافة عميل
-          </Button>
-        )}
+        <div className="flex gap-2">
+          <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
+          {canEdit && (
+            <Button onClick={() => setCreating(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
+              <Plus className="h-4 w-4 ms-1" /> إضافة عميل
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Pipeline */}

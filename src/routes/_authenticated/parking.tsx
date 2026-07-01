@@ -396,6 +396,7 @@ function ParkingPage() {
                 <div key={c.id} className="border rounded-md p-3">
                   <div className="flex items-center justify-between text-sm">
                     <div><b>{c.cleaning_date}</b> — {c.responsible ?? "—"}</div>
+                    <DeleteArchiveMenu table="parking_cleaning_logs" id={c.id} entityLabel={c.cleaning_date} onDone={load} compact />
                   </div>
                   {c.notes && <div className="text-sm text-muted-foreground mt-1">{c.notes}</div>}
                   {(c.before_photo_url || c.after_photo_url) && (

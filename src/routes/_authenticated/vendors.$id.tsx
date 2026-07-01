@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { DocumentsTab } from "@/components/documents-tab";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
 import { ArrowRight, Plus, Star, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/vendors/$id")({

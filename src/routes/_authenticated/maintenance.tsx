@@ -163,9 +163,16 @@ function MaintenancePage() {
   const [approveFor, setApproveFor] = useState<MR | null>(null);
   const [approveNote, setApproveNote] = useState("");
 
+  const [showArchived, setShowArchived] = useState(false);
+
   const load = async () => {
-    const [m, a, o, s, v] = await Promise.all([scoped(supabase.from("maintenance_requests").select("*"), activePropertyId).order("created_at", { ascending: false }),scoped(supabase.from("assets").select("id,asset_name,asset_code,criticality"), activePropertyId).order("asset_code"),
-      supabase.from("offices").select("id,code,floor,space_id").order("floor").order("code"),scoped(supabase.from("spaces").select("id,space_code,space_name,space_type,floor"), activePropertyId).order("floor").order("space_code"),
+    let mq: any = supabase.from("maintenance_requests").select("*");
+    mq = showArchived ? mq.not("archived_at", "is", null) : mq.is("archived_at", null);
+    const [m, a, o, s, v] = await Promise.all([
+      scoped(mq, activePropertyId).order("created_at", { ascending: false }),
+      scoped(supabase.from("assets").select("id,asset_name,asset_code,criticality"), activePropertyId).order("asset_code"),
+      supabase.from("offices").select("id,code,floor,space_id").order("floor").order("code"),
+      scoped(supabase.from("spaces").select("id,space_code,space_name,space_type,floor"), activePropertyId).order("floor").order("space_code"),
       supabase.from("vendors").select("id,company_name").order("company_name"),
     ]);
     if (m.error) toast.error(m.error.message);
@@ -175,7 +182,7 @@ function MaintenancePage() {
     if (!s.error) setSpaces((s.data ?? []) as Space[]);
     if (!v.error) setVendors((v.data ?? []) as Vendor[]);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId, showArchived]);
 
   const assetMap = useMemo(() => new Map(assets.map((a) => [a.id, a])), [assets]);
   const vendorMap = useMemo(() => new Map(vendors.map((v) => [v.id, v])), [vendors]);

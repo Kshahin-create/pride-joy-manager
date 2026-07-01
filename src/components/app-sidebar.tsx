@@ -121,6 +121,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { title: "بوت تيليجرام", url: "/telegram", icon: Send, perms: ["telegram.view"] },
       { title: "مركز الإشعارات", url: "/notifications", icon: Bell },
       { title: "واجهة الـ API", url: "/api-docs", icon: Code2, perms: ["api_keys.view"] },
+      { title: "سجل التدقيق", url: "/audit-log", icon: ScrollText, superAdminOnly: true },
     ],
   },
 ];

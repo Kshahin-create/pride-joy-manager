@@ -490,6 +490,7 @@ function MaintenancePage() {
             <DialogFooter><Button onClick={create}>إنشاء</Button></DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Tabs defaultValue="kanban">

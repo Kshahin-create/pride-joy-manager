@@ -113,12 +113,15 @@ function FireContractsPage() {
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
   const [vendorAddOpen, setVendorAddOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   const load = async () => {
     setLoading(true);
     const sb = supabase as any;
+    let cq = sb.from("fire_contracts").select("*");
+    cq = showArchived ? cq.not("archived_at", "is", null) : cq.is("archived_at", null);
     const [{ data: cs }, { data: vs }] = await Promise.all([
-      scoped(sb.from("fire_contracts").select("*").order("created_at", { ascending: false }), activePropertyId),
+      scoped(cq.order("created_at", { ascending: false }), activePropertyId),
       sb.from("vendors").select("id, company_name").order("company_name"),
     ]);
     setContracts((cs as any) || []);
@@ -126,7 +129,8 @@ function FireContractsPage() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId, showArchived]);
+
 
   const filtered = useMemo(() => {
     return contracts.filter((c) => {

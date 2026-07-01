@@ -60,6 +60,7 @@ function Stars({ value }: { value: number }) {
 
 function VendorDetailsPage() {
   const { id } = useParams({ from: "/_authenticated/vendors/$id" });
+  const nav = useNavigate();
   const { hasRole, hasAnyRole } = useAuth();
   const canManage = hasRole("super_admin");
   const canEvaluate = hasAnyRole(["super_admin", "maintenance_supervisor"]);

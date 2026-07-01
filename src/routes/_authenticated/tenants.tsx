@@ -205,7 +205,7 @@ function ClientsPage() {
                   {canEdit && (
                     <TableCell className="text-end" onClick={(e) => e.stopPropagation()}>
                       <Button size="sm" variant="ghost" onClick={() => setEditing(c)}><Pencil className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="ghost" onClick={() => setDeleting(c)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      <DeleteArchiveMenu table="companies" id={c.id} isArchived={showArchived} entityLabel={c.company_name} onDone={load} compact />
                     </TableCell>
                   )}
                 </TableRow>

@@ -133,15 +133,20 @@ function CleaningContractsPage() {
   const [attachType, setAttachType] = useState<string>("نسخة العقد");
   const [uploading, setUploading] = useState(false);
 
+  const [showArchived, setShowArchived] = useState(false);
+
   const load = async () => {
-    const [c, v] = await Promise.all([scoped(supabase.from("cleaning_contracts").select("*"), activePropertyId).order("created_at", { ascending: false }),
+    let cq: any = supabase.from("cleaning_contracts").select("*");
+    cq = showArchived ? cq.not("archived_at", "is", null) : cq.is("archived_at", null);
+    const [c, v] = await Promise.all([
+      scoped(cq, activePropertyId).order("created_at", { ascending: false }),
       supabase.from("vendors").select("id,company_name").order("company_name"),
     ]);
     if (c.error) toast.error(c.error.message);
     else setRows((c.data ?? []) as any);
     if (!v.error) setVendors((v.data ?? []) as Vendor[]);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId, showArchived]);
 
   const filtered = useMemo(() => {
     return rows.filter((r) => {

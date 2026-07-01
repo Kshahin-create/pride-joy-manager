@@ -518,11 +518,14 @@ function SupplyContractsPage() {
                   <TableCell>
                     <Badge variant="secondary">{c.status}</Badge>
                   </TableCell>
+                  <TableCell className="text-end">
+                    <DeleteArchiveMenu table="supply_contracts" id={c.id} isArchived={showArchived} entityLabel={c.contract_name || c.contract_number || undefined} onDone={load} compact />
+                  </TableCell>
                 </TableRow>
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                     لا توجد عقود.
                   </TableCell>
                 </TableRow>

@@ -53,6 +53,16 @@ const TABLES: ArchivableTable[] = [
   { key: "asset_types", label: "أنواع الأصول", nameField: "name" },
   { key: "employee_departments", label: "الأقسام", nameField: "name" },
   { key: "employee_employers", label: "جهات العمل", nameField: "name" },
+  { key: "cleaning_plans", label: "خطط النظافة", nameField: "area", scoped: true },
+  { key: "cameras", label: "الكاميرات", nameField: "location", codeField: "camera_number", scoped: true },
+  { key: "guards", label: "الحراس", nameField: "full_name", codeField: "employee_number", scoped: true },
+  { key: "patrols", label: "الجولات الأمنية", nameField: "patrol_number", codeField: "patrol_number", scoped: true },
+  { key: "security_incidents", label: "الحوادث الأمنية", nameField: "incident_number", codeField: "incident_number", scoped: true },
+  { key: "pm_plans", label: "خطط الصيانة الوقائية", nameField: "plan_name", scoped: true },
+  { key: "parking_maintenance_checks", label: "فحوصات المواقف", nameField: "check_date" },
+  { key: "parking_cleaning_logs", label: "سجل نظافة المواقف", nameField: "cleaning_date" },
+  { key: "parking_violations", label: "مخالفات المواقف", nameField: "violation_type" },
+  { key: "visitors", label: "الزوار", nameField: "full_name", codeField: "visitor_number", scoped: true },
 ];
 
 type Row = {

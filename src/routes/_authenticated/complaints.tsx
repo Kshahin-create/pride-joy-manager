@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { MessageSquareWarning, Plus, Flame } from "lucide-react";
+import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/complaints")({ component: TicketsPage });
 

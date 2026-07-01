@@ -17,7 +17,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, AlertTriangle, Play, Pause, CheckCircle2, ShieldCheck, RotateCcw, Trash2, Pencil } from "lucide-react";
 import { MaintenanceRequestEditDialog } from "@/components/maintenance-request-edit-dialog";
-import { ArchivedFilterToggle } from "@/components/delete-archive-menu";
+import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 type Status =
   | "جديد"
@@ -639,6 +639,7 @@ function MaintenancePage() {
                             <Pencil className="h-4 w-4" />
                           </Button>
                           {canManage && <CardActions r={r} moveTo={moveTo} compact />}
+                          <DeleteArchiveMenu table="maintenance_requests" id={r.id} entityLabel={r.request_number ?? undefined} onDone={load} compact />
                         </div>
                       </TableCell>
                     </TableRow>

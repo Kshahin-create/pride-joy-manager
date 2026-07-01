@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Wand2, CalendarClock, Search } from "lucide-react";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/pm-plans")({
   component: PmPlansPage,
@@ -217,9 +218,12 @@ function PmPlansPage() {
                     </TableCell>
                     {canManage && (
                       <TableCell>
-                        <Button size="sm" variant="ghost" onClick={() => toggleActive(p)}>
-                          {p.is_active ? "إيقاف" : "تفعيل"}
-                        </Button>
+                        <div className="flex items-center gap-1 justify-end">
+                          <Button size="sm" variant="ghost" onClick={() => toggleActive(p)}>
+                            {p.is_active ? "إيقاف" : "تفعيل"}
+                          </Button>
+                          <DeleteArchiveMenu table="pm_plans" id={p.id} entityLabel={p.plan_name} onDone={load} compact />
+                        </div>
                       </TableCell>
                     )}
                   </TableRow>

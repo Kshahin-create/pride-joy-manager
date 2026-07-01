@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, LogOut, Users, UserCheck, Search, Download } from "lucide-react";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/visitors")({
   component: VisitorsPage,
@@ -238,11 +239,14 @@ function VisitorsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {v.status === "داخل" && canManage && (
-                      <Button size="sm" variant="outline" onClick={() => checkOut(v.id)}>
-                        <LogOut className="h-3 w-3 ml-1" /> خروج
-                      </Button>
-                    )}
+                    <div className="flex items-center gap-1 justify-end">
+                      {v.status === "داخل" && canManage && (
+                        <Button size="sm" variant="outline" onClick={() => checkOut(v.id)}>
+                          <LogOut className="h-3 w-3 ml-1" /> خروج
+                        </Button>
+                      )}
+                      <DeleteArchiveMenu table="visitors" id={v.id} entityLabel={v.full_name} onDone={load} compact />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

@@ -17,6 +17,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmployeePicker } from "@/components/employee-picker";
 import { toast } from "sonner";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/operations")({
   component: OperationsPage,
@@ -134,11 +135,14 @@ function CleaningTab() {
                     <TableCell>{p.contractor_company || "—"}</TableCell>
                     <TableCell>{p.supervisor || "—"}</TableCell>
                     <TableCell>
-                      {canManage && (
-                        <Button size="sm" variant="outline" onClick={() => { setSelectedPlanId(p.id); setLogOpen(true); }}>
-                          + تنفيذ
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-1 justify-end">
+                        {canManage && (
+                          <Button size="sm" variant="outline" onClick={() => { setSelectedPlanId(p.id); setLogOpen(true); }}>
+                            + تنفيذ
+                          </Button>
+                        )}
+                        <DeleteArchiveMenu table="cleaning_plans" id={p.id} entityLabel={p.area} onDone={load} compact />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -561,11 +565,14 @@ function CamerasTab() {
                     <TableCell><Badge className={CAM_STATUS_STYLE[c.status]}>{c.status}</Badge></TableCell>
                     <TableCell>{c.next_maintenance_date || "—"}</TableCell>
                     <TableCell>
-                      {canManage && (
-                        <Button size="sm" variant="outline" onClick={() => { setSelectedCam(c); setMaintOpen(true); }}>
-                          <Wrench className="h-3 w-3 ms-1" /> صيانة
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-1 justify-end">
+                        {canManage && (
+                          <Button size="sm" variant="outline" onClick={() => { setSelectedCam(c); setMaintOpen(true); }}>
+                            <Wrench className="h-3 w-3 ms-1" /> صيانة
+                          </Button>
+                        )}
+                        <DeleteArchiveMenu table="cameras" id={c.id} entityLabel={c.camera_number} onDone={load} compact />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Car, Plus, ClipboardCheck, Sparkles, AlertOctagon, LayoutGrid, Table as TableIcon } from "lucide-react";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/parking")({ component: ParkingPage });
 
@@ -345,6 +346,7 @@ function ParkingPage() {
                   <TableHead>التاريخ</TableHead>
                   {CHECK_ITEMS.map(([k, l]) => <TableHead key={k}>{l}</TableHead>)}
                   <TableHead>القادم</TableHead>
+                  <TableHead></TableHead>
                 </TableRow></TableHeader>
                 <TableBody>
                   {checks.map((c) => (
@@ -356,9 +358,10 @@ function ParkingPage() {
                         </TableCell>
                       ))}
                       <TableCell>{c.next_check_date ?? "—"}</TableCell>
+                      <TableCell><DeleteArchiveMenu table="parking_maintenance_checks" id={c.id} entityLabel={c.check_date} onDone={load} compact /></TableCell>
                     </TableRow>
                   ))}
-                  {checks.length === 0 && <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-6">لا توجد فحوصات.</TableCell></TableRow>}
+                  {checks.length === 0 && <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground py-6">لا توجد فحوصات.</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </CardContent>
@@ -393,6 +396,7 @@ function ParkingPage() {
                 <div key={c.id} className="border rounded-md p-3">
                   <div className="flex items-center justify-between text-sm">
                     <div><b>{c.cleaning_date}</b> — {c.responsible ?? "—"}</div>
+                    <DeleteArchiveMenu table="parking_cleaning_logs" id={c.id} entityLabel={c.cleaning_date} onDone={load} compact />
                   </div>
                   {c.notes && <div className="text-sm text-muted-foreground mt-1">{c.notes}</div>}
                   {(c.before_photo_url || c.after_photo_url) && (
@@ -467,9 +471,12 @@ function ParkingPage() {
                       </TableCell>
                       <TableCell><Badge variant={v.status === "محلولة" ? "secondary" : "destructive"}>{v.status}</Badge></TableCell>
                       <TableCell>
-                        {canManage && v.status === "مفتوحة" && (
-                          <Button size="sm" variant="outline" onClick={() => resolveViolation(v.id)}>إغلاق</Button>
-                        )}
+                        <div className="flex items-center gap-1 justify-end">
+                          {canManage && v.status === "مفتوحة" && (
+                            <Button size="sm" variant="outline" onClick={() => resolveViolation(v.id)}>إغلاق</Button>
+                          )}
+                          <DeleteArchiveMenu table="parking_violations" id={v.id} entityLabel={v.violation_type} onDone={load} compact />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

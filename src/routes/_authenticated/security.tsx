@@ -24,6 +24,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/security")({
   component: SecurityPage,
@@ -154,9 +155,12 @@ function GuardsTab() {
                     <TableCell>{g.mobile ?? "—"}</TableCell>
                     {isAdmin && <TableCell>{g.salary != null ? Number(g.salary).toLocaleString("en-US") : "—"}</TableCell>}
                     <TableCell>
-                      <Link to="/security/guards/$id" params={{ id: g.id }}>
-                        <Button size="icon" variant="ghost"><Eye className="h-4 w-4" /></Button>
-                      </Link>
+                      <div className="flex items-center gap-1 justify-end">
+                        <Link to="/security/guards/$id" params={{ id: g.id }}>
+                          <Button size="icon" variant="ghost"><Eye className="h-4 w-4" /></Button>
+                        </Link>
+                        <DeleteArchiveMenu table="guards" id={g.id} entityLabel={g.full_name} onDone={load} compact />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -374,7 +378,10 @@ function PatrolsTab() {
                           {p.end_time && " → " + new Date(p.end_time).toLocaleString("en-US")}
                         </div>
                       </div>
-                      <Badge variant="outline">{cps.length} نقطة</Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{cps.length} نقطة</Badge>
+                        <DeleteArchiveMenu table="patrols" id={p.id} entityLabel={p.patrol_number} onDone={load} compact />
+                      </div>
                     </div>
                     {cps.length > 0 && (
                       <ul className="text-sm space-y-1">
@@ -584,11 +591,14 @@ function IncidentsTab() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {canManage && i.status === "مفتوح" && (
-                        <Button size="sm" variant="outline" onClick={() => setCloseIncident(i)}>
-                          إغلاق
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-1 justify-end">
+                        {canManage && i.status === "مفتوح" && (
+                          <Button size="sm" variant="outline" onClick={() => setCloseIncident(i)}>
+                            إغلاق
+                          </Button>
+                        )}
+                        <DeleteArchiveMenu table="security_incidents" id={i.id} entityLabel={i.incident_number} onDone={load} compact />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

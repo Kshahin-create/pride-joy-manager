@@ -80,7 +80,13 @@ function Dashboard() {
     wo_overdue: 0, wo_pm_due: 0,
     collected_now: 0, collected_prev: 0,
     expenses_prev_month: 0,
+    cameras_count: 0, employees_count: 0, vendors_count: 0,
+    docs_expiring_count: 0, new_contracts_month: 0,
   });
+  const [upcomingPMs, setUpcomingPMs] = useState<UpcomingPM[]>([]);
+  const [recentIncidents, setRecentIncidents] = useState<IncidentRow[]>([]);
+  const [categoryRows, setCategoryRows] = useState<CategoryRow[]>([]);
+  const [expiringDocs, setExpiringDocs] = useState<ExpiringDoc[]>([]);
 
   const isAdmin = hasAnyRole(["super_admin", "owner"]);
   const isAccountant = hasAnyRole(["accountant"]);

@@ -564,6 +564,11 @@ function Dashboard() {
 
           {show.finance && topTenants.length > 0 && <TopTenants rows={topTenants} />}
 
+          {show.security && <RecentIncidents rows={recentIncidents} />}
+
+          <DocsExpiring rows={expiringDocs} />
+
+
           {show.expenses && (
             <Card>
               <CardHeader className="pb-2">

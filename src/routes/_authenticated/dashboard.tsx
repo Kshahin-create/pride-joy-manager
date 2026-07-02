@@ -165,6 +165,25 @@ function Dashboard() {
           ).eq("status", "ساري").order("annual_rent", { ascending: false }).limit(5)
         : Promise.resolve({ data: [] as any[] }),
       supabase.from("building_log").select("created_at").gte("created_at", sevenDaysAgo.toISOString()).limit(2000),
+      // Upcoming PM plans (next 5)
+      scoped(supabase.from("pm_plans").select("id, plan_name, next_due_at, frequency"), activePropertyId)
+        .eq("is_active", true).not("next_due_at", "is", null).order("next_due_at", { ascending: true }).limit(5),
+      // Recent security incidents
+      scoped(supabase.from("security_incidents").select("id, incident_number, incident_type, location, incident_date, status"), activePropertyId)
+        .order("incident_date", { ascending: false }).limit(5),
+      // Tickets by category (open only)
+      scoped(supabase.from("tickets").select("category"), activePropertyId).neq("status", "مغلق"),
+      // Expiring documents (top 5)
+      scoped(supabase.from("documents").select("id, title, category, expiry_date"), activePropertyId)
+        .not("expiry_date", "is", null).lte("expiry_date", in60ISO).order("expiry_date", { ascending: true }).limit(5),
+      // Extra counts
+      scoped(supabase.from("cameras").select("id", { count: "exact", head: true }), activePropertyId),
+      supabase.from("employees").select("id", { count: "exact", head: true }).eq("status", "نشط"),
+      supabase.from("vendors").select("id", { count: "exact", head: true }),
+      scoped(supabase.from("documents").select("id", { count: "exact", head: true }), activePropertyId)
+        .not("expiry_date", "is", null).lte("expiry_date", in60ISO).gte("expiry_date", todayISO),
+      scoped(supabase.from("contracts").select("id", { count: "exact", head: true }), activePropertyId)
+        .gte("created_at", monthStartISO),
     ]);
 
     if (sRes.data) setStats(sRes.data as Stats);

@@ -24,6 +24,7 @@ import { FloorOccupancy, type FloorRow } from "@/components/dashboard/floor-occu
 import { TopTenants, type TopTenant } from "@/components/dashboard/top-tenants";
 import { ActivityHeatmap } from "@/components/dashboard/activity-heatmap";
 import { CountUp } from "@/components/dashboard/count-up";
+import { TimeRangeSelector, computeRange, rangeLabel, type TimeRange } from "@/components/dashboard/time-range-selector";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,

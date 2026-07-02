@@ -428,7 +428,7 @@ function Dashboard() {
             <KpiHeroCard
               label="صافي التدفق"
               value={fmtSAR(netCashflow)}
-              sublabel="إيرادات − مصروفات هذا الشهر"
+              sublabel={`إيرادات − مصروفات (${rangeLabel(range)})`}
               tone={netCashflow >= 0 ? "sky" : "red"}
               icon={netCashflow >= 0 ? TrendingUp : TrendingDown}
               deltaPct={netDelta}

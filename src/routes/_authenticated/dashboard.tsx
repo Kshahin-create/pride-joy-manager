@@ -24,6 +24,7 @@ import { FloorOccupancy, type FloorRow } from "@/components/dashboard/floor-occu
 import { TopTenants, type TopTenant } from "@/components/dashboard/top-tenants";
 import { ActivityHeatmap } from "@/components/dashboard/activity-heatmap";
 import { CountUp } from "@/components/dashboard/count-up";
+import { TimeRangeSelector, computeRange, rangeLabel, type TimeRange } from "@/components/dashboard/time-range-selector";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -59,6 +60,7 @@ function Dashboard() {
   const { roles, hasAnyRole, hasPermission } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshedAt, setRefreshedAt] = useState<Date>(new Date());
+  const [range, setRange] = useState<TimeRange>(() => computeRange("30d"));
   const [stats, setStats] = useState<Stats | null>(null);
   const [monthly, setMonthly] = useState<MonthlyRow[]>([]);
   const [events, setEvents] = useState<BuildingLogRow[]>([]);
@@ -71,7 +73,8 @@ function Dashboard() {
     visitors_inside: 0, visitors_today: 0,
     expenses_pending: 0, expenses_paid_month: 0,
     wo_overdue: 0, wo_pm_due: 0,
-    collected_prev_month: 0, expenses_prev_month: 0,
+    collected_now: 0, collected_prev: 0,
+    expenses_prev_month: 0,
   });
 
   const isAdmin = hasAnyRole(["super_admin", "owner"]);
@@ -99,9 +102,13 @@ function Dashboard() {
   const load = async () => {
     setLoading(true);
     const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const rangeFromISO = range.from.toISOString().slice(0, 10);
+    const rangeToISO = range.to.toISOString().slice(0, 10);
+    const rangeDays = Math.max(1, Math.ceil((range.to.getTime() - range.from.getTime()) / 86400000));
+    const prevFrom = new Date(range.from.getTime() - rangeDays * 86400000);
+    const prevTo = new Date(range.from.getTime() - 86400000);
+    const prevFromISO = prevFrom.toISOString().slice(0, 10);
+    const prevToISO = prevTo.toISOString().slice(0, 10);
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const in90 = new Date(); in90.setDate(in90.getDate() + 90);
     const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -120,10 +127,10 @@ function Dashboard() {
       scoped(supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).eq("status", "داخل"),
       scoped(supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).gte("check_in_at", today.toISOString()),
       scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "معلّق"),
-      scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "مدفوع").gte("expense_date", monthStart.toISOString().slice(0, 10)),
+      scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "مدفوع").gte("expense_date", rangeFromISO).lte("expense_date", rangeToISO),
       scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "مدفوع")
-        .gte("expense_date", prevMonthStart.toISOString().slice(0, 10))
-        .lte("expense_date", prevMonthEnd.toISOString().slice(0, 10)),
+        .gte("expense_date", prevFromISO)
+        .lte("expense_date", prevToISO),
       scoped(supabase.from("maintenance_requests").select("id", { count: "exact", head: true }), activePropertyId).eq("is_overdue", true).neq("status", "مغلق"),
       scoped(supabase.from("pm_plans").select("id", { count: "exact", head: true }), activePropertyId).eq("is_active", true).lte("next_due_at", new Date().toISOString()),
       scoped(supabase.from("expenses").select("amount, expense_date"), activePropertyId).eq("status", "مدفوع").gte("expense_date", new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString().slice(0, 10)),
@@ -232,12 +239,28 @@ function Dashboard() {
     });
     setHeatmap(grid);
 
+    // Compute collected in range from monthly_revenue view (aggregated per month)
+    const monthKeys = (from: Date, to: Date) => {
+      const keys: string[] = [];
+      const d = new Date(from.getFullYear(), from.getMonth(), 1);
+      const end = new Date(to.getFullYear(), to.getMonth(), 1);
+      while (d <= end) {
+        keys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+        d.setMonth(d.getMonth() + 1);
+      }
+      return keys;
+    };
+    const sumMonths = (keys: string[]) => keys.reduce((a, k) => a + (revMap.get(k) ?? 0), 0);
+    const collectedNowV = sumMonths(monthKeys(range.from, range.to));
+    const collectedPrevV = sumMonths(monthKeys(prevFrom, prevTo));
+
     setExtras({
       visitors_inside: vIn.count ?? 0,
       visitors_today: vTd.count ?? 0,
       expenses_pending: (eP.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
       expenses_paid_month: (eM.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
-      collected_prev_month: months[months.length - 2]?.revenue ?? 0,
+      collected_now: collectedNowV,
+      collected_prev: collectedPrevV,
       expenses_prev_month: (ePrev.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
       wo_overdue: woO.count ?? 0,
       wo_pm_due: woP.count ?? 0,
@@ -246,13 +269,13 @@ function Dashboard() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId, range.preset, range.from.getTime(), range.to.getTime()]);
 
   const occRate = stats && stats.offices_total
     ? Math.round(((stats.offices_rented + stats.offices_reserved) / stats.offices_total) * 100)
     : 0;
-  const collectedNow = stats?.collected_this_month ?? 0;
-  const collectedPrev = extras.collected_prev_month;
+  const collectedNow = extras.collected_now;
+  const collectedPrev = extras.collected_prev;
   const collectedDelta = collectedPrev > 0 ? ((collectedNow - collectedPrev) / collectedPrev) * 100 : null;
   const expensesDelta = extras.expenses_prev_month > 0
     ? ((extras.expenses_paid_month - extras.expenses_prev_month) / extras.expenses_prev_month) * 100
@@ -350,6 +373,7 @@ function Dashboard() {
         canSeeFinance={canSeeFinance}
         isAdmin={isAdmin}
         isMaintenance={isMaintenance}
+        rangeSlot={<TimeRangeSelector value={range} onChange={setRange} />}
       />
 
       <AlertStrip items={alertItems} />
@@ -364,7 +388,7 @@ function Dashboard() {
         {show.finance && (
           <motion.div variants={item}>
             <KpiHeroCard
-              label="المحصل هذا الشهر"
+              label={`المحصل — ${rangeLabel(range)}`}
               value={fmtSAR(collectedNow)}
               tone="emerald"
               icon={Receipt}
@@ -404,7 +428,7 @@ function Dashboard() {
             <KpiHeroCard
               label="صافي التدفق"
               value={fmtSAR(netCashflow)}
-              sublabel="إيرادات − مصروفات هذا الشهر"
+              sublabel={`إيرادات − مصروفات (${rangeLabel(range)})`}
               tone={netCashflow >= 0 ? "sky" : "red"}
               icon={netCashflow >= 0 ? TrendingUp : TrendingDown}
               deltaPct={netDelta}
@@ -463,7 +487,7 @@ function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <MiniRow label="مدفوعة هذا الشهر" value={extras.expenses_paid_month} tone="emerald" delta={expensesDelta} invertDelta currency />
+                <MiniRow label={`مدفوعة — ${rangeLabel(range)}`} value={extras.expenses_paid_month} tone="emerald" delta={expensesDelta} invertDelta currency />
                 <MiniRow label="معلّقة بانتظار الاعتماد" value={extras.expenses_pending} tone="amber" currency />
                 <div className="pt-2 border-t">
                   <Link to="/expenses" className="text-xs text-primary hover:underline">إدارة المصروفات ←</Link>

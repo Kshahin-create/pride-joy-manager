@@ -1,15 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Building2, FileSignature, Wallet, AlertTriangle,
   Wrench, Shield, Car, Users, Receipt, Clock, CheckCircle2,
-  TrendingUp, TrendingDown, Activity, RefreshCw,
+  TrendingUp, TrendingDown, Activity,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveProperty } from "@/lib/active-property-context";
 import { scoped } from "@/lib/scoped-query";
-import { useAuth, ROLE_LABELS } from "@/lib/auth-context";
+import { useAuth } from "@/lib/auth-context";
 import { Timeline as BuildingLogTimeline, type BuildingLogRow } from "@/components/building-log-timeline";
 import { KpiHeroCard } from "@/components/dashboard/kpi-hero-card";
 import { AlertStrip, type AlertItem } from "@/components/dashboard/alert-strip";
@@ -18,6 +19,11 @@ import { OccupancyPanel } from "@/components/dashboard/occupancy-panel";
 import { ExpiringContractsTable, type ExpiringRow } from "@/components/dashboard/expiring-contracts-table";
 import { ActionCenter, type ActionItem } from "@/components/dashboard/action-center";
 import { SectionTabs, type SectionTab } from "@/components/dashboard/section-tabs";
+import { HeroHeader } from "@/components/dashboard/hero-header";
+import { FloorOccupancy, type FloorRow } from "@/components/dashboard/floor-occupancy";
+import { TopTenants, type TopTenant } from "@/components/dashboard/top-tenants";
+import { ActivityHeatmap } from "@/components/dashboard/activity-heatmap";
+import { CountUp } from "@/components/dashboard/count-up";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -34,13 +40,23 @@ type Stats = {
   parking_occupied: number; parking_available: number; violations_open: number;
 };
 
-const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n || 0);
+const fmt = (n: number) => new Intl.NumberFormat("en-US").format(Math.round(n || 0));
 const fmtSAR = (n: number) =>
-  `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n || 0)} ر.س`;
+  `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(n || 0))} ر.س`;
+
+// Stagger container for section grid
+const stagger = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.06 } },
+};
+const item = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" as const } },
+};
 
 function Dashboard() {
   const { activePropertyId } = useActiveProperty();
-  const { user, roles, hasAnyRole, hasPermission } = useAuth();
+  const { roles, hasAnyRole, hasPermission } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshedAt, setRefreshedAt] = useState<Date>(new Date());
   const [stats, setStats] = useState<Stats | null>(null);
@@ -48,6 +64,9 @@ function Dashboard() {
   const [events, setEvents] = useState<BuildingLogRow[]>([]);
   const [expiring, setExpiring] = useState<ExpiringRow[]>([]);
   const [actions, setActions] = useState<ActionItem[]>([]);
+  const [floorRows, setFloorRows] = useState<FloorRow[]>([]);
+  const [topTenants, setTopTenants] = useState<TopTenant[]>([]);
+  const [heatmap, setHeatmap] = useState<number[][]>(() => Array.from({ length: 7 }, () => Array(24).fill(0)));
   const [extras, setExtras] = useState({
     visitors_inside: 0, visitors_today: 0,
     expenses_pending: 0, expenses_paid_month: 0,
@@ -85,6 +104,7 @@ function Dashboard() {
     const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const in90 = new Date(); in90.setDate(in90.getDate() + 90);
+    const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const [
       sRes, mRes, eRes,
@@ -92,6 +112,7 @@ function Dashboard() {
       eP, eM, ePrev,
       woO, woP,
       expList, expiringList, overdueWO, emergency,
+      officesRes, topContractsRes, eventsAllRes,
     ] = await Promise.all([
       supabase.from("dashboard_stats").select("*").maybeSingle(),
       supabase.from("monthly_revenue").select("*"),
@@ -112,11 +133,19 @@ function Dashboard() {
       ).eq("status", "ساري").lte("end_date", in90.toISOString().slice(0, 10)).order("end_date", { ascending: true }).limit(10),
       scoped(supabase.from("maintenance_requests").select("id, request_number, description, completion_due_at"), activePropertyId).eq("is_overdue", true).neq("status", "مغلق").limit(5),
       scoped(supabase.from("tickets").select("id, ticket_number, description, priority"), activePropertyId).eq("priority", "طارئة").neq("status", "مغلق").limit(5),
+      scoped(supabase.from("offices").select("floor, status"), activePropertyId),
+      canSeeFinance
+        ? scoped(
+            supabase.from("contracts").select("id, contract_number, annual_rent, companies(company_name)"),
+            activePropertyId
+          ).eq("status", "ساري").order("annual_rent", { ascending: false }).limit(5)
+        : Promise.resolve({ data: [] as any[] }),
+      supabase.from("building_log").select("created_at").gte("created_at", sevenDaysAgo.toISOString()).limit(2000),
     ]);
 
     if (sRes.data) setStats(sRes.data as Stats);
 
-    // Build monthly revenue + expenses map
+    // Monthly revenue + expenses
     const revMap = new Map<string, number>();
     (mRes.data ?? []).forEach((r: any) => revMap.set(r.month, Number(r.revenue) || 0));
     const expMap = new Map<string, number>();
@@ -124,7 +153,6 @@ function Dashboard() {
       const k = String(r.expense_date).slice(0, 7);
       expMap.set(k, (expMap.get(k) ?? 0) + Number(r.amount || 0));
     });
-    // build 12 months axis
     const months: MonthlyRow[] = [];
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -135,7 +163,7 @@ function Dashboard() {
 
     if (eRes.data) setEvents(eRes.data as BuildingLogRow[]);
 
-    // Expiring rows
+    // Expiring
     const exRows: ExpiringRow[] = ((expiringList.data ?? []) as any[]).map((c) => {
       const end = new Date(c.end_date);
       const days = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -150,7 +178,7 @@ function Dashboard() {
     });
     setExpiring(exRows);
 
-    // Action items
+    // Actions
     const items: ActionItem[] = [];
     ((overdueWO.data ?? []) as any[]).forEach((w) => items.push({
       id: `wo-${w.id}`, priority: "high",
@@ -173,6 +201,37 @@ function Dashboard() {
     }));
     setActions(items);
 
+    // Floors
+    const fmap = new Map<number, { total: number; occupied: number }>();
+    ((officesRes.data ?? []) as any[]).forEach((o) => {
+      const rec = fmap.get(o.floor) ?? { total: 0, occupied: 0 };
+      rec.total += 1;
+      if (o.status === "مؤجر" || o.status === "محجوز") rec.occupied += 1;
+      fmap.set(o.floor, rec);
+    });
+    setFloorRows(Array.from(fmap.entries()).map(([floor, v]) => ({ floor, ...v })));
+
+    // Top tenants
+    setTopTenants(((topContractsRes.data ?? []) as any[]).map((c) => ({
+      id: c.id,
+      name: c.companies?.company_name ?? "—",
+      contract_number: c.contract_number,
+      annual_rent: Number(c.annual_rent || 0),
+    })).filter((r) => r.annual_rent > 0));
+
+    // Heatmap: build 7×24 grid ending today
+    const grid = Array.from({ length: 7 }, () => Array(24).fill(0));
+    ((eventsAllRes.data ?? []) as any[]).forEach((row) => {
+      const d = new Date(row.created_at);
+      const diffDays = Math.floor((today.getTime() - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays < 0 || diffDays > 6) return;
+      const dayIdx = 6 - diffDays; // oldest at top row 0? we'll show last 7 days
+      const dow = d.getDay(); // 0=Sun
+      grid[dow][d.getHours()] += 1;
+      void dayIdx;
+    });
+    setHeatmap(grid);
+
     setExtras({
       visitors_inside: vIn.count ?? 0,
       visitors_today: vTd.count ?? 0,
@@ -192,7 +251,6 @@ function Dashboard() {
   const occRate = stats && stats.offices_total
     ? Math.round(((stats.offices_rented + stats.offices_reserved) / stats.offices_total) * 100)
     : 0;
-  const prevOcc = 0; // baseline unknown historically
   const collectedNow = stats?.collected_this_month ?? 0;
   const collectedPrev = extras.collected_prev_month;
   const collectedDelta = collectedPrev > 0 ? ((collectedNow - collectedPrev) / collectedPrev) * 100 : null;
@@ -203,7 +261,6 @@ function Dashboard() {
   const netCashflowPrev = collectedPrev - extras.expenses_prev_month;
   const netDelta = netCashflowPrev !== 0 ? ((netCashflow - netCashflowPrev) / Math.abs(netCashflowPrev)) * 100 : null;
 
-  // Sparkline data (last 6 months)
   const spark = (key: "revenue" | "expenses") =>
     monthly.slice(-6).map((m) => ({ label: m.month, value: m[key] }));
   const netSpark = monthly.slice(-6).map((m) => ({ label: m.month, value: m.revenue - m.expenses }));
@@ -215,7 +272,7 @@ function Dashboard() {
     : isReception ? "لوحة الاستقبال"
     : "اللوحة الرئيسية";
 
-  // Alert strip items
+  // Alerts
   const alertItems: AlertItem[] = [];
   if ((stats?.tickets_emergency ?? 0) > 0) alertItems.push({ label: "بلاغات طارئة", count: stats!.tickets_emergency, tone: "red", link: "/complaints" });
   if (extras.wo_overdue > 0) alertItems.push({ label: "أوامر صيانة متأخرة", count: extras.wo_overdue, tone: "red", link: "/maintenance" });
@@ -225,7 +282,7 @@ function Dashboard() {
   if (extras.wo_pm_due > 0) alertItems.push({ label: "خطط وقائية مستحقة", count: extras.wo_pm_due, tone: "amber", link: "/pm-plans" });
   if ((stats?.violations_open ?? 0) > 0) alertItems.push({ label: "مخالفات مواقف مفتوحة", count: stats!.violations_open, tone: "amber", link: "/parking" });
 
-  // Section tabs
+  // Tabs
   const tabs: SectionTab[] = [];
   if (show.operations) tabs.push({
     id: "ops", label: "التشغيل",
@@ -281,104 +338,109 @@ function Dashboard() {
     ],
   });
 
-  return (
-    <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-primary to-primary/40" />
-            <h1 className="text-xl sm:text-2xl font-bold text-primary">{title}</h1>
-          </div>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 break-words">
-            مرحباً <span dir="ltr" className="inline-block align-middle font-medium">{user?.email}</span>
-            {roles.length > 0 && <> — صلاحيتك: <span className="font-medium">{roles.map((r) => ROLE_LABELS[r] ?? r).join(", ")}</span></>}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] text-muted-foreground hidden sm:inline">
-            آخر تحديث: {refreshedAt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
-          </span>
-          <button
-            onClick={load}
-            disabled={loading}
-            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border bg-card hover:bg-muted transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-            تحديث
-          </button>
-        </div>
-      </div>
+  void roles;
 
-      {/* Alert Strip */}
+  return (
+    <div className="space-y-5 pb-8">
+      <HeroHeader
+        title={title}
+        onRefresh={load}
+        loading={loading}
+        refreshedAt={refreshedAt}
+        canSeeFinance={canSeeFinance}
+        isAdmin={isAdmin}
+        isMaintenance={isMaintenance}
+      />
+
       <AlertStrip items={alertItems} />
 
       {/* KPI Hero Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      >
         {show.finance && (
-          <KpiHeroCard
-            label="المحصل هذا الشهر"
-            value={fmtSAR(collectedNow)}
-            tone="emerald"
-            icon={Receipt}
-            deltaPct={collectedDelta}
-            trend={spark("revenue")}
-            link="/finance"
-          />
+          <motion.div variants={item}>
+            <KpiHeroCard
+              label="المحصل هذا الشهر"
+              value={fmtSAR(collectedNow)}
+              tone="emerald"
+              icon={Receipt}
+              deltaPct={collectedDelta}
+              trend={spark("revenue")}
+              link="/finance"
+            />
+          </motion.div>
         )}
         {show.finance && (
-          <KpiHeroCard
-            label="إجمالي المتأخرات"
-            value={fmtSAR(stats?.overdue_total ?? 0)}
-            sublabel="مستحق على المستأجرين"
-            tone="red"
-            icon={AlertTriangle}
-            invertDelta
-            link="/finance"
-          />
+          <motion.div variants={item}>
+            <KpiHeroCard
+              label="إجمالي المتأخرات"
+              value={fmtSAR(stats?.overdue_total ?? 0)}
+              sublabel="مستحق على المستأجرين"
+              tone="red"
+              icon={AlertTriangle}
+              invertDelta
+              link="/finance"
+            />
+          </motion.div>
         )}
         {show.occupancy && (
-          <KpiHeroCard
-            label="نسبة الإشغال"
-            value={`${occRate}%`}
-            sublabel={`${fmt((stats?.offices_rented ?? 0) + (stats?.offices_reserved ?? 0))} من ${fmt(stats?.offices_total ?? 0)}`}
-            tone="primary"
-            icon={Building2}
-            link="/offices"
-          />
+          <motion.div variants={item}>
+            <KpiHeroCard
+              label="نسبة الإشغال"
+              value={`${occRate}%`}
+              sublabel={`${fmt((stats?.offices_rented ?? 0) + (stats?.offices_reserved ?? 0))} من ${fmt(stats?.offices_total ?? 0)}`}
+              tone="primary"
+              icon={Building2}
+              link="/offices"
+            />
+          </motion.div>
         )}
         {show.finance && (
-          <KpiHeroCard
-            label="صافي التدفق"
-            value={fmtSAR(netCashflow)}
-            sublabel="إيرادات − مصروفات هذا الشهر"
-            tone={netCashflow >= 0 ? "sky" : "red"}
-            icon={netCashflow >= 0 ? TrendingUp : TrendingDown}
-            deltaPct={netDelta}
-            trend={netSpark}
-            link="/finance"
-          />
+          <motion.div variants={item}>
+            <KpiHeroCard
+              label="صافي التدفق"
+              value={fmtSAR(netCashflow)}
+              sublabel="إيرادات − مصروفات هذا الشهر"
+              tone={netCashflow >= 0 ? "sky" : "red"}
+              icon={netCashflow >= 0 ? TrendingUp : TrendingDown}
+              deltaPct={netDelta}
+              trend={netSpark}
+              link="/finance"
+            />
+          </motion.div>
         )}
         {!show.finance && !show.occupancy && (
-          <KpiHeroCard
-            label="بلاغات مفتوحة"
-            value={fmt(stats?.tickets_open ?? 0)}
-            tone="amber"
-            icon={Activity}
-            link="/complaints"
-          />
+          <motion.div variants={item}>
+            <KpiHeroCard
+              label="بلاغات مفتوحة"
+              value={fmt(stats?.tickets_open ?? 0)}
+              tone="amber"
+              icon={Activity}
+              link="/complaints"
+            />
+          </motion.div>
         )}
-      </div>
+      </motion.div>
 
       {/* Main grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 space-y-4">
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 lg:grid-cols-3 gap-4"
+      >
+        <motion.div variants={item} className="lg:col-span-2 space-y-4">
           {show.revenueChart && <RevenueExpensesChart data={monthly} />}
+          {show.events && <ActivityHeatmap cells={heatmap} />}
           {(show.contracts || isAdmin) && <ExpiringContractsTable rows={expiring} />}
           <ActionCenter items={actions} />
-        </div>
+        </motion.div>
 
-        <div className="space-y-4">
+        <motion.div variants={item} className="space-y-4">
           {show.occupancy && stats && (
             <OccupancyPanel
               total={stats.offices_total}
@@ -389,6 +451,10 @@ function Dashboard() {
             />
           )}
 
+          {show.occupancy && floorRows.length > 0 && <FloorOccupancy rows={floorRows} />}
+
+          {show.finance && topTenants.length > 0 && <TopTenants rows={topTenants} />}
+
           {show.expenses && (
             <Card>
               <CardHeader className="pb-2">
@@ -397,8 +463,8 @@ function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <MiniRow label="مدفوعة هذا الشهر" value={fmtSAR(extras.expenses_paid_month)} tone="emerald" delta={expensesDelta} invertDelta />
-                <MiniRow label="معلّقة بانتظار الاعتماد" value={fmtSAR(extras.expenses_pending)} tone="amber" />
+                <MiniRow label="مدفوعة هذا الشهر" value={extras.expenses_paid_month} tone="emerald" delta={expensesDelta} invertDelta currency />
+                <MiniRow label="معلّقة بانتظار الاعتماد" value={extras.expenses_pending} tone="amber" currency />
                 <div className="pt-2 border-t">
                   <Link to="/expenses" className="text-xs text-primary hover:underline">إدارة المصروفات ←</Link>
                 </div>
@@ -407,14 +473,16 @@ function Dashboard() {
           )}
 
           {show.finance && (
-            <Card>
+            <Card className="bg-gradient-to-br from-primary/5 to-gold/5 border-primary/20">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-bold flex items-center gap-2">
                   <Wallet className="h-4 w-4 text-primary" /> الإيرادات السنوية
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-primary tabular-nums">{fmtSAR(stats?.revenue_ytd ?? 0)}</p>
+                <p className="text-2xl font-bold text-primary tabular-nums">
+                  <CountUp value={stats?.revenue_ytd ?? 0} format={(n) => fmtSAR(n)} />
+                </p>
                 <p className="text-xs text-muted-foreground mt-1">منذ بداية السنة</p>
               </CardContent>
             </Card>
@@ -437,18 +505,17 @@ function Dashboard() {
               </CardContent>
             </Card>
           )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      {/* Section Tabs */}
       <SectionTabs tabs={tabs} />
     </div>
   );
 }
 
 function MiniRow({
-  label, value, tone, delta, invertDelta,
-}: { label: string; value: string; tone: "emerald" | "amber" | "red"; delta?: number | null; invertDelta?: boolean }) {
+  label, value, tone, delta, invertDelta, currency,
+}: { label: string; value: number; tone: "emerald" | "amber" | "red"; delta?: number | null; invertDelta?: boolean; currency?: boolean }) {
   const toneCls = tone === "emerald" ? "text-emerald-600" : tone === "amber" ? "text-amber-600" : "text-red-600";
   const hasDelta = typeof delta === "number" && Number.isFinite(delta);
   const positive = hasDelta ? (invertDelta ? delta! < 0 : delta! > 0) : false;
@@ -457,7 +524,9 @@ function MiniRow({
     <div className="flex items-center justify-between">
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className={`text-lg font-bold tabular-nums ${toneCls}`}>{value}</p>
+        <p className={`text-lg font-bold tabular-nums ${toneCls}`}>
+          <CountUp value={value} format={currency ? fmtSAR : fmt} />
+        </p>
       </div>
       {hasDelta && (
         <span className={`text-xs font-semibold ${positive ? "text-emerald-600" : negative ? "text-red-600" : "text-muted-foreground"}`}>

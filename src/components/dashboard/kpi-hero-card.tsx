@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
+import { motion } from "framer-motion";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { ResponsiveContainer, AreaChart, Area, Tooltip } from "recharts";
 
 type Tone = "primary" | "emerald" | "amber" | "red" | "sky";
+
 
 const TONE: Record<Tone, { bg: string; ring: string; stroke: string; fill: string; text: string }> = {
   primary: { bg: "from-primary/10 via-primary/5 to-transparent", ring: "ring-primary/20", stroke: "hsl(var(--primary))", fill: "hsl(var(--primary) / 0.25)", text: "text-primary" },
@@ -36,8 +38,14 @@ export function KpiHeroCard({
   const negative = hasDelta ? (invertDelta ? deltaPct! > 0 : deltaPct! < 0) : false;
 
   const body = (
-    <Card className={`relative overflow-hidden ring-1 ${t.ring} bg-gradient-to-br ${t.bg} hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5`}>
+    <motion.div
+      whileHover={{ y: -3 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    >
+    <Card className={`relative overflow-hidden ring-1 ${t.ring} bg-gradient-to-br ${t.bg} hover:shadow-xl transition-shadow duration-300 group`}>
+      <div className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-current to-transparent opacity-40 ${t.text}`} />
       <div className="p-5 relative z-10">
+
         <div className="flex items-start justify-between mb-3">
           <div className="min-w-0">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
@@ -86,7 +94,9 @@ export function KpiHeroCard({
         </div>
       )}
     </Card>
+    </motion.div>
   );
+
 
   return link ? <Link to={link as any} className="block">{body}</Link> : body;
 }

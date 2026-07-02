@@ -60,6 +60,7 @@ function Dashboard() {
   const { roles, hasAnyRole, hasPermission } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshedAt, setRefreshedAt] = useState<Date>(new Date());
+  const [range, setRange] = useState<TimeRange>(() => computeRange("30d"));
   const [stats, setStats] = useState<Stats | null>(null);
   const [monthly, setMonthly] = useState<MonthlyRow[]>([]);
   const [events, setEvents] = useState<BuildingLogRow[]>([]);

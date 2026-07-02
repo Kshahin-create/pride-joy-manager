@@ -300,7 +300,35 @@ function Dashboard() {
       expenses_prev_month: (ePrev.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
       wo_overdue: woO.count ?? 0,
       wo_pm_due: woP.count ?? 0,
+      cameras_count: camerasCount.count ?? 0,
+      employees_count: employeesCount.count ?? 0,
+      vendors_count: vendorsCount.count ?? 0,
+      docs_expiring_count: docsExpCount.count ?? 0,
+      new_contracts_month: newContractsCount.count ?? 0,
     });
+
+    // Upcoming PMs / incidents / doc-expiring lists
+    setUpcomingPMs(((pmUpcoming.data ?? []) as any[]).map((r) => ({
+      id: r.id, plan_name: r.plan_name, next_due_at: r.next_due_at, frequency: r.frequency,
+    })));
+    setRecentIncidents(((incidentsRes.data ?? []) as any[]).map((r) => ({
+      id: r.id, incident_number: r.incident_number, incident_type: r.incident_type,
+      location: r.location, incident_date: r.incident_date, status: r.status,
+    })));
+    setExpiringDocs(((docsExpRes.data ?? []) as any[]).map((r) => ({
+      id: r.id, title: r.title, category: r.category, expiry_date: r.expiry_date,
+    })));
+
+    // Tickets by category
+    const catMap = new Map<string, number>();
+    ((ticketsCatRes.data ?? []) as any[]).forEach((t) => {
+      const k = (t.category ?? "غير مصنّف") as string;
+      catMap.set(k, (catMap.get(k) ?? 0) + 1);
+    });
+    setCategoryRows(Array.from(catMap.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8));
     setRefreshedAt(new Date());
     setLoading(false);
   };

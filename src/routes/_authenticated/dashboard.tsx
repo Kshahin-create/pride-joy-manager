@@ -73,7 +73,8 @@ function Dashboard() {
     visitors_inside: 0, visitors_today: 0,
     expenses_pending: 0, expenses_paid_month: 0,
     wo_overdue: 0, wo_pm_due: 0,
-    collected_prev_month: 0, expenses_prev_month: 0,
+    collected_now: 0, collected_prev: 0,
+    expenses_prev_month: 0,
   });
 
   const isAdmin = hasAnyRole(["super_admin", "owner"]);

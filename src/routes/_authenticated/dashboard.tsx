@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   Building2, FileSignature, Wallet, AlertTriangle,
   Wrench, Shield, Car, Users, Receipt, Clock, CheckCircle2,
-  TrendingUp, TrendingDown, Activity,
+  TrendingUp, TrendingDown, Activity, Camera, FileText, Briefcase, UserCheck, HardHat,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,11 @@ import { TopTenants, type TopTenant } from "@/components/dashboard/top-tenants";
 import { ActivityHeatmap } from "@/components/dashboard/activity-heatmap";
 import { CountUp } from "@/components/dashboard/count-up";
 import { TimeRangeSelector, computeRange, rangeLabel, type TimeRange } from "@/components/dashboard/time-range-selector";
+import { QuickStatsStrip, type QuickStat } from "@/components/dashboard/quick-stats-strip";
+import { UpcomingMaintenance, type UpcomingPM } from "@/components/dashboard/upcoming-maintenance";
+import { RecentIncidents, type IncidentRow } from "@/components/dashboard/recent-incidents";
+import { ComplaintsByCategory, type CategoryRow } from "@/components/dashboard/complaints-by-category";
+import { DocsExpiring, type ExpiringDoc } from "@/components/dashboard/docs-expiring";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,

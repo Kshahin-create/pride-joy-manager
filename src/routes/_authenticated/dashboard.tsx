@@ -101,9 +101,13 @@ function Dashboard() {
   const load = async () => {
     setLoading(true);
     const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const rangeFromISO = range.from.toISOString().slice(0, 10);
+    const rangeToISO = range.to.toISOString().slice(0, 10);
+    const rangeDays = Math.max(1, Math.ceil((range.to.getTime() - range.from.getTime()) / 86400000));
+    const prevFrom = new Date(range.from.getTime() - rangeDays * 86400000);
+    const prevTo = new Date(range.from.getTime() - 86400000);
+    const prevFromISO = prevFrom.toISOString().slice(0, 10);
+    const prevToISO = prevTo.toISOString().slice(0, 10);
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const in90 = new Date(); in90.setDate(in90.getDate() + 90);
     const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);

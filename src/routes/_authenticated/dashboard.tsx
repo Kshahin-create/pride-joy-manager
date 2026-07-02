@@ -540,6 +540,10 @@ function Dashboard() {
       >
         <motion.div variants={item} className="lg:col-span-2 space-y-4">
           {show.revenueChart && <RevenueExpensesChart data={monthly} />}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {show.operations && <ComplaintsByCategory rows={categoryRows} />}
+            {show.workOrders && <UpcomingMaintenance rows={upcomingPMs} />}
+          </div>
           {show.events && <ActivityHeatmap cells={heatmap} />}
           {(show.contracts || isAdmin) && <ExpiringContractsTable rows={expiring} />}
           <ActionCenter items={actions} />

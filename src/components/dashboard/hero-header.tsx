@@ -96,6 +96,7 @@ export function HeroHeader({ title, onRefresh, loading, refreshedAt, canSeeFinan
               </span>
               مباشر — {refreshedAt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
             </span>
+            {rangeSlot}
             <button
               onClick={onRefresh}
               disabled={loading}

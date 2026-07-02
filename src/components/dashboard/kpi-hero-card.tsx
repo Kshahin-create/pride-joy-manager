@@ -94,7 +94,9 @@ export function KpiHeroCard({
         </div>
       )}
     </Card>
+    </motion.div>
   );
+
 
   return link ? <Link to={link as any} className="block">{body}</Link> : body;
 }

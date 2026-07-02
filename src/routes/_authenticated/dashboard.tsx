@@ -239,12 +239,28 @@ function Dashboard() {
     });
     setHeatmap(grid);
 
+    // Compute collected in range from monthly_revenue view (aggregated per month)
+    const monthKeys = (from: Date, to: Date) => {
+      const keys: string[] = [];
+      const d = new Date(from.getFullYear(), from.getMonth(), 1);
+      const end = new Date(to.getFullYear(), to.getMonth(), 1);
+      while (d <= end) {
+        keys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+        d.setMonth(d.getMonth() + 1);
+      }
+      return keys;
+    };
+    const sumMonths = (keys: string[]) => keys.reduce((a, k) => a + (revMap.get(k) ?? 0), 0);
+    const collectedNowV = sumMonths(monthKeys(range.from, range.to));
+    const collectedPrevV = sumMonths(monthKeys(prevFrom, prevTo));
+
     setExtras({
       visitors_inside: vIn.count ?? 0,
       visitors_today: vTd.count ?? 0,
       expenses_pending: (eP.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
       expenses_paid_month: (eM.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
-      collected_prev_month: months[months.length - 2]?.revenue ?? 0,
+      collected_now: collectedNowV,
+      collected_prev: collectedPrevV,
       expenses_prev_month: (ePrev.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
       wo_overdue: woO.count ?? 0,
       wo_pm_due: woP.count ?? 0,

@@ -126,10 +126,10 @@ function Dashboard() {
       scoped(supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).eq("status", "داخل"),
       scoped(supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).gte("check_in_at", today.toISOString()),
       scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "معلّق"),
-      scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "مدفوع").gte("expense_date", monthStart.toISOString().slice(0, 10)),
+      scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "مدفوع").gte("expense_date", rangeFromISO).lte("expense_date", rangeToISO),
       scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "مدفوع")
-        .gte("expense_date", prevMonthStart.toISOString().slice(0, 10))
-        .lte("expense_date", prevMonthEnd.toISOString().slice(0, 10)),
+        .gte("expense_date", prevFromISO)
+        .lte("expense_date", prevToISO),
       scoped(supabase.from("maintenance_requests").select("id", { count: "exact", head: true }), activePropertyId).eq("is_overdue", true).neq("status", "مغلق"),
       scoped(supabase.from("pm_plans").select("id", { count: "exact", head: true }), activePropertyId).eq("is_active", true).lte("next_due_at", new Date().toISOString()),
       scoped(supabase.from("expenses").select("amount, expense_date"), activePropertyId).eq("status", "مدفوع").gte("expense_date", new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString().slice(0, 10)),

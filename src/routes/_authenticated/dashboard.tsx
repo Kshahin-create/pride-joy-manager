@@ -388,7 +388,7 @@ function Dashboard() {
         {show.finance && (
           <motion.div variants={item}>
             <KpiHeroCard
-              label="المحصل هذا الشهر"
+              label={`المحصل — ${rangeLabel(range)}`}
               value={fmtSAR(collectedNow)}
               tone="emerald"
               icon={Receipt}

@@ -1,19 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  Building2, FileSignature, Wallet, TrendingUp, AlertTriangle,
+  Building2, FileSignature, Wallet, AlertTriangle,
   Wrench, Shield, Car, Users, Receipt, Clock, CheckCircle2,
+  TrendingUp, TrendingDown, Activity, RefreshCw,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-} from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveProperty } from "@/lib/active-property-context";
 import { scoped } from "@/lib/scoped-query";
 import { useAuth, ROLE_LABELS } from "@/lib/auth-context";
 import { Timeline as BuildingLogTimeline, type BuildingLogRow } from "@/components/building-log-timeline";
+import { KpiHeroCard } from "@/components/dashboard/kpi-hero-card";
+import { AlertStrip, type AlertItem } from "@/components/dashboard/alert-strip";
+import { RevenueExpensesChart, type MonthlyRow } from "@/components/dashboard/revenue-expenses-chart";
+import { OccupancyPanel } from "@/components/dashboard/occupancy-panel";
+import { ExpiringContractsTable, type ExpiringRow } from "@/components/dashboard/expiring-contracts-table";
+import { ActionCenter, type ActionItem } from "@/components/dashboard/action-center";
+import { SectionTabs, type SectionTab } from "@/components/dashboard/section-tabs";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -31,18 +35,24 @@ type Stats = {
 };
 
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(n || 0);
-const fmtSAR = (n: number) => `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n || 0)} ر.س`;
+const fmtSAR = (n: number) =>
+  `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n || 0)} ر.س`;
 
 function Dashboard() {
   const { activePropertyId } = useActiveProperty();
   const { user, roles, hasAnyRole, hasPermission } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [refreshedAt, setRefreshedAt] = useState<Date>(new Date());
   const [stats, setStats] = useState<Stats | null>(null);
-  const [monthly, setMonthly] = useState<{ month: string; revenue: number }[]>([]);
+  const [monthly, setMonthly] = useState<MonthlyRow[]>([]);
   const [events, setEvents] = useState<BuildingLogRow[]>([]);
+  const [expiring, setExpiring] = useState<ExpiringRow[]>([]);
+  const [actions, setActions] = useState<ActionItem[]>([]);
   const [extras, setExtras] = useState({
     visitors_inside: 0, visitors_today: 0,
     expenses_pending: 0, expenses_paid_month: 0,
     wo_overdue: 0, wo_pm_due: 0,
+    collected_prev_month: 0, expenses_prev_month: 0,
   });
 
   const isAdmin = hasAnyRole(["super_admin", "owner"]);
@@ -50,55 +60,153 @@ function Dashboard() {
   const isMaintenance = hasAnyRole(["maintenance_supervisor"]);
   const isSecurity = hasAnyRole(["security_supervisor"]);
   const isReception = hasAnyRole(["receptionist"]);
-
-  // الأرقام المالية: super_admin و accountant فقط (افتراضيًا)
   const canSeeFinance = hasAnyRole(["super_admin", "accountant"]);
-
-  // Widget visibility = default role-based access OR explicit permission granted from
-  // "إدارة الأدوار والصلاحيات → لوحة التحكم". This lets admins extend dashboard widgets
-  // to custom roles per employee without losing the built-in role presets.
   const allow = (key: string, fallback: boolean) => fallback || hasPermission(key);
 
   const show = {
-    occupancy:    allow("dashboard.widget.occupancy",     isAdmin),
+    occupancy: allow("dashboard.widget.occupancy", isAdmin),
     revenueChart: allow("dashboard.widget.revenue_chart", canSeeFinance),
-    finance:      allow("dashboard.widget.finance",       canSeeFinance),
-    expenses:     allow("dashboard.widget.expenses",      canSeeFinance),
-    operations:   allow("dashboard.widget.operations",    isAdmin || isMaintenance || isReception),
-    workOrders:   allow("dashboard.widget.work_orders",   isAdmin || isMaintenance),
-    contracts:    allow("dashboard.widget.contracts",     isAdmin || isAccountant),
-    security:     allow("dashboard.widget.security",      isAdmin || isSecurity),
-    parking:      allow("dashboard.widget.parking",       isAdmin || isSecurity),
-    visitors:     allow("dashboard.widget.visitors",      isAdmin || isSecurity || isReception),
-    events:       allow("dashboard.widget.events",        isAdmin),
+    finance: allow("dashboard.widget.finance", canSeeFinance),
+    expenses: allow("dashboard.widget.expenses", canSeeFinance),
+    operations: allow("dashboard.widget.operations", isAdmin || isMaintenance || isReception),
+    workOrders: allow("dashboard.widget.work_orders", isAdmin || isMaintenance),
+    contracts: allow("dashboard.widget.contracts", isAdmin || isAccountant),
+    security: allow("dashboard.widget.security", isAdmin || isSecurity),
+    parking: allow("dashboard.widget.parking", isAdmin || isSecurity),
+    visitors: allow("dashboard.widget.visitors", isAdmin || isSecurity || isReception),
+    events: allow("dashboard.widget.events", isAdmin),
   };
 
-  useEffect(() => {
-    (async () => {
-      const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const [s, m, e, vIn, vTd, eP, eM, woO, woP] = await Promise.all([
-        supabase.from("dashboard_stats").select("*").maybeSingle(),
-        supabase.from("monthly_revenue").select("*"),
-        supabase.from("building_log").select("*").order("created_at", { ascending: false }).limit(10),scoped(supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).eq("status", "داخل"),scoped(supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).gte("check_in_at", today.toISOString()),scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "معلّق"),scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "مدفوع").gte("expense_date", monthStart.toISOString().slice(0, 10)),scoped(supabase.from("maintenance_requests").select("id", { count: "exact", head: true }), activePropertyId).eq("is_overdue", true).neq("status", "مغلق"),scoped(supabase.from("pm_plans").select("id", { count: "exact", head: true }), activePropertyId).eq("is_active", true).lte("next_due_at", new Date().toISOString()),
-      ]);
-      if (s.data) setStats(s.data as Stats);
-      if (m.data) setMonthly(m.data.map((r: any) => ({ month: r.month, revenue: Number(r.revenue) })));
-      if (e.data) setEvents(e.data as BuildingLogRow[]);
-      setExtras({
-        visitors_inside: vIn.count ?? 0,
-        visitors_today: vTd.count ?? 0,
-        expenses_pending: (eP.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
-        expenses_paid_month: (eM.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
-        wo_overdue: woO.count ?? 0,
-        wo_pm_due: woP.count ?? 0,
-      });
-    })();
-  }, []);
+  const load = async () => {
+    setLoading(true);
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const in90 = new Date(); in90.setDate(in90.getDate() + 90);
+
+    const [
+      sRes, mRes, eRes,
+      vIn, vTd,
+      eP, eM, ePrev,
+      woO, woP,
+      expList, expiringList, overdueWO, emergency,
+    ] = await Promise.all([
+      supabase.from("dashboard_stats").select("*").maybeSingle(),
+      supabase.from("monthly_revenue").select("*"),
+      supabase.from("building_log").select("*").order("created_at", { ascending: false }).limit(8),
+      scoped(supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).eq("status", "داخل"),
+      scoped(supabase.from("visitors").select("id", { count: "exact", head: true }), activePropertyId).gte("check_in_at", today.toISOString()),
+      scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "معلّق"),
+      scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "مدفوع").gte("expense_date", monthStart.toISOString().slice(0, 10)),
+      scoped(supabase.from("expenses").select("amount"), activePropertyId).eq("status", "مدفوع")
+        .gte("expense_date", prevMonthStart.toISOString().slice(0, 10))
+        .lte("expense_date", prevMonthEnd.toISOString().slice(0, 10)),
+      scoped(supabase.from("maintenance_requests").select("id", { count: "exact", head: true }), activePropertyId).eq("is_overdue", true).neq("status", "مغلق"),
+      scoped(supabase.from("pm_plans").select("id", { count: "exact", head: true }), activePropertyId).eq("is_active", true).lte("next_due_at", new Date().toISOString()),
+      scoped(supabase.from("expenses").select("amount, expense_date"), activePropertyId).eq("status", "مدفوع").gte("expense_date", new Date(now.getFullYear(), now.getMonth() - 11, 1).toISOString().slice(0, 10)),
+      scoped(
+        supabase.from("contracts").select("id, contract_number, end_date, status, company_id, office_id, companies(company_name), offices(office_number)"),
+        activePropertyId
+      ).eq("status", "ساري").lte("end_date", in90.toISOString().slice(0, 10)).order("end_date", { ascending: true }).limit(10),
+      scoped(supabase.from("maintenance_requests").select("id, request_number, description, completion_due_at"), activePropertyId).eq("is_overdue", true).neq("status", "مغلق").limit(5),
+      scoped(supabase.from("tickets").select("id, ticket_number, description, priority"), activePropertyId).eq("priority", "طارئة").neq("status", "مغلق").limit(5),
+    ]);
+
+    if (sRes.data) setStats(sRes.data as Stats);
+
+    // Build monthly revenue + expenses map
+    const revMap = new Map<string, number>();
+    (mRes.data ?? []).forEach((r: any) => revMap.set(r.month, Number(r.revenue) || 0));
+    const expMap = new Map<string, number>();
+    (expList.data ?? []).forEach((r: any) => {
+      const k = String(r.expense_date).slice(0, 7);
+      expMap.set(k, (expMap.get(k) ?? 0) + Number(r.amount || 0));
+    });
+    // build 12 months axis
+    const months: MonthlyRow[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      months.push({ month: key, revenue: revMap.get(key) ?? 0, expenses: expMap.get(key) ?? 0 });
+    }
+    setMonthly(months);
+
+    if (eRes.data) setEvents(eRes.data as BuildingLogRow[]);
+
+    // Expiring rows
+    const exRows: ExpiringRow[] = ((expiringList.data ?? []) as any[]).map((c) => {
+      const end = new Date(c.end_date);
+      const days = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return {
+        id: c.id,
+        contract_number: c.contract_number,
+        company_name: c.companies?.company_name ?? "—",
+        office_label: c.offices?.office_number,
+        end_date: c.end_date,
+        days_left: days,
+      };
+    });
+    setExpiring(exRows);
+
+    // Action items
+    const items: ActionItem[] = [];
+    ((overdueWO.data ?? []) as any[]).forEach((w) => items.push({
+      id: `wo-${w.id}`, priority: "high",
+      title: `أمر صيانة متأخر: ${w.request_number}`,
+      subtitle: (w.description ?? "").slice(0, 80),
+      link: `/maintenance`, cta: "عرض",
+    }));
+    ((emergency.data ?? []) as any[]).forEach((t) => items.push({
+      id: `t-${t.id}`, priority: "high",
+      title: `بلاغ طارئ: ${t.ticket_number}`,
+      subtitle: (t.description ?? "").slice(0, 80),
+      link: `/complaints/${t.id}`, cta: "معالجة",
+    }));
+    exRows.filter((r) => r.days_left <= 30).forEach((r) => items.push({
+      id: `c-${r.id}`,
+      priority: r.days_left <= 0 ? "high" : r.days_left <= 14 ? "high" : "medium",
+      title: r.days_left <= 0 ? `عقد منتهي: ${r.contract_number}` : `عقد قارب الانتهاء: ${r.contract_number}`,
+      subtitle: `${r.company_name} — ${r.days_left <= 0 ? `منتهي منذ ${Math.abs(r.days_left)} يوم` : `متبقي ${r.days_left} يوم`}`,
+      link: `/contracts/${r.id}`, cta: "تجديد",
+    }));
+    setActions(items);
+
+    setExtras({
+      visitors_inside: vIn.count ?? 0,
+      visitors_today: vTd.count ?? 0,
+      expenses_pending: (eP.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
+      expenses_paid_month: (eM.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
+      collected_prev_month: months[months.length - 2]?.revenue ?? 0,
+      expenses_prev_month: (ePrev.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
+      wo_overdue: woO.count ?? 0,
+      wo_pm_due: woP.count ?? 0,
+    });
+    setRefreshedAt(new Date());
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId]);
 
   const occRate = stats && stats.offices_total
     ? Math.round(((stats.offices_rented + stats.offices_reserved) / stats.offices_total) * 100)
     : 0;
+  const prevOcc = 0; // baseline unknown historically
+  const collectedNow = stats?.collected_this_month ?? 0;
+  const collectedPrev = extras.collected_prev_month;
+  const collectedDelta = collectedPrev > 0 ? ((collectedNow - collectedPrev) / collectedPrev) * 100 : null;
+  const expensesDelta = extras.expenses_prev_month > 0
+    ? ((extras.expenses_paid_month - extras.expenses_prev_month) / extras.expenses_prev_month) * 100
+    : null;
+  const netCashflow = collectedNow - extras.expenses_paid_month;
+  const netCashflowPrev = collectedPrev - extras.expenses_prev_month;
+  const netDelta = netCashflowPrev !== 0 ? ((netCashflow - netCashflowPrev) / Math.abs(netCashflowPrev)) * 100 : null;
+
+  // Sparkline data (last 6 months)
+  const spark = (key: "revenue" | "expenses") =>
+    monthly.slice(-6).map((m) => ({ label: m.month, value: m[key] }));
+  const netSpark = monthly.slice(-6).map((m) => ({ label: m.month, value: m.revenue - m.expenses }));
 
   const title = isAdmin ? "لوحة الإدارة العليا"
     : isAccountant ? "لوحة المالية"
@@ -107,220 +215,255 @@ function Dashboard() {
     : isReception ? "لوحة الاستقبال"
     : "اللوحة الرئيسية";
 
+  // Alert strip items
+  const alertItems: AlertItem[] = [];
+  if ((stats?.tickets_emergency ?? 0) > 0) alertItems.push({ label: "بلاغات طارئة", count: stats!.tickets_emergency, tone: "red", link: "/complaints" });
+  if (extras.wo_overdue > 0) alertItems.push({ label: "أوامر صيانة متأخرة", count: extras.wo_overdue, tone: "red", link: "/maintenance" });
+  if ((stats?.critical_failures ?? 0) > 0) alertItems.push({ label: "أعطال حرجة", count: stats!.critical_failures, tone: "red", link: "/maintenance" });
+  const expiredCount = expiring.filter((r) => r.days_left <= 0).length;
+  if (expiredCount > 0) alertItems.push({ label: "عقود منتهية", count: expiredCount, tone: "red", link: "/contracts" });
+  if (extras.wo_pm_due > 0) alertItems.push({ label: "خطط وقائية مستحقة", count: extras.wo_pm_due, tone: "amber", link: "/pm-plans" });
+  if ((stats?.violations_open ?? 0) > 0) alertItems.push({ label: "مخالفات مواقف مفتوحة", count: stats!.violations_open, tone: "amber", link: "/parking" });
+
+  // Section tabs
+  const tabs: SectionTab[] = [];
+  if (show.operations) tabs.push({
+    id: "ops", label: "التشغيل",
+    badge: (stats?.tickets_emergency ?? 0) + (stats?.tickets_open ?? 0),
+    stats: [
+      { label: "بلاغات مفتوحة", value: stats?.tickets_open ?? 0, icon: Clock, tone: "amber", link: "/complaints" },
+      { label: "بلاغات مغلقة", value: stats?.tickets_closed ?? 0, icon: CheckCircle2, tone: "emerald", link: "/complaints" },
+      { label: "بلاغات طارئة", value: stats?.tickets_emergency ?? 0, icon: AlertTriangle, tone: "red", link: "/complaints", pulse: (stats?.tickets_emergency ?? 0) > 0 },
+    ],
+  });
+  if (show.workOrders) tabs.push({
+    id: "mnt", label: "الصيانة",
+    badge: extras.wo_overdue + (stats?.critical_failures ?? 0),
+    stats: [
+      { label: "أعطال حرجة", value: stats?.critical_failures ?? 0, icon: AlertTriangle, tone: "red", link: "/maintenance" },
+      { label: "أوامر متأخرة SLA", value: extras.wo_overdue, icon: AlertTriangle, tone: "red", link: "/maintenance", pulse: extras.wo_overdue > 0 },
+      { label: "صيانة مجدولة هذا الأسبوع", value: stats?.scheduled_week ?? 0, icon: Wrench, tone: "sky", link: "/maintenance" },
+      { label: "خطط وقائية مستحقة", value: extras.wo_pm_due, icon: Wrench, tone: "amber", link: "/pm-plans" },
+    ],
+  });
+  if (show.contracts) tabs.push({
+    id: "contracts", label: "العقود",
+    badge: stats?.contracts_expiring ?? 0,
+    stats: [
+      { label: "عقود سارية", value: stats?.contracts_active ?? 0, icon: FileSignature, tone: "emerald", link: "/contracts" },
+      { label: "تنتهي خلال 90 يوم", value: stats?.contracts_expiring ?? 0, icon: AlertTriangle, tone: "amber", link: "/contracts" },
+      { label: "عقود منتهية", value: stats?.contracts_expired ?? 0, icon: FileSignature, tone: "slate", link: "/contracts" },
+    ],
+  });
+  if (show.security) tabs.push({
+    id: "sec", label: "الأمن",
+    badge: stats?.incidents_open ?? 0,
+    stats: [
+      { label: "عدد الحراس", value: stats?.guards_count ?? 0, icon: Users, tone: "sky", link: "/security" },
+      { label: "جولات هذا الأسبوع", value: stats?.patrols_week ?? 0, icon: Shield, tone: "emerald", link: "/security" },
+      { label: "حوادث مفتوحة", value: stats?.incidents_open ?? 0, icon: AlertTriangle, tone: "red", link: "/security" },
+    ],
+  });
+  if (show.parking) tabs.push({
+    id: "prk", label: "المواقف",
+    badge: stats?.violations_open ?? 0,
+    stats: [
+      { label: "مواقف مشغولة", value: stats?.parking_occupied ?? 0, icon: Car, tone: "emerald", link: "/parking" },
+      { label: "مواقف متاحة", value: stats?.parking_available ?? 0, icon: Car, tone: "slate", link: "/parking" },
+      { label: "مخالفات مفتوحة", value: stats?.violations_open ?? 0, icon: AlertTriangle, tone: "red", link: "/parking" },
+    ],
+  });
+  if (show.visitors) tabs.push({
+    id: "vis", label: "الزوار",
+    stats: [
+      { label: "داخل البرج الآن", value: extras.visitors_inside, icon: Users, tone: "emerald", link: "/visitors" },
+      { label: "زوار اليوم", value: extras.visitors_today, icon: Users, tone: "sky", link: "/visitors" },
+    ],
+  });
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-primary">{title}</h1>
-        <p className="text-xs sm:text-sm text-muted-foreground mt-1 break-words">
-          مرحباً <span dir="ltr" className="inline-block align-middle">{user?.email}</span>
-          {roles.length > 0 && <> — صلاحيتك: {roles.map((r) => ROLE_LABELS[r]).join(", ")}</>}
-        </p>
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-primary to-primary/40" />
+            <h1 className="text-xl sm:text-2xl font-bold text-primary">{title}</h1>
+          </div>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 break-words">
+            مرحباً <span dir="ltr" className="inline-block align-middle font-medium">{user?.email}</span>
+            {roles.length > 0 && <> — صلاحيتك: <span className="font-medium">{roles.map((r) => ROLE_LABELS[r] ?? r).join(", ")}</span></>}
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-muted-foreground hidden sm:inline">
+            آخر تحديث: {refreshedAt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+          </span>
+          <button
+            onClick={load}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border bg-card hover:bg-muted transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            تحديث
+          </button>
+        </div>
       </div>
 
+      {/* Alert Strip */}
+      <AlertStrip items={alertItems} />
 
-      {(show.occupancy || show.revenueChart) && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {show.occupancy && (
-            <Card className="lg:col-span-1">
+      {/* KPI Hero Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {show.finance && (
+          <KpiHeroCard
+            label="المحصل هذا الشهر"
+            value={fmtSAR(collectedNow)}
+            tone="emerald"
+            icon={Receipt}
+            deltaPct={collectedDelta}
+            trend={spark("revenue")}
+            link="/finance"
+          />
+        )}
+        {show.finance && (
+          <KpiHeroCard
+            label="إجمالي المتأخرات"
+            value={fmtSAR(stats?.overdue_total ?? 0)}
+            sublabel="مستحق على المستأجرين"
+            tone="red"
+            icon={AlertTriangle}
+            invertDelta
+            link="/finance"
+          />
+        )}
+        {show.occupancy && (
+          <KpiHeroCard
+            label="نسبة الإشغال"
+            value={`${occRate}%`}
+            sublabel={`${fmt((stats?.offices_rented ?? 0) + (stats?.offices_reserved ?? 0))} من ${fmt(stats?.offices_total ?? 0)}`}
+            tone="primary"
+            icon={Building2}
+            link="/offices"
+          />
+        )}
+        {show.finance && (
+          <KpiHeroCard
+            label="صافي التدفق"
+            value={fmtSAR(netCashflow)}
+            sublabel="إيرادات − مصروفات هذا الشهر"
+            tone={netCashflow >= 0 ? "sky" : "red"}
+            icon={netCashflow >= 0 ? TrendingUp : TrendingDown}
+            deltaPct={netDelta}
+            trend={netSpark}
+            link="/finance"
+          />
+        )}
+        {!show.finance && !show.occupancy && (
+          <KpiHeroCard
+            label="بلاغات مفتوحة"
+            value={fmt(stats?.tickets_open ?? 0)}
+            tone="amber"
+            icon={Activity}
+            link="/complaints"
+          />
+        )}
+      </div>
+
+      {/* Main grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 space-y-4">
+          {show.revenueChart && <RevenueExpensesChart data={monthly} />}
+          {(show.contracts || isAdmin) && <ExpiringContractsTable rows={expiring} />}
+          <ActionCenter items={actions} />
+        </div>
+
+        <div className="space-y-4">
+          {show.occupancy && stats && (
+            <OccupancyPanel
+              total={stats.offices_total}
+              rented={stats.offices_rented}
+              reserved={stats.offices_reserved}
+              available={stats.offices_available}
+              maintenance={stats.offices_maintenance}
+            />
+          )}
+
+          {show.expenses && (
+            <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-muted-foreground">نسبة الإشغال</CardTitle>
+                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                  <Wallet className="h-4 w-4 text-primary" /> المصروفات
+                </CardTitle>
               </CardHeader>
-              <CardContent className="flex items-center gap-6">
-                <OccupancyRing percent={occRate} />
-                <div className="space-y-1.5 text-sm">
-                  <Row label="إجمالي" value={fmt(stats?.offices_total ?? 0)} dot="bg-primary" />
-                  <Row label="مؤجر" value={fmt(stats?.offices_rented ?? 0)} dot="bg-emerald-500" />
-                  <Row label="محجوز" value={fmt(stats?.offices_reserved ?? 0)} dot="bg-amber-500" />
-                  <Row label="متاح" value={fmt(stats?.offices_available ?? 0)} dot="bg-slate-400" />
-                  <Row label="صيانة" value={fmt(stats?.offices_maintenance ?? 0)} dot="bg-red-500" />
+              <CardContent className="space-y-3">
+                <MiniRow label="مدفوعة هذا الشهر" value={fmtSAR(extras.expenses_paid_month)} tone="emerald" delta={expensesDelta} invertDelta />
+                <MiniRow label="معلّقة بانتظار الاعتماد" value={fmtSAR(extras.expenses_pending)} tone="amber" />
+                <div className="pt-2 border-t">
+                  <Link to="/expenses" className="text-xs text-primary hover:underline">إدارة المصروفات ←</Link>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {show.revenueChart && (
-            <Card className={show.occupancy ? "lg:col-span-2" : "lg:col-span-3"}>
-              <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-sm text-muted-foreground">الإيرادات — آخر 12 شهر</CardTitle>
-                <TrendingUp className="h-4 w-4 text-emerald-600" />
+          {show.finance && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                  <Wallet className="h-4 w-4 text-primary" /> الإيرادات السنوية
+                </CardTitle>
               </CardHeader>
-              <CardContent className="h-[220px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={monthly} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11 }} reversed />
-                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                    <Tooltip
-                      formatter={(v: any) => fmtSAR(Number(v))}
-                      contentStyle={{ direction: "rtl", borderRadius: 8, fontSize: 12 }}
-                    />
-                    <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2.5} dot={{ r: 3 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+              <CardContent>
+                <p className="text-2xl font-bold text-primary tabular-nums">{fmtSAR(stats?.revenue_ytd ?? 0)}</p>
+                <p className="text-xs text-muted-foreground mt-1">منذ بداية السنة</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {show.events && (
+            <Card>
+              <CardHeader className="pb-2 flex-row items-center justify-between">
+                <CardTitle className="text-sm font-bold flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-primary" /> آخر الأحداث
+                </CardTitle>
+                <Link to="/building-log" className="text-xs text-primary hover:underline">الكل</Link>
+              </CardHeader>
+              <CardContent className="max-h-[420px] overflow-y-auto">
+                {events.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-6">لا توجد أحداث</p>
+                ) : (
+                  <BuildingLogTimeline items={events} />
+                )}
               </CardContent>
             </Card>
           )}
         </div>
-      )}
-
-      {show.finance && (
-        <Section title="المؤشرات المالية">
-          <Stat label="محصل هذا الشهر" value={fmtSAR(stats?.collected_this_month ?? 0)} icon={Receipt} color="emerald" link="/finance" />
-          <Stat label="إيرادات هذه السنة" value={fmtSAR(stats?.revenue_ytd ?? 0)} icon={Wallet} color="blue" link="/finance" />
-          <Stat label="إجمالي المتأخرات" value={fmtSAR(stats?.overdue_total ?? 0)} icon={AlertTriangle} color="red" link="/finance" />
-        </Section>
-      )}
-
-      {show.expenses && (
-        <Section title="المصروفات">
-          <Stat label="معلّقة بانتظار الاعتماد" value={fmtSAR(extras.expenses_pending)} icon={Clock} color="amber" link="/expenses" />
-          <Stat label="مدفوعة هذا الشهر" value={fmtSAR(extras.expenses_paid_month)} icon={Wallet} color="emerald" link="/expenses" />
-        </Section>
-      )}
-
-      {show.operations && (
-        <Section title="مؤشرات التشغيل">
-          <Stat label="بلاغات مفتوحة" value={fmt(stats?.tickets_open ?? 0)} icon={Clock} color="amber" link="/complaints" />
-          <Stat label="بلاغات مغلقة" value={fmt(stats?.tickets_closed ?? 0)} icon={CheckCircle2} color="emerald" link="/complaints" />
-          <Stat
-            label="بلاغات طارئة"
-            value={fmt(stats?.tickets_emergency ?? 0)}
-            icon={AlertTriangle}
-            color="red"
-            link="/complaints"
-            pulse={(stats?.tickets_emergency ?? 0) > 0}
-          />
-        </Section>
-      )}
-
-      {show.workOrders && (
-        <Section title="أوامر العمل والصيانة">
-          <Stat label="أعطال أصول حرجة" value={fmt(stats?.critical_failures ?? 0)} icon={AlertTriangle} color="red" link="/maintenance" />
-          <Stat label="صيانة مجدولة هذا الأسبوع" value={fmt(stats?.scheduled_week ?? 0)} icon={Wrench} color="blue" link="/maintenance" />
-          <Stat label="أوامر متأخرة (SLA)" value={fmt(extras.wo_overdue)} icon={AlertTriangle} color="red" link="/maintenance" pulse={extras.wo_overdue > 0} />
-          <Stat label="خطط وقائية مستحقة" value={fmt(extras.wo_pm_due)} icon={Wrench} color="amber" link="/pm-plans" />
-        </Section>
-      )}
-
-      {show.contracts && (
-        <Section title="مؤشرات العقود">
-          <Stat label="العقود السارية" value={fmt(stats?.contracts_active ?? 0)} icon={FileSignature} color="emerald" link="/contracts" />
-          <Stat label="تنتهي خلال 90 يوم" value={fmt(stats?.contracts_expiring ?? 0)} icon={AlertTriangle} color="amber" link="/contracts" />
-          <Stat label="عقود منتهية" value={fmt(stats?.contracts_expired ?? 0)} icon={FileSignature} color="slate" link="/contracts" />
-        </Section>
-      )}
-
-      {show.visitors && (
-        <Section title="الزوار">
-          <Stat label="داخل البرج الآن" value={fmt(extras.visitors_inside)} icon={Users} color="emerald" link="/visitors" />
-          <Stat label="زوار اليوم" value={fmt(extras.visitors_today)} icon={Users} color="blue" link="/visitors" />
-        </Section>
-      )}
-
-      {show.security && (
-        <Section title="مؤشرات الأمن">
-          <Stat label="عدد الحراس" value={fmt(stats?.guards_count ?? 0)} icon={Users} color="blue" link="/security" />
-          <Stat label="جولات هذا الأسبوع" value={fmt(stats?.patrols_week ?? 0)} icon={Shield} color="emerald" link="/security" />
-          <Stat label="حوادث مفتوحة" value={fmt(stats?.incidents_open ?? 0)} icon={AlertTriangle} color="red" link="/security" />
-        </Section>
-      )}
-
-      {show.parking && (
-        <Section title="مؤشرات المواقف">
-          <Stat label="مواقف مشغولة" value={fmt(stats?.parking_occupied ?? 0)} icon={Car} color="emerald" link="/parking" />
-          <Stat label="مواقف متاحة" value={fmt(stats?.parking_available ?? 0)} icon={Car} color="slate" link="/parking" />
-          <Stat label="مخالفات مفتوحة" value={fmt(stats?.violations_open ?? 0)} icon={AlertTriangle} color="red" link="/parking" />
-        </Section>
-      )}
-
-      {show.events && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Building2 className="h-4 w-4" /> آخر الأحداث في البرج
-            </CardTitle>
-            <Link to="/building-log" className="text-xs text-primary hover:underline">عرض السجل الكامل</Link>
-          </CardHeader>
-          <CardContent>
-            {events.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">لا توجد أحداث بعد</p>
-            ) : (
-              <BuildingLogTimeline items={events} />
-            )}
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
-}
-
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <h2 className="text-sm font-bold text-muted-foreground mb-2">{title}</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">{children}</div>
-    </div>
-  );
-}
-
-const COLORS: Record<string, string> = {
-  emerald: "border-emerald-500 text-emerald-700 dark:text-emerald-400",
-  blue: "border-blue-500 text-blue-700 dark:text-blue-400",
-  amber: "border-amber-500 text-amber-700 dark:text-amber-400",
-  red: "border-red-500 text-red-700 dark:text-red-400",
-  slate: "border-slate-400 text-slate-700 dark:text-slate-400",
-};
-
-function Stat({
-  label, value, icon: Icon, color, link, pulse,
-}: {
-  label: string; value: string; icon: any; color: string; link?: string; pulse?: boolean;
-}) {
-  const cls = COLORS[color] || COLORS.blue;
-  const body = (
-    <Card className={`border-s-4 ${cls.split(" ")[0]} hover:shadow-md transition-shadow ${pulse ? "animate-pulse" : ""}`}>
-      <CardContent className="p-4 flex items-center justify-between">
-        <div className="min-w-0">
-          <p className="text-xs text-muted-foreground truncate">{label}</p>
-          <p className={`text-xl font-bold mt-1 ${cls.split(" ").slice(1).join(" ")}`}>{value}</p>
-        </div>
-        <Icon className={`h-6 w-6 ${cls.split(" ").slice(1).join(" ")}`} />
-      </CardContent>
-    </Card>
-  );
-  return link ? <Link to={link as any}>{body}</Link> : body;
-}
-
-function Row({ label, value, dot }: { label: string; value: string; dot: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className={`h-2 w-2 rounded-full ${dot}`} />
-      <span className="text-muted-foreground">{label}:</span>
-      <span className="font-semibold">{value}</span>
-    </div>
-  );
-}
-
-function OccupancyRing({ percent }: { percent: number }) {
-  const r = 42;
-  const c = 2 * Math.PI * r;
-  const off = c - (percent / 100) * c;
-  return (
-    <div className="relative h-28 w-28 shrink-0">
-      <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-        <circle cx="50" cy="50" r={r} stroke="hsl(var(--muted))" strokeWidth="9" fill="none" />
-        <circle
-          cx="50" cy="50" r={r}
-          stroke="hsl(var(--primary))" strokeWidth="9" fill="none"
-          strokeDasharray={c} strokeDashoffset={off} strokeLinecap="round"
-          style={{ transition: "stroke-dashoffset 0.6s ease" }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold text-primary">{percent}%</span>
-        <span className="text-[10px] text-muted-foreground">إشغال</span>
       </div>
+
+      {/* Section Tabs */}
+      <SectionTabs tabs={tabs} />
+    </div>
+  );
+}
+
+function MiniRow({
+  label, value, tone, delta, invertDelta,
+}: { label: string; value: string; tone: "emerald" | "amber" | "red"; delta?: number | null; invertDelta?: boolean }) {
+  const toneCls = tone === "emerald" ? "text-emerald-600" : tone === "amber" ? "text-amber-600" : "text-red-600";
+  const hasDelta = typeof delta === "number" && Number.isFinite(delta);
+  const positive = hasDelta ? (invertDelta ? delta! < 0 : delta! > 0) : false;
+  const negative = hasDelta ? (invertDelta ? delta! > 0 : delta! < 0) : false;
+  return (
+    <div className="flex items-center justify-between">
+      <div className="min-w-0">
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className={`text-lg font-bold tabular-nums ${toneCls}`}>{value}</p>
+      </div>
+      {hasDelta && (
+        <span className={`text-xs font-semibold ${positive ? "text-emerald-600" : negative ? "text-red-600" : "text-muted-foreground"}`}>
+          {positive ? "▲" : negative ? "▼" : "•"} {Math.abs(delta!).toFixed(0)}%
+        </span>
+      )}
     </div>
   );
 }

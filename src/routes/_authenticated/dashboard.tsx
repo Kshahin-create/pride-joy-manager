@@ -124,6 +124,10 @@ function Dashboard() {
     const in90 = new Date(); in90.setDate(in90.getDate() + 90);
     const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
+    const monthStartISO = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const in60ISO = new Date(Date.now() + 60 * 86400000).toISOString().slice(0, 10);
+    const todayISO = today.toISOString().slice(0, 10);
+
     const [
       sRes, mRes, eRes,
       vIn, vTd,
@@ -131,6 +135,8 @@ function Dashboard() {
       woO, woP,
       expList, expiringList, overdueWO, emergency,
       officesRes, topContractsRes, eventsAllRes,
+      pmUpcoming, incidentsRes, ticketsCatRes, docsExpRes,
+      camerasCount, employeesCount, vendorsCount, docsExpCount, newContractsCount,
     ] = await Promise.all([
       supabase.from("dashboard_stats").select("*").maybeSingle(),
       supabase.from("monthly_revenue").select("*"),

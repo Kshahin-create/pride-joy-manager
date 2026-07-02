@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
+import { motion } from "framer-motion";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { ResponsiveContainer, AreaChart, Area, Tooltip } from "recharts";
 
 type Tone = "primary" | "emerald" | "amber" | "red" | "sky";
+
 
 const TONE: Record<Tone, { bg: string; ring: string; stroke: string; fill: string; text: string }> = {
   primary: { bg: "from-primary/10 via-primary/5 to-transparent", ring: "ring-primary/20", stroke: "hsl(var(--primary))", fill: "hsl(var(--primary) / 0.25)", text: "text-primary" },

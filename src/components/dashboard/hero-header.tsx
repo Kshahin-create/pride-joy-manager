@@ -18,7 +18,7 @@ interface Props {
 const greet = (h: number) =>
   h < 5 ? "مساء الخير" : h < 12 ? "صباح الخير" : h < 17 ? "طاب يومك" : h < 21 ? "مساء الخير" : "مساء الخير";
 
-export function HeroHeader({ title, onRefresh, loading, refreshedAt, canSeeFinance, isAdmin, isMaintenance }: Props) {
+export function HeroHeader({ title, onRefresh, loading, refreshedAt, canSeeFinance, isAdmin, isMaintenance, rangeSlot }: Props) {
   const { user, roles } = useAuth();
   const [now, setNow] = useState(new Date());
 

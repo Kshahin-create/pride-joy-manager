@@ -38,8 +38,14 @@ export function KpiHeroCard({
   const negative = hasDelta ? (invertDelta ? deltaPct! > 0 : deltaPct! < 0) : false;
 
   const body = (
-    <Card className={`relative overflow-hidden ring-1 ${t.ring} bg-gradient-to-br ${t.bg} hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5`}>
+    <motion.div
+      whileHover={{ y: -3 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+    >
+    <Card className={`relative overflow-hidden ring-1 ${t.ring} bg-gradient-to-br ${t.bg} hover:shadow-xl transition-shadow duration-300 group`}>
+      <div className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-current to-transparent opacity-40 ${t.text}`} />
       <div className="p-5 relative z-10">
+
         <div className="flex items-start justify-between mb-3">
           <div className="min-w-0">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>

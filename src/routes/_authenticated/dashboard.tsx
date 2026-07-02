@@ -487,7 +487,7 @@ function Dashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <MiniRow label="مدفوعة هذا الشهر" value={extras.expenses_paid_month} tone="emerald" delta={expensesDelta} invertDelta currency />
+                <MiniRow label={`مدفوعة — ${rangeLabel(range)}`} value={extras.expenses_paid_month} tone="emerald" delta={expensesDelta} invertDelta currency />
                 <MiniRow label="معلّقة بانتظار الاعتماد" value={extras.expenses_pending} tone="amber" currency />
                 <div className="pt-2 border-t">
                   <Link to="/expenses" className="text-xs text-primary hover:underline">إدارة المصروفات ←</Link>

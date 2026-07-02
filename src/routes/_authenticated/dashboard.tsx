@@ -274,8 +274,8 @@ function Dashboard() {
   const occRate = stats && stats.offices_total
     ? Math.round(((stats.offices_rented + stats.offices_reserved) / stats.offices_total) * 100)
     : 0;
-  const collectedNow = stats?.collected_this_month ?? 0;
-  const collectedPrev = extras.collected_prev_month;
+  const collectedNow = extras.collected_now;
+  const collectedPrev = extras.collected_prev;
   const collectedDelta = collectedPrev > 0 ? ((collectedNow - collectedPrev) / collectedPrev) * 100 : null;
   const expensesDelta = extras.expenses_prev_month > 0
     ? ((extras.expenses_paid_month - extras.expenses_prev_month) / extras.expenses_prev_month) * 100

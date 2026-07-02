@@ -269,7 +269,7 @@ function Dashboard() {
     setLoading(false);
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [activePropertyId, range.preset, range.from.getTime(), range.to.getTime()]);
 
   const occRate = stats && stats.offices_total
     ? Math.round(((stats.offices_rented + stats.offices_reserved) / stats.offices_total) * 100)

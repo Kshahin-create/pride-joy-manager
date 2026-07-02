@@ -373,6 +373,7 @@ function Dashboard() {
         canSeeFinance={canSeeFinance}
         isAdmin={isAdmin}
         isMaintenance={isMaintenance}
+        rangeSlot={<TimeRangeSelector value={range} onChange={setRange} />}
       />
 
       <AlertStrip items={alertItems} />

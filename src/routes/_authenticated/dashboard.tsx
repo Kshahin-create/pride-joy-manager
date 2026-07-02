@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   Building2, FileSignature, Wallet, AlertTriangle,
   Wrench, Shield, Car, Users, Receipt, Clock, CheckCircle2,
-  TrendingUp, TrendingDown, Activity,
+  TrendingUp, TrendingDown, Activity, Camera, FileText, Briefcase, UserCheck, HardHat,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,11 @@ import { TopTenants, type TopTenant } from "@/components/dashboard/top-tenants";
 import { ActivityHeatmap } from "@/components/dashboard/activity-heatmap";
 import { CountUp } from "@/components/dashboard/count-up";
 import { TimeRangeSelector, computeRange, rangeLabel, type TimeRange } from "@/components/dashboard/time-range-selector";
+import { QuickStatsStrip, type QuickStat } from "@/components/dashboard/quick-stats-strip";
+import { UpcomingMaintenance, type UpcomingPM } from "@/components/dashboard/upcoming-maintenance";
+import { RecentIncidents, type IncidentRow } from "@/components/dashboard/recent-incidents";
+import { ComplaintsByCategory, type CategoryRow } from "@/components/dashboard/complaints-by-category";
+import { DocsExpiring, type ExpiringDoc } from "@/components/dashboard/docs-expiring";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -75,7 +80,13 @@ function Dashboard() {
     wo_overdue: 0, wo_pm_due: 0,
     collected_now: 0, collected_prev: 0,
     expenses_prev_month: 0,
+    cameras_count: 0, employees_count: 0, vendors_count: 0,
+    docs_expiring_count: 0, new_contracts_month: 0,
   });
+  const [upcomingPMs, setUpcomingPMs] = useState<UpcomingPM[]>([]);
+  const [recentIncidents, setRecentIncidents] = useState<IncidentRow[]>([]);
+  const [categoryRows, setCategoryRows] = useState<CategoryRow[]>([]);
+  const [expiringDocs, setExpiringDocs] = useState<ExpiringDoc[]>([]);
 
   const isAdmin = hasAnyRole(["super_admin", "owner"]);
   const isAccountant = hasAnyRole(["accountant"]);
@@ -113,6 +124,10 @@ function Dashboard() {
     const in90 = new Date(); in90.setDate(in90.getDate() + 90);
     const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
+    const monthStartISO = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+    const in60ISO = new Date(Date.now() + 60 * 86400000).toISOString().slice(0, 10);
+    const todayISO = today.toISOString().slice(0, 10);
+
     const [
       sRes, mRes, eRes,
       vIn, vTd,
@@ -120,6 +135,8 @@ function Dashboard() {
       woO, woP,
       expList, expiringList, overdueWO, emergency,
       officesRes, topContractsRes, eventsAllRes,
+      pmUpcoming, incidentsRes, ticketsCatRes, docsExpRes,
+      camerasCount, employeesCount, vendorsCount, docsExpCount, newContractsCount,
     ] = await Promise.all([
       supabase.from("dashboard_stats").select("*").maybeSingle(),
       supabase.from("monthly_revenue").select("*"),
@@ -148,6 +165,25 @@ function Dashboard() {
           ).eq("status", "ساري").order("annual_rent", { ascending: false }).limit(5)
         : Promise.resolve({ data: [] as any[] }),
       supabase.from("building_log").select("created_at").gte("created_at", sevenDaysAgo.toISOString()).limit(2000),
+      // Upcoming PM plans (next 5)
+      scoped(supabase.from("pm_plans").select("id, plan_name, next_due_at, frequency"), activePropertyId)
+        .eq("is_active", true).not("next_due_at", "is", null).order("next_due_at", { ascending: true }).limit(5),
+      // Recent security incidents
+      scoped(supabase.from("security_incidents").select("id, incident_number, incident_type, location, incident_date, status"), activePropertyId)
+        .order("incident_date", { ascending: false }).limit(5),
+      // Tickets by category (open only)
+      scoped(supabase.from("tickets").select("category"), activePropertyId).neq("status", "مغلق"),
+      // Expiring documents (top 5)
+      scoped(supabase.from("documents").select("id, title, category, expiry_date"), activePropertyId)
+        .not("expiry_date", "is", null).lte("expiry_date", in60ISO).order("expiry_date", { ascending: true }).limit(5),
+      // Extra counts
+      scoped(supabase.from("cameras").select("id", { count: "exact", head: true }), activePropertyId),
+      supabase.from("employees").select("id", { count: "exact", head: true }).eq("status", "نشط"),
+      supabase.from("vendors").select("id", { count: "exact", head: true }),
+      scoped(supabase.from("documents").select("id", { count: "exact", head: true }), activePropertyId)
+        .not("expiry_date", "is", null).lte("expiry_date", in60ISO).gte("expiry_date", todayISO),
+      scoped(supabase.from("contracts").select("id", { count: "exact", head: true }), activePropertyId)
+        .gte("created_at", monthStartISO),
     ]);
 
     if (sRes.data) setStats(sRes.data as Stats);
@@ -264,7 +300,35 @@ function Dashboard() {
       expenses_prev_month: (ePrev.data ?? []).reduce((a: number, x: any) => a + Number(x.amount || 0), 0),
       wo_overdue: woO.count ?? 0,
       wo_pm_due: woP.count ?? 0,
+      cameras_count: camerasCount.count ?? 0,
+      employees_count: employeesCount.count ?? 0,
+      vendors_count: vendorsCount.count ?? 0,
+      docs_expiring_count: docsExpCount.count ?? 0,
+      new_contracts_month: newContractsCount.count ?? 0,
     });
+
+    // Upcoming PMs / incidents / doc-expiring lists
+    setUpcomingPMs(((pmUpcoming.data ?? []) as any[]).map((r) => ({
+      id: r.id, plan_name: r.plan_name, next_due_at: r.next_due_at, frequency: r.frequency,
+    })));
+    setRecentIncidents(((incidentsRes.data ?? []) as any[]).map((r) => ({
+      id: r.id, incident_number: r.incident_number, incident_type: r.incident_type,
+      location: r.location, incident_date: r.incident_date, status: r.status,
+    })));
+    setExpiringDocs(((docsExpRes.data ?? []) as any[]).map((r) => ({
+      id: r.id, title: r.title, category: r.category, expiry_date: r.expiry_date,
+    })));
+
+    // Tickets by category
+    const catMap = new Map<string, number>();
+    ((ticketsCatRes.data ?? []) as any[]).forEach((t) => {
+      const k = (t.category ?? "غير مصنّف") as string;
+      catMap.set(k, (catMap.get(k) ?? 0) + 1);
+    });
+    setCategoryRows(Array.from(catMap.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8));
     setRefreshedAt(new Date());
     setLoading(false);
   };
@@ -378,6 +442,23 @@ function Dashboard() {
 
       <AlertStrip items={alertItems} />
 
+      {/* Quick stats strip — one-glance building health */}
+      <QuickStatsStrip
+        items={[
+          show.occupancy && { label: "مكاتب مؤجرة", value: stats?.offices_rented ?? 0, icon: Building2, tone: "emerald", link: "/offices" },
+          show.occupancy && { label: "مكاتب متاحة", value: stats?.offices_available ?? 0, icon: Building2, tone: "sky", link: "/offices" },
+          show.contracts && { label: "عقود جديدة الشهر", value: extras.new_contracts_month, icon: FileSignature, tone: "primary", link: "/contracts" },
+          show.visitors && { label: "زوار اليوم", value: extras.visitors_today, icon: UserCheck, tone: "violet", link: "/visitors" },
+          show.security && { label: "الحراس", value: stats?.guards_count ?? 0, icon: HardHat, tone: "slate", link: "/security" },
+          show.security && { label: "كاميرات", value: extras.cameras_count, icon: Camera, tone: "sky", link: "/security" },
+          show.parking && { label: "مواقف مشغولة", value: stats?.parking_occupied ?? 0, icon: Car, tone: "emerald", link: "/parking" },
+          (isAdmin || isAccountant) && { label: "الموظفون", value: extras.employees_count, icon: Users, tone: "primary", link: "/employees" },
+          (isAdmin || isAccountant) && { label: "الموردون", value: extras.vendors_count, icon: Briefcase, tone: "amber", link: "/vendors" },
+          { label: "مستندات قاربت الانتهاء", value: extras.docs_expiring_count, icon: FileText, tone: extras.docs_expiring_count > 0 ? "amber" : "slate", link: "/documents" },
+        ].filter(Boolean) as QuickStat[]}
+      />
+
+
       {/* KPI Hero Row */}
       <motion.div
         variants={stagger}
@@ -459,6 +540,10 @@ function Dashboard() {
       >
         <motion.div variants={item} className="lg:col-span-2 space-y-4">
           {show.revenueChart && <RevenueExpensesChart data={monthly} />}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {show.operations && <ComplaintsByCategory rows={categoryRows} />}
+            {show.workOrders && <UpcomingMaintenance rows={upcomingPMs} />}
+          </div>
           {show.events && <ActivityHeatmap cells={heatmap} />}
           {(show.contracts || isAdmin) && <ExpiringContractsTable rows={expiring} />}
           <ActionCenter items={actions} />
@@ -478,6 +563,11 @@ function Dashboard() {
           {show.occupancy && floorRows.length > 0 && <FloorOccupancy rows={floorRows} />}
 
           {show.finance && topTenants.length > 0 && <TopTenants rows={topTenants} />}
+
+          {show.security && <RecentIncidents rows={recentIncidents} />}
+
+          <DocsExpiring rows={expiringDocs} />
+
 
           {show.expenses && (
             <Card>

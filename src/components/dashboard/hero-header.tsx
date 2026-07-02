@@ -12,6 +12,7 @@ interface Props {
   canSeeFinance: boolean;
   isAdmin: boolean;
   isMaintenance: boolean;
+  rangeSlot?: React.ReactNode;
 }
 
 const greet = (h: number) =>

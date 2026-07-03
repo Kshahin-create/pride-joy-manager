@@ -9,6 +9,7 @@ export interface QuickStat {
   icon: LucideIcon;
   tone?: "primary" | "emerald" | "amber" | "red" | "sky" | "violet" | "slate";
   link?: string;
+  search?: Record<string, string>;
   suffix?: string;
 }
 

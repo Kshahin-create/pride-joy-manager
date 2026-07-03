@@ -337,6 +337,41 @@ function OfficesPage() {
               </SelectContent>
             </Select>
           </div>
+          <div className="p-3 border-b flex items-center gap-2 flex-wrap text-xs bg-muted/30">
+            <span className="font-semibold text-muted-foreground">فلترة بالحالة:</span>
+            <button
+              type="button"
+              onClick={() => setStatusFilter("all")}
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition ${
+                statusFilter === "all"
+                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                  : "bg-background hover:bg-accent border-border"
+              }`}
+            >
+              <span>الكل</span>
+              <span className="tabular-nums opacity-70">({offices.length})</span>
+            </button>
+            {STATUSES.map((s) => {
+              const count = offices.filter((o) => o.status === s).length;
+              const active = statusFilter === s;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setStatusFilter(active ? "all" : s)}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition ${
+                    active
+                      ? `${STATUS_STYLES[s].badge} border-transparent shadow-sm ring-2 ring-offset-1 ring-offset-background ring-current/40`
+                      : "bg-background hover:bg-accent border-border"
+                  }`}
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full ${STATUS_STYLES[s].dot}`} />
+                  <span>{s}</span>
+                  <span className="tabular-nums opacity-70">({count})</span>
+                </button>
+              );
+            })}
+          </div>
           <Table>
             <TableHeader>
               <TableRow>

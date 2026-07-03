@@ -64,7 +64,6 @@ export function RevenueExpensesChart({ data }: { data: MonthlyRow[] }) {
               <LabelList
                 dataKey="revenue"
                 position="top"
-                offset={8}
                 content={(props: any) => {
                   const idx = props.index ?? 0;
                   const value = data[idx]?.revenue ?? 0;
@@ -73,8 +72,9 @@ export function RevenueExpensesChart({ data }: { data: MonthlyRow[] }) {
                     <text
                       x={props.x}
                       y={props.y}
+                      dx={10}
                       dy={-10}
-                      textAnchor="middle"
+                      textAnchor="start"
                       fill="hsl(var(--foreground))"
                       fontSize={10}
                       fontWeight={600}
@@ -89,7 +89,6 @@ export function RevenueExpensesChart({ data }: { data: MonthlyRow[] }) {
               <LabelList
                 dataKey="expenses"
                 position="top"
-                offset={8}
                 content={(props: any) => {
                   const idx = props.index ?? 0;
                   const value = data[idx]?.expenses ?? 0;
@@ -98,8 +97,9 @@ export function RevenueExpensesChart({ data }: { data: MonthlyRow[] }) {
                     <text
                       x={props.x}
                       y={props.y}
+                      dx={10}
                       dy={-10}
-                      textAnchor="middle"
+                      textAnchor="start"
                       fill="rgb(239 68 68)"
                       fontSize={10}
                       fontWeight={600}

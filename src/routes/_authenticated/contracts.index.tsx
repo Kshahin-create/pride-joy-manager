@@ -104,10 +104,13 @@ function ContractsPage() {
   const canCreate = hasRole("super_admin") || hasRole("accountant");
   const navigate = useNavigate();
 
+  const initialSearch = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const initialStatus = (initialSearch?.get("status") as ContractStatus | null) ?? "all";
+
   const [rows, setRows] = useState<ContractWithRefs[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | ContractStatus>("all");
+  const [search, setSearch] = useState(initialSearch?.get("q") ?? "");
+  const [statusFilter, setStatusFilter] = useState<"all" | ContractStatus>(initialStatus as any);
   const [companyFilter, setCompanyFilter] = useState<"all" | string>("all");
   const [companies, setCompanies] = useState<{ id: string; company_name: string }[]>([]);
   const [formOpen, setFormOpen] = useState(false);

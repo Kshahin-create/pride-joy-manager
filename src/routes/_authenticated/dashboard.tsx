@@ -445,9 +445,9 @@ function Dashboard() {
       {/* Quick stats strip — one-glance building health */}
       <QuickStatsStrip
         items={[
-          show.occupancy && { label: "مكاتب مؤجرة", value: stats?.offices_rented ?? 0, icon: Building2, tone: "emerald", link: "/offices" },
-          show.occupancy && { label: "مكاتب متاحة", value: stats?.offices_available ?? 0, icon: Building2, tone: "sky", link: "/offices" },
-          show.contracts && { label: "عقود جديدة الشهر", value: extras.new_contracts_month, icon: FileSignature, tone: "primary", link: "/contracts" },
+          show.occupancy && { label: "مكاتب مؤجرة", value: stats?.offices_rented ?? 0, icon: Building2, tone: "emerald", link: "/offices", search: { status: "مؤجر" } },
+          show.occupancy && { label: "مكاتب متاحة", value: stats?.offices_available ?? 0, icon: Building2, tone: "sky", link: "/offices", search: { status: "متاح" } },
+          show.contracts && { label: "عقود جديدة الشهر", value: extras.new_contracts_month, icon: FileSignature, tone: "primary", link: "/contracts", search: { status: "نشط" } },
           show.visitors && { label: "زوار اليوم", value: extras.visitors_today, icon: UserCheck, tone: "violet", link: "/visitors" },
           show.security && { label: "الحراس", value: stats?.guards_count ?? 0, icon: HardHat, tone: "slate", link: "/security" },
           show.security && { label: "كاميرات", value: extras.cameras_count, icon: Camera, tone: "sky", link: "/security" },

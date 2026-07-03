@@ -9,6 +9,7 @@ export interface QuickStat {
   icon: LucideIcon;
   tone?: "primary" | "emerald" | "amber" | "red" | "sky" | "violet" | "slate";
   link?: string;
+  search?: Record<string, string>;
   suffix?: string;
 }
 
@@ -46,7 +47,12 @@ export function QuickStatsStrip({ items }: { items: QuickStat[] }) {
             </p>
           </div>
         );
-        return s.link ? <Link key={s.label} to={s.link as any}>{body}</Link> : <div key={s.label}>{body}</div>;
+        const href = s.link
+          ? s.search && Object.keys(s.search).length > 0
+            ? `${s.link}?${new URLSearchParams(s.search).toString()}`
+            : s.link
+          : null;
+        return href ? <Link key={s.label} to={href as any}>{body}</Link> : <div key={s.label}>{body}</div>;
       })}
     </motion.div>
   );

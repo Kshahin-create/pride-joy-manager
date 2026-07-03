@@ -124,14 +124,19 @@ function OfficesPage() {
   const navigate = useNavigate();
   const openOffice = (o: Office) => navigate({ to: "/offices/$id", params: { id: o.id } });
 
+  // read initial filters from URL (?status=مؤجر, ?q=...)
+  const initialSearch = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const initialStatus = initialSearch?.get("status") ?? "all";
+  const initialQ = initialSearch?.get("q") ?? "";
+
   const [offices, setOffices] = useState<Office[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<"grid" | "table">("grid");
+  const [view, setView] = useState<"grid" | "table">(initialStatus !== "all" ? "table" : "grid");
 
   // table state
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQ);
   const [floorFilter, setFloorFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
   const [sortKey, setSortKey] = useState<keyof Office>("code");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);

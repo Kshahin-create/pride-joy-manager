@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
 import {
-  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, Legend,
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, LabelList,
 } from "recharts";
 
 const fmtSAR = (n: number) =>
@@ -42,7 +42,7 @@ export function RevenueExpensesChart({ data }: { data: MonthlyRow[] }) {
       </CardHeader>
       <CardContent className="h-[260px] pt-2">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <AreaChart data={data} margin={{ top: 40, right: 10, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="grad-rev" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="rgb(16 185 129)" stopOpacity={0.35} />
@@ -55,13 +55,61 @@ export function RevenueExpensesChart({ data }: { data: MonthlyRow[] }) {
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
             <XAxis dataKey="month" tick={{ fontSize: 11 }} reversed />
-            <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+            <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} padding={{ top: 32 }} />
             <Tooltip
               formatter={(v: any, name: any) => [fmtSAR(Number(v)), name === "revenue" ? "إيرادات" : "مصروفات"]}
               contentStyle={{ direction: "rtl", borderRadius: 8, fontSize: 12 }}
             />
-            <Area type="monotone" dataKey="revenue" stroke="rgb(16 185 129)" strokeWidth={2.5} fill="url(#grad-rev)" />
-            <Area type="monotone" dataKey="expenses" stroke="rgb(239 68 68)" strokeWidth={2.5} fill="url(#grad-exp)" />
+            <Area type="monotone" dataKey="revenue" stroke="rgb(16 185 129)" strokeWidth={2.5} fill="url(#grad-rev)">
+              <LabelList
+                dataKey="revenue"
+                position="top"
+                offset={8}
+                content={(props: any) => {
+                  const idx = props.index ?? 0;
+                  const value = data[idx]?.revenue ?? 0;
+                  if (!value || props.x == null || props.y == null) return null;
+                  return (
+                    <text
+                      x={props.x}
+                      y={props.y}
+                      dy={-10}
+                      textAnchor="middle"
+                      fill="hsl(var(--foreground))"
+                      fontSize={10}
+                      fontWeight={600}
+                    >
+                      {fmtSAR(Number(value))}
+                    </text>
+                  );
+                }}
+              />
+            </Area>
+            <Area type="monotone" dataKey="expenses" stroke="rgb(239 68 68)" strokeWidth={2.5} fill="url(#grad-exp)">
+              <LabelList
+                dataKey="expenses"
+                position="top"
+                offset={8}
+                content={(props: any) => {
+                  const idx = props.index ?? 0;
+                  const value = data[idx]?.expenses ?? 0;
+                  if (!value || props.x == null || props.y == null) return null;
+                  return (
+                    <text
+                      x={props.x}
+                      y={props.y}
+                      dy={-10}
+                      textAnchor="middle"
+                      fill="rgb(239 68 68)"
+                      fontSize={10}
+                      fontWeight={600}
+                    >
+                      {fmtSAR(Number(value))}
+                    </text>
+                  );
+                }}
+              />
+            </Area>
           </AreaChart>
         </ResponsiveContainer>
       </CardContent>

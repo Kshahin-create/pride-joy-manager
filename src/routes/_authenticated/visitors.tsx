@@ -84,11 +84,7 @@ function VisitorsPage() {
 
   const officeMap = useMemo(() => new Map(offices.map((o) => [o.id, o])), [offices]);
 
-  const floorOptions = useMemo(() => {
-    const set = new Set<number>();
-    companiesByFloor.forEach((c) => set.add(c.floor));
-    return Array.from(set).sort((a, b) => a - b);
-  }, [companiesByFloor]);
+  const floorOptions = useMemo(() => Array.from({ length: 9 }, (_, i) => i + 1), []);
 
   const companiesOnFloor = useMemo(() => {
     if (!form.floor) return [];

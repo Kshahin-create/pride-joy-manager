@@ -30,8 +30,7 @@ type Visitor = {
   status: "داخل" | "خرج" | "ملغي"; notes: string | null;
 };
 type Office = { id: string; code: string; floor: number };
-
-const TYPES = ["زائر", "مقاول", "موظف توصيل", "صيانة خارجية", "ضيف VIP", "أخرى"] as const;
+type CompanyOnFloor = { company_id: string; company_name: string; office_id: string; code: string; floor: number };
 
 function VisitorsPage() {
   const { activePropertyId } = useActiveProperty();
@@ -39,14 +38,13 @@ function VisitorsPage() {
   const canManage = hasAnyRole(["super_admin", "receptionist", "security_supervisor"]);
   const [items, setItems] = useState<Visitor[]>([]);
   const [offices, setOffices] = useState<Office[]>([]);
+  const [companiesByFloor, setCompaniesByFloor] = useState<CompanyOnFloor[]>([]);
   const [tab, setTab] = useState<"داخل" | "اليوم" | "الكل">("داخل");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState<any>({
-    full_name: "", national_id: "", phone: "", office_id: "", host_name: "",
-    visitor_type: "زائر", purpose: "", vehicle_plate: "", badge_number: "",
-    expected_duration_minutes: "", notes: "",
+    full_name: "", phone: "", floor: "", company_key: "",
   });
 
   const load = async () => {

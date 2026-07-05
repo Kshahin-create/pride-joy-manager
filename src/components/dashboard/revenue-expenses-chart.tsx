@@ -16,31 +16,35 @@ export function RevenueExpensesChart({ data }: { data: MonthlyRow[] }) {
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="text-sm font-bold flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-primary" />
-            الإيرادات مقابل المصروفات — 12 شهر
+      <CardHeader className="pb-2 px-3 sm:px-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:flex-wrap">
+          <CardTitle className="text-sm font-bold flex items-center gap-2 min-w-0">
+            <TrendingUp className="h-4 w-4 text-primary shrink-0" />
+            <span className="truncate">الإيرادات مقابل المصروفات — 12 شهر</span>
           </CardTitle>
-          <div className="flex items-center gap-3 text-xs">
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="text-muted-foreground">إيرادات:</span>
-              <span className="font-bold text-emerald-600">{fmtSAR(totalRev)}</span>
+          <div className="grid grid-cols-3 gap-2 text-[11px] sm:flex sm:items-center sm:gap-3 sm:text-xs">
+            <span className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5 min-w-0">
+              <span className="flex items-center gap-1 text-muted-foreground">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                إيرادات
+              </span>
+              <span className="font-bold text-emerald-600 truncate">{fmtSAR(totalRev)}</span>
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-red-500" />
-              <span className="text-muted-foreground">مصروفات:</span>
-              <span className="font-bold text-red-600">{fmtSAR(totalExp)}</span>
+            <span className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5 min-w-0">
+              <span className="flex items-center gap-1 text-muted-foreground">
+                <span className="h-2 w-2 rounded-full bg-red-500 shrink-0" />
+                مصروفات
+              </span>
+              <span className="font-bold text-red-600 truncate">{fmtSAR(totalExp)}</span>
             </span>
-            <span className="flex items-center gap-1.5">
-              <span className="text-muted-foreground">صافي:</span>
-              <span className={`font-bold ${net >= 0 ? "text-emerald-600" : "text-red-600"}`}>{fmtSAR(net)}</span>
+            <span className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1.5 min-w-0">
+              <span className="text-muted-foreground">صافي</span>
+              <span className={`font-bold truncate ${net >= 0 ? "text-emerald-600" : "text-red-600"}`}>{fmtSAR(net)}</span>
             </span>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="h-[260px] pt-2">
+      <CardContent className="h-[240px] sm:h-[260px] pt-2 px-1 sm:px-6">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 40, right: 10, left: 0, bottom: 0 }}>
             <defs>

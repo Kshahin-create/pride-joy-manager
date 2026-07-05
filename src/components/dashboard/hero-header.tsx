@@ -64,20 +64,20 @@ export function HeroHeader({ title, onRefresh, loading, refreshedAt, canSeeFinan
         }}
       />
 
-      <div className="relative z-10 p-5 sm:p-6 flex flex-col gap-4">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="min-w-0">
-            <p className="text-xs sm:text-sm text-white/75 flex items-center gap-2 mb-1">
-              <Calendar className="h-3.5 w-3.5" />
-              <span>{dateStr}</span>
-              <span className="opacity-60">•</span>
+      <div className="relative z-10 p-4 sm:p-6 flex flex-col gap-3 sm:gap-4">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] sm:text-sm text-white/75 flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
+              <Calendar className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{dateStr}</span>
+              <span className="opacity-60 hidden sm:inline">•</span>
               <span dir="ltr" className="tabular-nums">{timeStr}</span>
             </p>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            <h1 className="text-xl sm:text-3xl font-bold tracking-tight">
               {greet(now.getHours())}
               {firstName && <>، <span className="text-white">{firstName}</span></>} 👋
             </h1>
-            <p className="text-sm text-white/85 mt-1">
+            <p className="text-xs sm:text-sm text-white/85 mt-1">
               {title}
               {roles.length > 0 && (
                 <>
@@ -100,10 +100,11 @@ export function HeroHeader({ title, onRefresh, loading, refreshedAt, canSeeFinan
             <button
               onClick={onRefresh}
               disabled={loading}
-              className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 backdrop-blur transition-colors disabled:opacity-50 border border-white/20"
+              aria-label="تحديث"
+              className="inline-flex items-center gap-1.5 text-xs px-2.5 sm:px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 backdrop-blur transition-colors disabled:opacity-50 border border-white/20"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-              تحديث
+              <span className="hidden sm:inline">تحديث</span>
             </button>
           </div>
         </div>

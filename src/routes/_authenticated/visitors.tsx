@@ -185,32 +185,47 @@ function VisitorsPage() {
               <DialogTrigger asChild>
                 <Button><Plus className="h-4 w-4 ml-1" /> تسجيل دخول زائر</Button>
               </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-lg">
               <DialogHeader><DialogTitle>تسجيل دخول زائر جديد</DialogTitle></DialogHeader>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div><Label>الاسم الكامل *</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
-                <div><Label>الرقم القومي</Label><Input value={form.national_id} onChange={(e) => setForm({ ...form, national_id: e.target.value })} /></div>
-                <div><Label>الهاتف</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+              <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <Label>نوع الزائر</Label>
-                  <Select value={form.visitor_type} onValueChange={(v) => setForm({ ...form, visitor_type: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                  <Label>الاسم *</Label>
+                  <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+                </div>
+                <div>
+                  <Label>رقم الهاتف *</Label>
+                  <Input type="tel" inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                </div>
+                <div>
+                  <Label>الدور *</Label>
+                  <Select value={form.floor} onValueChange={(v) => setForm({ ...form, floor: v })}>
+                    <SelectTrigger><SelectValue placeholder="اختر الدور" /></SelectTrigger>
+                    <SelectContent>
+                      {floorOptions.map((f) => (
+                        <SelectItem key={f} value={String(f)}>الدور {f}</SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>المكتب المُزار</Label>
-                  <Select value={form.office_id} onValueChange={(v) => setForm({ ...form, office_id: v })}>
-                    <SelectTrigger><SelectValue placeholder="اختر مكتباً" /></SelectTrigger>
-                    <SelectContent>{offices.map((o) => <SelectItem key={o.id} value={o.id}>{o.code} (طابق {o.floor})</SelectItem>)}</SelectContent>
+                  <Label>الشركة *</Label>
+                  <Select
+                    value={form.company_key}
+                    onValueChange={(v) => setForm({ ...form, company_key: v })}
+                    disabled={!form.floor}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={!form.floor ? "اختر الدور أولاً" : companiesOnFloor.length ? "اختر الشركة" : "لا توجد شركات في هذا الدور"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companiesOnFloor.map((c) => (
+                        <SelectItem key={`${c.company_id}|${c.office_id}`} value={`${c.company_id}|${c.office_id}`}>
+                          {c.company_name} <span className="text-muted-foreground text-xs">({c.code})</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
-                <div><Label>اسم المضيف</Label><Input value={form.host_name} onChange={(e) => setForm({ ...form, host_name: e.target.value })} /></div>
-                <div><Label>رقم الباج</Label><Input value={form.badge_number} onChange={(e) => setForm({ ...form, badge_number: e.target.value })} /></div>
-                <div><Label>لوحة السيارة</Label><Input value={form.vehicle_plate} onChange={(e) => setForm({ ...form, vehicle_plate: e.target.value })} /></div>
-                <div><Label>المدة المتوقعة (دقيقة)</Label><Input type="number" value={form.expected_duration_minutes} onChange={(e) => setForm({ ...form, expected_duration_minutes: e.target.value })} /></div>
-                <div className="md:col-span-2"><Label>الغرض</Label><Input value={form.purpose} onChange={(e) => setForm({ ...form, purpose: e.target.value })} /></div>
-                <div className="md:col-span-2"><Label>ملاحظات</Label><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>

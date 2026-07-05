@@ -146,7 +146,7 @@ function LobbyCheckInPage() {
                     inputMode="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="01xxxxxxxxx"
+                    placeholder="05xxxxxxxx"
                     className="h-14 text-lg"
                   />
                 </div>

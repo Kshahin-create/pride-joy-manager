@@ -146,7 +146,7 @@ function LobbyCheckInPage() {
                     inputMode="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="01xxxxxxxxx"
+                    placeholder="05xxxxxxxx"
                     className="h-14 text-lg"
                   />
                 </div>
@@ -156,9 +156,9 @@ function LobbyCheckInPage() {
                   <Select value={floor} onValueChange={setFloor}>
                     <SelectTrigger className="h-14 text-lg"><SelectValue placeholder="اختر الدور" /></SelectTrigger>
                     <SelectContent>
-                      {floors.map((f) => (
-                        <SelectItem key={f.floor} value={String(f.floor)} className="text-lg">
-                          الدور {f.floor}
+                      {Array.from({ length: 9 }, (_, i) => i + 1).map((f) => (
+                        <SelectItem key={f} value={String(f)} className="text-lg">
+                          الدور {f}
                         </SelectItem>
                       ))}
                     </SelectContent>

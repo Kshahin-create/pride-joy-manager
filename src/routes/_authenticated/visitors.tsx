@@ -30,8 +30,7 @@ type Visitor = {
   status: "داخل" | "خرج" | "ملغي"; notes: string | null;
 };
 type Office = { id: string; code: string; floor: number };
-
-const TYPES = ["زائر", "مقاول", "موظف توصيل", "صيانة خارجية", "ضيف VIP", "أخرى"] as const;
+type CompanyOnFloor = { company_id: string; company_name: string; office_id: string; code: string; floor: number };
 
 function VisitorsPage() {
   const { activePropertyId } = useActiveProperty();
@@ -39,26 +38,68 @@ function VisitorsPage() {
   const canManage = hasAnyRole(["super_admin", "receptionist", "security_supervisor"]);
   const [items, setItems] = useState<Visitor[]>([]);
   const [offices, setOffices] = useState<Office[]>([]);
+  const [companiesByFloor, setCompaniesByFloor] = useState<CompanyOnFloor[]>([]);
   const [tab, setTab] = useState<"داخل" | "اليوم" | "الكل">("داخل");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState<any>({
-    full_name: "", national_id: "", phone: "", office_id: "", host_name: "",
-    visitor_type: "زائر", purpose: "", vehicle_plate: "", badge_number: "",
-    expected_duration_minutes: "", notes: "",
+    full_name: "", phone: "", floor: "", company_key: "",
   });
 
   const load = async () => {
-    const [v, o] = await Promise.all([scoped(supabase.from("visitors").select("*"), activePropertyId).order("check_in_at", { ascending: false }).limit(500),
+    const [v, o, contractsRes] = await Promise.all([
+      scoped(supabase.from("visitors").select("*"), activePropertyId).order("check_in_at", { ascending: false }).limit(500),
       supabase.from("offices").select("id,code,floor").order("code"),
+      supabase
+        .from("contracts")
+        .select("status, company:companies(id, company_name), office:offices(id, code, floor)")
+        .in("status", ["ساري", "مجدد", "تحت التجديد"]),
     ]);
     if (v.error) toast.error(v.error.message); else setItems((v.data ?? []) as Visitor[]);
     if (!o.error) setOffices((o.data ?? []) as Office[]);
+    if (!contractsRes.error) {
+      const seen = new Set<string>();
+      const list: CompanyOnFloor[] = [];
+      for (const row of (contractsRes.data ?? []) as Array<{
+        company: { id: string; company_name: string } | null;
+        office: { id: string; code: string; floor: number } | null;
+      }>) {
+        if (!row.company || !row.office) continue;
+        const key = `${row.company.id}|${row.office.id}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        list.push({
+          company_id: row.company.id,
+          company_name: row.company.company_name,
+          office_id: row.office.id,
+          code: row.office.code,
+          floor: row.office.floor,
+        });
+      }
+      setCompaniesByFloor(list);
+    }
   };
   useEffect(() => { load(); }, []);
 
   const officeMap = useMemo(() => new Map(offices.map((o) => [o.id, o])), [offices]);
+
+  const floorOptions = useMemo(() => {
+    const set = new Set<number>();
+    companiesByFloor.forEach((c) => set.add(c.floor));
+    return Array.from(set).sort((a, b) => a - b);
+  }, [companiesByFloor]);
+
+  const companiesOnFloor = useMemo(() => {
+    if (!form.floor) return [];
+    return companiesByFloor
+      .filter((c) => c.floor === Number(form.floor))
+      .sort((a, b) => a.company_name.localeCompare(b.company_name, "ar"));
+  }, [form.floor, companiesByFloor]);
+
+  useEffect(() => {
+    setForm((f: any) => ({ ...f, company_key: "" }));
+  }, [form.floor]);
 
   const filtered = useMemo(() => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -81,31 +122,26 @@ function VisitorsPage() {
   }).length;
 
   const checkIn = async () => {
-    if (!form.full_name) return toast.error("اسم الزائر مطلوب");
+    if (!form.full_name.trim()) return toast.error("اسم الزائر مطلوب");
+    if (!form.phone.trim()) return toast.error("رقم الهاتف مطلوب");
+    if (!form.floor) return toast.error("اختر الدور");
+    const selected = companiesOnFloor.find((c) => `${c.company_id}|${c.office_id}` === form.company_key);
+    if (!selected) return toast.error("اختر الشركة");
     setBusy(true);
     const payload: any = {
-      full_name: form.full_name,
-      national_id: form.national_id || null,
-      phone: form.phone || null,
-      office_id: form.office_id || null,
-      host_name: form.host_name || null,
-      visitor_type: form.visitor_type,
-      purpose: form.purpose || null,
-      vehicle_plate: form.vehicle_plate || null,
-      badge_number: form.badge_number || null,
-      expected_duration_minutes: form.expected_duration_minutes ? Number(form.expected_duration_minutes) : null,
-      notes: form.notes || null,
+      full_name: form.full_name.trim(),
+      phone: form.phone.trim(),
+      office_id: selected.office_id,
+      company_id: selected.company_id,
+      company_visiting: selected.company_name,
+      visitor_type: "زائر",
     };
     const { error } = await supabase.from("visitors").insert(payload);
     setBusy(false);
     if (error) return toast.error(error.message);
     toast.success("تم تسجيل دخول الزائر");
     setOpen(false);
-    setForm({
-      full_name: "", national_id: "", phone: "", office_id: "", host_name: "",
-      visitor_type: "زائر", purpose: "", vehicle_plate: "", badge_number: "",
-      expected_duration_minutes: "", notes: "",
-    });
+    setForm({ full_name: "", phone: "", floor: "", company_key: "" });
     await load();
   };
 
@@ -149,32 +185,47 @@ function VisitorsPage() {
               <DialogTrigger asChild>
                 <Button><Plus className="h-4 w-4 ml-1" /> تسجيل دخول زائر</Button>
               </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-lg">
               <DialogHeader><DialogTitle>تسجيل دخول زائر جديد</DialogTitle></DialogHeader>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div><Label>الاسم الكامل *</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
-                <div><Label>الرقم القومي</Label><Input value={form.national_id} onChange={(e) => setForm({ ...form, national_id: e.target.value })} /></div>
-                <div><Label>الهاتف</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+              <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <Label>نوع الزائر</Label>
-                  <Select value={form.visitor_type} onValueChange={(v) => setForm({ ...form, visitor_type: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>{TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                  <Label>الاسم *</Label>
+                  <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
+                </div>
+                <div>
+                  <Label>رقم الهاتف *</Label>
+                  <Input type="tel" inputMode="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                </div>
+                <div>
+                  <Label>الدور *</Label>
+                  <Select value={form.floor} onValueChange={(v) => setForm({ ...form, floor: v })}>
+                    <SelectTrigger><SelectValue placeholder="اختر الدور" /></SelectTrigger>
+                    <SelectContent>
+                      {floorOptions.map((f) => (
+                        <SelectItem key={f} value={String(f)}>الدور {f}</SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <Label>المكتب المُزار</Label>
-                  <Select value={form.office_id} onValueChange={(v) => setForm({ ...form, office_id: v })}>
-                    <SelectTrigger><SelectValue placeholder="اختر مكتباً" /></SelectTrigger>
-                    <SelectContent>{offices.map((o) => <SelectItem key={o.id} value={o.id}>{o.code} (طابق {o.floor})</SelectItem>)}</SelectContent>
+                  <Label>الشركة *</Label>
+                  <Select
+                    value={form.company_key}
+                    onValueChange={(v) => setForm({ ...form, company_key: v })}
+                    disabled={!form.floor}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={!form.floor ? "اختر الدور أولاً" : companiesOnFloor.length ? "اختر الشركة" : "لا توجد شركات في هذا الدور"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companiesOnFloor.map((c) => (
+                        <SelectItem key={`${c.company_id}|${c.office_id}`} value={`${c.company_id}|${c.office_id}`}>
+                          {c.company_name} <span className="text-muted-foreground text-xs">({c.code})</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
-                <div><Label>اسم المضيف</Label><Input value={form.host_name} onChange={(e) => setForm({ ...form, host_name: e.target.value })} /></div>
-                <div><Label>رقم الباج</Label><Input value={form.badge_number} onChange={(e) => setForm({ ...form, badge_number: e.target.value })} /></div>
-                <div><Label>لوحة السيارة</Label><Input value={form.vehicle_plate} onChange={(e) => setForm({ ...form, vehicle_plate: e.target.value })} /></div>
-                <div><Label>المدة المتوقعة (دقيقة)</Label><Input type="number" value={form.expected_duration_minutes} onChange={(e) => setForm({ ...form, expected_duration_minutes: e.target.value })} /></div>
-                <div className="md:col-span-2"><Label>الغرض</Label><Input value={form.purpose} onChange={(e) => setForm({ ...form, purpose: e.target.value })} /></div>
-                <div className="md:col-span-2"><Label>ملاحظات</Label><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpen(false)}>إلغاء</Button>

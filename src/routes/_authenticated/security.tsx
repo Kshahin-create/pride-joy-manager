@@ -520,8 +520,8 @@ interface Incident {
 
 function IncidentsTab() {
   const { activePropertyId } = useActiveProperty();
-  const { hasRole } = useAuth();
-  const canManage = hasRole("super_admin") || hasRole("security_supervisor");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["incidents.create","incidents.edit","incidents.close"]);
   const [items, setItems] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);

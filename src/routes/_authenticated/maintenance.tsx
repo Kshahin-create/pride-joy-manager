@@ -371,7 +371,7 @@ function MaintenancePage() {
 
   // approve
   const openApprove = (r: MR) => {
-    if (r.status !== "مكتمل مبدئياً" && !hasAnyRole(["super_admin"])) {
+    if (r.status !== "مكتمل مبدئياً" && !isSuperAdmin) {
       return toast.error("يجب إنهاء العمل أولاً قبل الاعتماد");
     }
     setApproveFor(r); setApproveNote("");

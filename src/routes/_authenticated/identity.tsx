@@ -34,8 +34,8 @@ type Identity = {
 };
 
 function IdentityPage() {
-  const { hasAnyRole } = useAuth();
-  const canEdit = hasAnyRole(["super_admin", "owner"]);
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canEdit = isSuperAdmin || hasAnyPermission(["identity.manage"]);
   const [data, setData] = useState<Identity | null>(null);
   const [saving, setSaving] = useState(false);
 

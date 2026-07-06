@@ -138,6 +138,7 @@ function MaintenancePage() {
   const [targetOfficeId, setTargetOfficeId] = useState<string>("");
   const [targetSpaceId, setTargetSpaceId] = useState<string>("");
   const [targetFloor, setTargetFloor] = useState<string>("");
+  const [customLocation, setCustomLocation] = useState<string>("");
 
   // assign dialog (open → معلّق للتعيين / جاري التنفيذ)
   const [assignFor, setAssignFor] = useState<MR | null>(null);
@@ -218,7 +219,7 @@ function MaintenancePage() {
   const resetForm = () => {
     setForm({ request_date: new Date().toISOString().slice(0, 10), priority: "متوسطة", request_source: "مستأجر" });
     setBeforeFile(null);
-    setTargetKind("office"); setTargetOfficeId(""); setTargetSpaceId(""); setTargetFloor("");
+    setTargetKind("office"); setTargetOfficeId(""); setTargetSpaceId(""); setTargetFloor(""); setCustomLocation("");
   };
 
   const create = async () => {
@@ -235,12 +236,21 @@ function MaintenancePage() {
     } else if (targetKind === "floor") {
       if (!targetFloor) return toast.error("اختر الدور");
       location = `دور ${targetFloor}`;
+    } else if (targetKind === "أخرى") {
+      if (!customLocation.trim()) return toast.error("اكتب وصف الموقع");
+      location = customLocation.trim();
     } else {
-      if (!targetSpaceId) return toast.error("اختر الموقع");
-      const sp = spaces.find((x) => x.id === targetSpaceId);
-      if (!sp) return toast.error("الموقع غير موجود");
-      space_id = sp.id;
-      location = `${sp.space_name}${sp.floor != null ? ` — دور ${sp.floor}` : ""}`;
+      // إما اختيار موقع موجود أو كتابة موقع مخصص
+      if (targetSpaceId === "__other__") {
+        if (!customLocation.trim()) return toast.error("اكتب وصف الموقع");
+        location = `${targetKind} — ${customLocation.trim()}`;
+      } else {
+        if (!targetSpaceId) return toast.error("اختر الموقع");
+        const sp = spaces.find((x) => x.id === targetSpaceId);
+        if (!sp) return toast.error("الموقع غير موجود");
+        space_id = sp.id;
+        location = `${sp.space_name}${sp.floor != null ? ` — دور ${sp.floor}` : ""}`;
+      }
     }
 
     if (!form.description) return toast.error("أدخل وصف البلاغ");
@@ -417,7 +427,7 @@ function MaintenancePage() {
         <ArchivedFilterToggle value={showArchived} onChange={setShowArchived} />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild><Button><Plus className="ml-2 h-4 w-4" />بلاغ جديد</Button></DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>إنشاء بلاغ صيانة</DialogTitle></DialogHeader>
             <div className="grid grid-cols-2 gap-3">
               <Field label="التاريخ"><Input type="date" value={form.request_date ?? ""} onChange={(e) => setForm({ ...form, request_date: e.target.value })} /></Field>
@@ -428,7 +438,7 @@ function MaintenancePage() {
                 </Select>
               </Field>
               <Field label="نوع الموقع">
-                <Select value={targetKind} onValueChange={(v) => { setTargetKind(v as TargetKind); setTargetOfficeId(""); setTargetSpaceId(""); setTargetFloor(""); }}>
+                <Select value={targetKind} onValueChange={(v) => { setTargetKind(v as TargetKind); setTargetOfficeId(""); setTargetSpaceId(""); setTargetFloor(""); setCustomLocation(""); }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{TARGET_KINDS.map((k) => <SelectItem key={k.value} value={k.value}>{k.label}</SelectItem>)}</SelectContent>
                 </Select>
@@ -454,20 +464,29 @@ function MaintenancePage() {
                       <SelectContent>{floors.map((f) => <SelectItem key={f} value={String(f)}>دور {f}</SelectItem>)}</SelectContent>
                     </Select>
                   </Field>
-                ) : (
-                  <Field label="الموقع المحدد">
-                    <Select value={targetSpaceId} onValueChange={setTargetSpaceId}>
-                      <SelectTrigger><SelectValue placeholder="اختر الموقع" /></SelectTrigger>
-                      <SelectContent>
-                        {spaces.filter((s) => s.space_type === targetKind).map((s) => (
-                          <SelectItem key={s.id} value={s.id}>{s.space_name} ({s.space_code}){s.floor != null ? ` — دور ${s.floor}` : ""}</SelectItem>
-                        ))}
-                        {spaces.filter((s) => s.space_type === targetKind).length === 0 && (
-                          <div className="px-2 py-1.5 text-xs text-muted-foreground">لا توجد مواقع من هذا النوع</div>
-                        )}
-                      </SelectContent>
-                    </Select>
+                ) : targetKind === "أخرى" ? (
+                  <Field label="اكتب وصف الموقع">
+                    <Input placeholder="اكتب الموقع بالتفصيل" value={customLocation} onChange={(e) => setCustomLocation(e.target.value)} />
                   </Field>
+                ) : (
+                  <div className="grid grid-cols-1 gap-2">
+                    <Field label="الموقع المحدد">
+                      <Select value={targetSpaceId} onValueChange={setTargetSpaceId}>
+                        <SelectTrigger><SelectValue placeholder="اختر الموقع" /></SelectTrigger>
+                        <SelectContent>
+                          {spaces.filter((s) => s.space_type === targetKind).map((s) => (
+                            <SelectItem key={s.id} value={s.id}>{s.space_name} ({s.space_code}){s.floor != null ? ` — دور ${s.floor}` : ""}</SelectItem>
+                          ))}
+                          <SelectItem value="__other__">أخرى (اكتب الموقع)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    {targetSpaceId === "__other__" && (
+                      <Field label="اكتب وصف الموقع">
+                        <Input placeholder="اكتب الموقع بالتفصيل" value={customLocation} onChange={(e) => setCustomLocation(e.target.value)} />
+                      </Field>
+                    )}
+                  </div>
                 )}
               </div>
               <Field label="نوع الطلب"><Input placeholder="كهرباء، سباكة، تكييف…" value={form.request_type ?? ""} onChange={(e) => setForm({ ...form, request_type: e.target.value })} /></Field>

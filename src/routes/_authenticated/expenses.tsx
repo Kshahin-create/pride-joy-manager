@@ -46,10 +46,10 @@ const fmt = (n: number) => Number(n || 0).toLocaleString("en-US") + " ر.س";
 
 function ExpensesPage() {
   const { activePropertyId } = useActiveProperty();
-  const { hasAnyRole } = useAuth();
-  const canCreate = hasAnyRole(["super_admin","accountant","maintenance_supervisor"]);
-  const canApprove = hasAnyRole(["super_admin","accountant"]);
-  const canPay = hasAnyRole(["super_admin","accountant"]);
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canCreate = isSuperAdmin || hasAnyPermission(["expenses.create"]);
+  const canApprove = isSuperAdmin || hasAnyPermission(["expenses.approve","expenses.reject"]);
+  const canPay = isSuperAdmin || hasAnyPermission(["expenses.pay","payments.record"]);
 
   const [tab, setTab] = useState<"expenses" | "payments" | "report">("expenses");
   const [expenses, setExpenses] = useState<Expense[]>([]);

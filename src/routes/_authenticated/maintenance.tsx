@@ -92,7 +92,7 @@ const TARGET_KINDS: { value: TargetKind; label: string }[] = [
   { value: "موقف سيارة", label: "موقف سيارات" },
   { value: "غرفة كهرباء", label: "غرفة كهرباء" },
   { value: "غرفة كاميرات", label: "غرفة كاميرات" },
-  { value: "مخزن", label: "مخزن" },
+  { value: "مستودع", label: "مستودع" },
   { value: "مصعد", label: "مصعد" },
   { value: "سلم", label: "سلم" },
   { value: "دورة مياه", label: "دورة مياه" },

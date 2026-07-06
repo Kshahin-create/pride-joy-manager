@@ -49,8 +49,8 @@ function StarRating({ value }: { value: number }) {
 
 function VendorsPage() {
   const { activePropertyId } = useActiveProperty();
-  const { hasRole } = useAuth();
-  const canManage = hasRole("super_admin");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["vendors.create","vendors.edit"]);
   const [items, setItems] = useState<Vendor[]>([]);
   const [averages, setAverages] = useState<Record<string, number>>({});
   const [expiringCount, setExpiringCount] = useState(0);

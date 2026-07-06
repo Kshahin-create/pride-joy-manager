@@ -56,8 +56,8 @@ const STATUS_COLOR: Record<string, string> = {
 
 function AssetsPage() {
   const { activePropertyId } = useActiveProperty();
-  const { hasAnyRole } = useAuth();
-  const canManage = hasAnyRole(["super_admin", "maintenance_supervisor"]);
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["assets.create","assets.edit"]);
   const [items, setItems] = useState<Asset[]>([]);
   const [types, setTypes] = useState<AssetType[]>([]);
   const [offices, setOffices] = useState<OfficeOpt[]>([]);

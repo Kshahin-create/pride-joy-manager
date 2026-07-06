@@ -58,8 +58,8 @@ interface OfficeMini {
 
 function ClientDetailsPage() {
   const { id } = useParams({ from: "/_authenticated/tenants/$id" });
-  const { hasRole } = useAuth();
-  const canEdit = hasRole("super_admin") || hasRole("receptionist");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canEdit = isSuperAdmin || hasAnyPermission(["tenants.edit","tenants.create"]);
 
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);

@@ -82,9 +82,9 @@ function SecurityPage() {
 
 function GuardsTab() {
   const { activePropertyId } = useActiveProperty();
-  const { hasRole } = useAuth();
-  const canManage = hasRole("super_admin") || hasRole("security_supervisor");
-  const isAdmin = hasRole("super_admin");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["guards.create","guards.edit"]);
+  const isAdmin = isSuperAdmin || hasAnyPermission(["guards.view_salary","guards.edit_salary"]);
   const [guards, setGuards] = useState<Guard[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);

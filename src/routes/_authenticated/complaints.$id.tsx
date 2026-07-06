@@ -18,7 +18,7 @@ const STATUSES: TStatus[] = ["جديد", "جاري المعالجة", "مغلق"
 
 function TicketDetail() {
   const { id } = useParams({ from: "/_authenticated/complaints/$id" });
-  const { hasRole } = useAuth();
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
   const [t, setT] = useState<any>(null);
   const [users, setUsers] = useState<{ id: string; full_name: string | null }[]>([]);
   const [status, setStatus] = useState<TStatus>("جديد");

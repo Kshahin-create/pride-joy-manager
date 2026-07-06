@@ -16,6 +16,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { ActivePropertyProvider } from "@/lib/active-property-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { Toaster } from "@/components/ui/sonner";
+import { DirectionProvider } from "@radix-ui/react-direction";
 
 function NotFoundComponent() {
   return (

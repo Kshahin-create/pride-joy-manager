@@ -46,8 +46,8 @@ export const Route = createFileRoute("/_authenticated/assets/$id")({
 
 function AssetDetail() {
   const { id } = Route.useParams();
-  const { hasAnyRole } = useAuth();
-  const canManage = hasAnyRole(["super_admin", "maintenance_supervisor"]);
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["assets.edit","assets.create"]);
   const [asset, setAsset] = useState<Asset | null>(null);
   const [history, setHistory] = useState<MR[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);

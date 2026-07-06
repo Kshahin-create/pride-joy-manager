@@ -89,8 +89,8 @@ const NAV: { label: string; items: NavItem[] }[] = [
       { title: "عقود التوريد", url: "/supply-contracts", icon: FileSignature, perms: ["contracts.view"] },
       { title: "الصيانة", url: "/maintenance", icon: Wrench, perms: ["maintenance.view"] },
       { title: "الأمن", url: "/security", icon: Shield, perms: ["guards.view","patrols.view","incidents.view","cameras.view"] },
-      { title: "اللوبي", url: "/lobby", icon: Sofa },
-      { title: "المناطق المشتركة", url: "/common-areas", icon: LayoutGrid },
+      { title: "اللوبي", url: "/lobby", icon: Sofa, perms: ["visitors.view","visitors.checkin"] },
+      { title: "المناطق المشتركة", url: "/common-areas", icon: LayoutGrid, perms: ["spaces.view","spaces.manage"] },
     ],
   },
   {

@@ -204,7 +204,11 @@ function LandingPage() {
                 transition={{ duration: 0.4, delay: i * 0.04 }}
                 className="group rounded-xl border border-border bg-card p-5 text-center hover:border-primary/40 hover:shadow-md transition-all"
               >
-                <div className="text-3xl mb-2">{m.emoji}</div>
+                <div className="mb-2 flex justify-center">
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary grid place-items-center">
+                    <m.icon className="h-6 w-6" />
+                  </div>
+                </div>
                 <h3 className="font-bold text-sm text-foreground">{m.title}</h3>
               </motion.div>
             ))}

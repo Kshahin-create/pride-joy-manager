@@ -80,8 +80,8 @@ function overallBadge(o: Overall) {
 
 function InspectionsPage() {
   const { activePropertyId } = useActiveProperty();
-  const { user, hasAnyRole } = useAuth();
-  const canManage = hasAnyRole(["super_admin", "maintenance_supervisor", "security_supervisor"]);
+  const { user, hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["inspections.create","inspections.edit","inspections.manage_templates"]);
 
   const [templates, setTemplates] = useState<Template[]>([]);
   const [inspections, setInspections] = useState<Inspection[]>([]);

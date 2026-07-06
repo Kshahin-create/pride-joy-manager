@@ -319,8 +319,8 @@ interface Checkpoint {
 
 function PatrolsTab() {
   const { activePropertyId } = useActiveProperty();
-  const { hasRole } = useAuth();
-  const canManage = hasRole("super_admin") || hasRole("security_supervisor");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["patrols.create","patrols.view"]);
   const [patrols, setPatrols] = useState<Patrol[]>([]);
   const [guards, setGuards] = useState<Guard[]>([]);
   const [checkpoints, setCheckpoints] = useState<Record<string, Checkpoint[]>>({});

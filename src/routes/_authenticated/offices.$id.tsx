@@ -181,7 +181,7 @@ function OfficeDetailsPage() {
   useEffect(() => { load(); }, [load]);
 
   const changeStatus = async (status: OfficeStatus) => {
-    if (!isAdmin || !office || status === office.status) return;
+    if (!canChangeStatus || !office || status === office.status) return;
     const { error } = await supabase.from("offices").update({ status }).eq("id", office.id);
     if (error) return toast.error("تعذّر تغيير الحالة");
     setOffice({ ...office, status });

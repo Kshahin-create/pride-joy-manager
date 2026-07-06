@@ -31,6 +31,14 @@ type Identity = {
   total_floors: number | null;
   total_offices: number | null;
   notes: string | null;
+  // Tanks
+  overhead_tank_count: number | null;
+  overhead_tank_capacity_per_unit: number | null;
+  overhead_tank_type: string | null;
+  overhead_tank_area_sqm: number | null;
+  overhead_tank_height_m: number | null;
+  overhead_fire_pump_tank_count: number | null;
+  underground_concrete_tanks_notes: string | null;
 };
 
 function IdentityPage() {
@@ -74,6 +82,13 @@ function IdentityPage() {
         total_floors: data.total_floors,
         total_offices: data.total_offices,
         notes: data.notes,
+        overhead_tank_count: data.overhead_tank_count,
+        overhead_tank_capacity_per_unit: data.overhead_tank_capacity_per_unit,
+        overhead_tank_type: data.overhead_tank_type,
+        overhead_tank_area_sqm: data.overhead_tank_area_sqm,
+        overhead_tank_height_m: data.overhead_tank_height_m,
+        overhead_fire_pump_tank_count: data.overhead_fire_pump_tank_count,
+        underground_concrete_tanks_notes: data.underground_concrete_tanks_notes,
       } as never)
       .eq("id", true);
     setSaving(false);
@@ -134,6 +149,36 @@ function IdentityPage() {
           <div className="md:col-span-2">
             <Label>ملاحظات</Label>
             <Textarea value={data.notes ?? ""} onChange={(e) => set("notes", e.target.value)} disabled={!canEdit} rows={4} />
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader><CardTitle>الخزانات</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>عدد الخزانات العلوية</Label>
+            <Input type="number" value={data.overhead_tank_count ?? ""} onChange={(e) => set("overhead_tank_count", e.target.value === "" ? null : Number(e.target.value))} disabled={!canEdit} />
+          </div>
+          <div>
+            <Label>سعة كل خزان علوي (طن)</Label>
+            <Input type="number" value={data.overhead_tank_capacity_per_unit ?? ""} onChange={(e) => set("overhead_tank_capacity_per_unit", e.target.value === "" ? null : Number(e.target.value))} disabled={!canEdit} />
+          </div>
+          <Field label="نوع الخزانات العلوية" value={data.overhead_tank_type ?? ""} onChange={(v) => set("overhead_tank_type", v)} readOnly={!canEdit} />
+          <div>
+            <Label>مساحة الخزانات العلوية (م²)</Label>
+            <Input type="number" value={data.overhead_tank_area_sqm ?? ""} onChange={(e) => set("overhead_tank_area_sqm", e.target.value === "" ? null : Number(e.target.value))} disabled={!canEdit} />
+          </div>
+          <div>
+            <Label>ارتفاع الخزانات العلوية (م)</Label>
+            <Input type="number" value={data.overhead_tank_height_m ?? ""} onChange={(e) => set("overhead_tank_height_m", e.target.value === "" ? null : Number(e.target.value))} disabled={!canEdit} />
+          </div>
+          <div>
+            <Label>عدد الخزانات المخصصة لمضخة الحريق</Label>
+            <Input type="number" value={data.overhead_fire_pump_tank_count ?? ""} onChange={(e) => set("overhead_fire_pump_tank_count", e.target.value === "" ? null : Number(e.target.value))} disabled={!canEdit} />
+          </div>
+          <div className="md:col-span-2">
+            <Label>الخزانات الأرضية الخرسانية المحفورة</Label>
+            <Textarea value={data.underground_concrete_tanks_notes ?? ""} onChange={(e) => set("underground_concrete_tanks_notes", e.target.value)} disabled={!canEdit} rows={3} />
           </div>
         </CardContent>
       </Card>

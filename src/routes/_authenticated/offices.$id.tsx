@@ -148,10 +148,19 @@ function daysUntil(date: string | null): number | null {
 
 function OfficeDetailsPage() {
   const { id } = useParams({ from: "/_authenticated/offices/$id" });
-  const { hasRole } = useAuth();
+  const { hasRole, hasAnyPermission, isSuperAdmin } = useAuth();
   const isAdmin = hasRole("super_admin");
   const isMaint = hasRole("maintenance_supervisor");
   const canEditUtility = isAdmin || isMaint;
+  const canEditOffice = isSuperAdmin || hasAnyPermission(["offices.edit"]);
+  const canChangeStatus = isSuperAdmin || hasAnyPermission(["offices.change_status"]);
+  const canSeeTenant = isSuperAdmin || hasAnyPermission(["tenants.view","contracts.view"]);
+  const canSeeFinance = isSuperAdmin || hasAnyPermission(["invoices.view","expenses.view","payments.record"]);
+  const canSeeMaint = isSuperAdmin || hasAnyPermission(["maintenance.view"]);
+  const canSeeAssets = isSuperAdmin || hasAnyPermission(["assets.view"]);
+  const canSeeFiles = isSuperAdmin || hasAnyPermission(["documents.view"]);
+  const canSeeTickets = isSuperAdmin || hasAnyPermission(["tickets.view"]);
+  const canSeeLog = isSuperAdmin || hasAnyPermission(["building_log.view"]);
 
   const [office, setOffice] = useState<Office | null>(null);
   const [loading, setLoading] = useState(true);
@@ -172,7 +181,7 @@ function OfficeDetailsPage() {
   useEffect(() => { load(); }, [load]);
 
   const changeStatus = async (status: OfficeStatus) => {
-    if (!isAdmin || !office || status === office.status) return;
+    if (!canChangeStatus || !office || status === office.status) return;
     const { error } = await supabase.from("offices").update({ status }).eq("id", office.id);
     if (error) return toast.error("تعذّر تغيير الحالة");
     setOffice({ ...office, status });
@@ -214,17 +223,21 @@ function OfficeDetailsPage() {
           </div>
           <Badge className={STATUS_BADGE[office.status]}>{office.status}</Badge>
         </div>
-        {isAdmin && (
+        {(canChangeStatus || canEditOffice) && (
           <div className="flex items-center gap-2">
-            <Select value={office.status} onValueChange={(v) => changeStatus(v as OfficeStatus)}>
-              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Button onClick={() => setEditOpen(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
-              <Pencil className="h-4 w-4 ms-1" /> تعديل
-            </Button>
+            {canChangeStatus && (
+              <Select value={office.status} onValueChange={(v) => changeStatus(v as OfficeStatus)}>
+                <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            {canEditOffice && (
+              <Button onClick={() => setEditOpen(true)} className="bg-gold text-gold-foreground hover:bg-gold/90">
+                <Pencil className="h-4 w-4 ms-1" /> تعديل
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -232,39 +245,53 @@ function OfficeDetailsPage() {
       <Tabs defaultValue="basic" dir="rtl">
         <TabsList className="flex flex-wrap h-auto w-full justify-start gap-1">
           <TabsTrigger value="basic"><InfoIcon className="h-4 w-4 ms-1" />البيانات</TabsTrigger>
-          <TabsTrigger value="tenant"><Building2 className="h-4 w-4 ms-1" />المستأجر</TabsTrigger>
-          <TabsTrigger value="finance"><Receipt className="h-4 w-4 ms-1" />الفواتير والمدفوعات</TabsTrigger>
-          <TabsTrigger value="maintenance"><Wrench className="h-4 w-4 ms-1" />الصيانة</TabsTrigger>
-          <TabsTrigger value="assets"><Gauge className="h-4 w-4 ms-1" />الأصول</TabsTrigger>
-          <TabsTrigger value="files"><FolderOpen className="h-4 w-4 ms-1" />الملفات</TabsTrigger>
-          <TabsTrigger value="tickets"><History className="h-4 w-4 ms-1" />التذاكر</TabsTrigger>
-          <TabsTrigger value="log"><History className="h-4 w-4 ms-1" />السجل</TabsTrigger>
+          {canSeeTenant && <TabsTrigger value="tenant"><Building2 className="h-4 w-4 ms-1" />المستأجر</TabsTrigger>}
+          {canSeeFinance && <TabsTrigger value="finance"><Receipt className="h-4 w-4 ms-1" />الفواتير والمدفوعات</TabsTrigger>}
+          {canSeeMaint && <TabsTrigger value="maintenance"><Wrench className="h-4 w-4 ms-1" />الصيانة</TabsTrigger>}
+          {canSeeAssets && <TabsTrigger value="assets"><Gauge className="h-4 w-4 ms-1" />الأصول</TabsTrigger>}
+          {canSeeFiles && <TabsTrigger value="files"><FolderOpen className="h-4 w-4 ms-1" />الملفات</TabsTrigger>}
+          {canSeeTickets && <TabsTrigger value="tickets"><History className="h-4 w-4 ms-1" />التذاكر</TabsTrigger>}
+          {canSeeLog && <TabsTrigger value="log"><History className="h-4 w-4 ms-1" />السجل</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="basic" className="mt-4">
           <BasicTab office={office} />
         </TabsContent>
-        <TabsContent value="tenant" className="mt-4">
-          <TenantTab officeId={office.id} />
-        </TabsContent>
-        <TabsContent value="finance" className="mt-4">
-          <FinanceTab officeId={office.id} />
-        </TabsContent>
-        <TabsContent value="maintenance" className="mt-4">
-          <MaintenanceTab officeId={office.id} />
-        </TabsContent>
-        <TabsContent value="assets" className="mt-4">
-          <OfficeAssetsTab officeId={office.id} />
-        </TabsContent>
-        <TabsContent value="files" className="mt-4">
-          <FilesTab officeId={office.id} canEdit={isAdmin} />
-        </TabsContent>
-        <TabsContent value="log" className="mt-4">
-          <OfficeBuildingLogTab officeId={office.id} />
-        </TabsContent>
-        <TabsContent value="tickets" className="mt-4">
-          <OfficeTicketsTab officeId={office.id} />
-        </TabsContent>
+        {canSeeTenant && (
+          <TabsContent value="tenant" className="mt-4">
+            <TenantTab officeId={office.id} />
+          </TabsContent>
+        )}
+        {canSeeFinance && (
+          <TabsContent value="finance" className="mt-4">
+            <FinanceTab officeId={office.id} />
+          </TabsContent>
+        )}
+        {canSeeMaint && (
+          <TabsContent value="maintenance" className="mt-4">
+            <MaintenanceTab officeId={office.id} />
+          </TabsContent>
+        )}
+        {canSeeAssets && (
+          <TabsContent value="assets" className="mt-4">
+            <OfficeAssetsTab officeId={office.id} />
+          </TabsContent>
+        )}
+        {canSeeFiles && (
+          <TabsContent value="files" className="mt-4">
+            <FilesTab officeId={office.id} canEdit={canEditOffice} />
+          </TabsContent>
+        )}
+        {canSeeLog && (
+          <TabsContent value="log" className="mt-4">
+            <OfficeBuildingLogTab officeId={office.id} />
+          </TabsContent>
+        )}
+        {canSeeTickets && (
+          <TabsContent value="tickets" className="mt-4">
+            <OfficeTicketsTab officeId={office.id} />
+          </TabsContent>
+        )}
       </Tabs>
 
       <OfficeEditDialog

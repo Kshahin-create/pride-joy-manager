@@ -142,8 +142,8 @@ function Info({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 function useCanManage() {
-  const { hasRole } = useAuth();
-  return hasRole("super_admin") || hasRole("security_supervisor");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  return isSuperAdmin || hasAnyPermission(["guards.edit","guards.create"]);
 }
 
 /* ============================ ATTENDANCE ============================ */

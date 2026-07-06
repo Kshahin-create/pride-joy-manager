@@ -148,10 +148,19 @@ function daysUntil(date: string | null): number | null {
 
 function OfficeDetailsPage() {
   const { id } = useParams({ from: "/_authenticated/offices/$id" });
-  const { hasRole } = useAuth();
+  const { hasRole, hasAnyPermission, isSuperAdmin } = useAuth();
   const isAdmin = hasRole("super_admin");
   const isMaint = hasRole("maintenance_supervisor");
   const canEditUtility = isAdmin || isMaint;
+  const canEditOffice = isSuperAdmin || hasAnyPermission(["offices.edit"]);
+  const canChangeStatus = isSuperAdmin || hasAnyPermission(["offices.change_status"]);
+  const canSeeTenant = isSuperAdmin || hasAnyPermission(["tenants.view","contracts.view"]);
+  const canSeeFinance = isSuperAdmin || hasAnyPermission(["invoices.view","expenses.view","payments.record"]);
+  const canSeeMaint = isSuperAdmin || hasAnyPermission(["maintenance.view"]);
+  const canSeeAssets = isSuperAdmin || hasAnyPermission(["assets.view"]);
+  const canSeeFiles = isSuperAdmin || hasAnyPermission(["documents.view"]);
+  const canSeeTickets = isSuperAdmin || hasAnyPermission(["tickets.view"]);
+  const canSeeLog = isSuperAdmin || hasAnyPermission(["building_log.view"]);
 
   const [office, setOffice] = useState<Office | null>(null);
   const [loading, setLoading] = useState(true);

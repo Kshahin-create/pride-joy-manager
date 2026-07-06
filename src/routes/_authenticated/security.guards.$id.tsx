@@ -50,8 +50,8 @@ interface Guard {
 
 function GuardDetailsPage() {
   const { id } = useParams({ from: "/_authenticated/security/guards/$id" });
-  const { hasRole } = useAuth();
-  const isAdmin = hasRole("super_admin");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const isAdmin = isSuperAdmin || hasAnyPermission(["guards.view_salary","guards.edit_salary"]);
   const [guard, setGuard] = useState<Guard | null>(null);
   const [photoSigned, setPhotoSigned] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);

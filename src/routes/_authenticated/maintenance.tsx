@@ -138,6 +138,7 @@ function MaintenancePage() {
   const [targetOfficeId, setTargetOfficeId] = useState<string>("");
   const [targetSpaceId, setTargetSpaceId] = useState<string>("");
   const [targetFloor, setTargetFloor] = useState<string>("");
+  const [customLocation, setCustomLocation] = useState<string>("");
 
   // assign dialog (open → معلّق للتعيين / جاري التنفيذ)
   const [assignFor, setAssignFor] = useState<MR | null>(null);

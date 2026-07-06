@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileText, Printer, RefreshCw } from "lucide-react";
 import { useCanSeeFinance } from "@/lib/finance-access";
+import { SafeImage } from "@/components/safe-image";
 
 export const Route = createFileRoute("/_authenticated/daily-report")({
   component: DailyReportPage,
@@ -96,7 +97,7 @@ function DailyReportPage() {
           <div className="text-xl font-bold">{identity?.building_name ?? "تقرير يومي"}</div>
           <div className="text-sm">تاريخ التقرير: {date}</div>
         </div>
-        {identity?.logo_url && <img src={identity.logo_url} alt="" className="h-12" />}
+        {identity?.logo_url && <SafeImage src={identity.logo_url} alt="" className="h-12" />}
       </div>
 
       {loading && !report ? (

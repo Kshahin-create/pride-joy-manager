@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, AlertTriangle, Play, Pause, CheckCircle2, ShieldCheck, RotateCcw, Trash2, Pencil } from "lucide-react";
+import { SafeImage } from "@/components/safe-image";
 import { MaintenanceRequestEditDialog } from "@/components/maintenance-request-edit-dialog";
 import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
@@ -566,8 +567,8 @@ function MaintenancePage() {
                           )}
                           {(r.before_photo_url || r.after_photo_url) && (
                             <div className="flex gap-1 mt-2">
-                              {r.before_photo_url && <img src={r.before_photo_url} alt="قبل" className="h-12 w-12 object-cover rounded border" />}
-                              {r.after_photo_url && <img src={r.after_photo_url} alt="بعد" className="h-12 w-12 object-cover rounded border" />}
+                              {r.before_photo_url && <SafeImage src={r.before_photo_url} alt="قبل" className="h-12 w-12 object-cover rounded border" />}
+                              {r.after_photo_url && <SafeImage src={r.after_photo_url} alt="بعد" className="h-12 w-12 object-cover rounded border" />}
                             </div>
                           )}
                           <div className="flex items-center gap-1 flex-wrap">
@@ -639,12 +640,12 @@ function MaintenancePage() {
                           <div className="flex gap-1">
                             {r.before_photo_url && (
                               <a href={r.before_photo_url} target="_blank" rel="noreferrer" title="قبل">
-                                <img src={r.before_photo_url} alt="قبل" loading="lazy" className="h-14 w-14 object-cover rounded border hover:ring-2 hover:ring-primary transition" />
+                                <SafeImage src={r.before_photo_url} alt="قبل" loading="lazy" className="h-14 w-14 object-cover rounded border hover:ring-2 hover:ring-primary transition" />
                               </a>
                             )}
                             {r.after_photo_url && (
                               <a href={r.after_photo_url} target="_blank" rel="noreferrer" title="بعد">
-                                <img src={r.after_photo_url} alt="بعد" loading="lazy" className="h-14 w-14 object-cover rounded border hover:ring-2 hover:ring-primary transition" />
+                                <SafeImage src={r.after_photo_url} alt="بعد" loading="lazy" className="h-14 w-14 object-cover rounded border hover:ring-2 hover:ring-primary transition" />
                               </a>
                             )}
                           </div>
@@ -722,7 +723,7 @@ function MaintenancePage() {
           <div className="space-y-3">
             <Field label="صورة بعد الإصلاح (اختياري)">
               {completeAfterUrl && !completeAfterFile && (
-                <img src={completeAfterUrl} alt="بعد" className="h-24 w-24 object-cover rounded border mb-2" />
+                <SafeImage src={completeAfterUrl} alt="بعد" className="h-24 w-24 object-cover rounded border mb-2" />
               )}
               <Input type="file" accept="image/*" onChange={(e) => setCompleteAfterFile(e.target.files?.[0] ?? null)} />
             </Field>
@@ -772,8 +773,8 @@ function MaintenancePage() {
               </div>
               {approveFor.notes && <div className="bg-muted p-2 rounded text-xs whitespace-pre-wrap">{approveFor.notes}</div>}
               <div className="flex gap-2">
-                {approveFor.before_photo_url && <div><div className="text-xs mb-1">قبل</div><img src={approveFor.before_photo_url} className="h-32 rounded border" /></div>}
-                {approveFor.after_photo_url && <div><div className="text-xs mb-1">بعد</div><img src={approveFor.after_photo_url} className="h-32 rounded border" /></div>}
+                {approveFor.before_photo_url && <div><div className="text-xs mb-1">قبل</div><SafeImage src={approveFor.before_photo_url} className="h-32 rounded border" /></div>}
+                {approveFor.after_photo_url && <div><div className="text-xs mb-1">بعد</div><SafeImage src={approveFor.after_photo_url} className="h-32 rounded border" /></div>}
               </div>
               <Field label="ملاحظة الإرجاع (إن لزم)">
                 <Textarea rows={2} value={approveNote} onChange={(e) => setApproveNote(e.target.value)} placeholder="إن كانت هناك ملاحظات للفني…" />

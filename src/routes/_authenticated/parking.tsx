@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Car, Plus, ClipboardCheck, Sparkles, AlertOctagon, LayoutGrid, Table as TableIcon } from "lucide-react";
+import { SafeImage } from "@/components/safe-image";
 import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
 
 export const Route = createFileRoute("/_authenticated/parking")({ component: ParkingPage });
@@ -405,7 +406,7 @@ function ParkingPage() {
                         <div key={k}>
                           <div className="text-xs text-muted-foreground mb-1">{k === "before_photo_url" ? "قبل" : "بعد"}</div>
                           {c[k] && signedUrls[c[k]] ? (
-                            <img src={signedUrls[c[k]]} alt="" className="rounded-md border w-full h-40 object-cover" />
+                            <SafeImage src={signedUrls[c[k]]} alt="" className="rounded-md border w-full h-40 object-cover" />
                           ) : <div className="h-40 border rounded-md grid place-items-center text-xs text-muted-foreground">لا توجد صورة</div>}
                         </div>
                       ))}
@@ -465,7 +466,7 @@ function ParkingPage() {
                       <TableCell>
                         <div className="flex gap-1">
                           {(v.photo_urls ?? []).slice(0, 3).map((p: string) => (
-                            signedUrls[p] && <img key={p} src={signedUrls[p]} className="h-10 w-10 rounded object-cover border" />
+                            signedUrls[p] && <SafeImage key={p} src={signedUrls[p]} className="h-10 w-10 rounded object-cover border" />
                           ))}
                         </div>
                       </TableCell>

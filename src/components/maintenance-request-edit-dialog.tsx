@@ -21,6 +21,7 @@ import {
 import { EmployeePicker } from "@/components/employee-picker";
 import { toast } from "sonner";
 import { Trash2, Upload, ImageIcon } from "lucide-react";
+import { SafeImage } from "@/components/safe-image";
 
 const BUCKET = "maintenance-photos";
 const PRIORITIES = ["منخفضة", "متوسطة", "عالية", "طارئة"] as const;
@@ -275,7 +276,7 @@ export function MaintenanceRequestEditDialog({ open, onClose, requestId, onSaved
                       <div key={a.id} className="relative border rounded-md p-2 group">
                         {isImage && url ? (
                           <a href={url} target="_blank" rel="noreferrer">
-                            <img src={url} alt={a.file_name} className="w-full h-32 object-cover rounded" />
+                            <SafeImage src={url} alt={a.file_name} className="w-full h-32 object-cover rounded" />
                           </a>
                         ) : (
                           <a href={url} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center h-32 text-muted-foreground hover:text-foreground">

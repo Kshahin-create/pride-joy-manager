@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Sparkles, Camera, AlertTriangle, Wrench, ImagePlus, Trash2 } from "lucide-react";
+import { SafeImage } from "@/components/safe-image";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveProperty } from "@/lib/active-property-context";
 import { scoped } from "@/lib/scoped-query";
@@ -207,7 +208,7 @@ function PhotoSlot({ label, path }: { label: string; path: string | null }) {
     <div>
       <div className="text-xs text-muted-foreground mb-1">{label}</div>
       {url ? (
-        <img src={url} alt={label} className="w-full h-40 object-cover rounded-md border" />
+        <SafeImage src={url} alt={label} className="w-full h-40 object-cover rounded-md border" />
       ) : (
         <div className="w-full h-40 rounded-md border border-dashed flex items-center justify-center text-muted-foreground text-xs">
           لا توجد صورة

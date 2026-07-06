@@ -34,8 +34,8 @@ type CompanyOnFloor = { company_id: string; company_name: string; office_id: str
 
 function VisitorsPage() {
   const { activePropertyId } = useActiveProperty();
-  const { hasAnyRole } = useAuth();
-  const canManage = hasAnyRole(["super_admin", "receptionist", "security_supervisor"]);
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["visitors.checkin","visitors.checkout"]);
   const [items, setItems] = useState<Visitor[]>([]);
   const [offices, setOffices] = useState<Office[]>([]);
   const [companiesByFloor, setCompaniesByFloor] = useState<CompanyOnFloor[]>([]);

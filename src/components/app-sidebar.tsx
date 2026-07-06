@@ -96,7 +96,7 @@ const NAV: { label: string; items: NavItem[] }[] = [
   {
     label: "موارد التشغيل",
     items: [
-      { title: "الموظفون", url: "/employees", icon: Users },
+      { title: "الموظفون", url: "/employees", icon: Users, perms: ["users.view","guards.view"] },
       { title: "الأصول", url: "/assets", icon: Wrench, perms: ["assets.view"] },
       { title: "الصيانة الوقائية", url: "/pm-plans", icon: Wrench, perms: ["pm_plans.view"] },
       { title: "الموردون", url: "/vendors", icon: Truck, perms: ["vendors.view"] },

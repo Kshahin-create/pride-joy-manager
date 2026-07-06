@@ -67,9 +67,9 @@ interface Attachment {
 function ContractDetailsPage() {
   const { id } = useParams({ from: "/_authenticated/contracts/$id" });
   const nav = useNavigate();
-  const { hasRole } = useAuth();
-  const isAdmin = hasRole("super_admin");
-  const canUpload = isAdmin || hasRole("accountant");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const isAdmin = isSuperAdmin || hasAnyPermission(["contracts.edit","contracts.cancel","contracts.renew"]);
+  const canUpload = isSuperAdmin || hasAnyPermission(["contracts.edit","contracts.create","documents.create"]);
 
   const [contract, setContract] = useState<Contract | null>(null);
   const [loading, setLoading] = useState(true);

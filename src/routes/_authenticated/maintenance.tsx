@@ -236,12 +236,21 @@ function MaintenancePage() {
     } else if (targetKind === "floor") {
       if (!targetFloor) return toast.error("اختر الدور");
       location = `دور ${targetFloor}`;
+    } else if (targetKind === "أخرى") {
+      if (!customLocation.trim()) return toast.error("اكتب وصف الموقع");
+      location = customLocation.trim();
     } else {
-      if (!targetSpaceId) return toast.error("اختر الموقع");
-      const sp = spaces.find((x) => x.id === targetSpaceId);
-      if (!sp) return toast.error("الموقع غير موجود");
-      space_id = sp.id;
-      location = `${sp.space_name}${sp.floor != null ? ` — دور ${sp.floor}` : ""}`;
+      // إما اختيار موقع موجود أو كتابة موقع مخصص
+      if (targetSpaceId === "__other__") {
+        if (!customLocation.trim()) return toast.error("اكتب وصف الموقع");
+        location = `${targetKind} — ${customLocation.trim()}`;
+      } else {
+        if (!targetSpaceId) return toast.error("اختر الموقع");
+        const sp = spaces.find((x) => x.id === targetSpaceId);
+        if (!sp) return toast.error("الموقع غير موجود");
+        space_id = sp.id;
+        location = `${sp.space_name}${sp.floor != null ? ` — دور ${sp.floor}` : ""}`;
+      }
     }
 
     if (!form.description) return toast.error("أدخل وصف البلاغ");

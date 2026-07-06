@@ -246,7 +246,9 @@ function LandingPage() {
             <div className="grid grid-cols-2 gap-3">
               {MODULES.slice(0, 8).map((m) => (
                 <div key={m.title} className="rounded-lg border border-border bg-background p-4 flex items-center gap-2.5">
-                  <span className="text-xl">{m.emoji}</span>
+                  <div className="h-8 w-8 rounded-md bg-primary/10 text-primary grid place-items-center shrink-0">
+                    <m.icon className="h-4 w-4" />
+                  </div>
                   <span className="text-xs font-semibold">{m.title}</span>
                 </div>
               ))}

@@ -81,11 +81,7 @@ function TicketDetail() {
 
   if (!t) return <div className="p-6 text-muted-foreground">جاري التحميل...</div>;
 
-  const canEdit =
-    hasRole("super_admin") ||
-    hasRole("receptionist") ||
-    (hasRole("security_supervisor") && t.ticket_type === "أمن") ||
-    (hasRole("maintenance_supervisor") && (t.ticket_type === "صيانة" || t.ticket_type === "نظافة"));
+  const canEdit = isSuperAdmin || hasAnyPermission(["tickets.edit","tickets.assign","tickets.close"]);
 
   return (
     <div className="space-y-6 max-w-4xl">

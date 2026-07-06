@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowRight, Loader2, Plus, AlertTriangle, ShieldCheck } from "lucide-react";
+import { SafeImage } from "@/components/safe-image";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -85,7 +86,7 @@ function GuardDetailsPage() {
           <Button variant="ghost" size="sm"><ArrowRight className="h-4 w-4 ms-1" /> الأمن</Button>
         </Link>
         {photoSigned ? (
-          <img src={photoSigned} alt={guard.full_name} className="h-12 w-12 rounded-full object-cover border" />
+          <SafeImage src={photoSigned} alt={guard.full_name} className="h-12 w-12 rounded-full object-cover border" />
         ) : (
           <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center"><ShieldCheck className="h-6 w-6 text-muted-foreground" /></div>
         )}

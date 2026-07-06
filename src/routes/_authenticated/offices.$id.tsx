@@ -41,6 +41,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { X, UploadCloud } from "lucide-react";
+import { SafeImage } from "@/components/safe-image";
 import { DOC_UPLOAD_CATEGORIES, type DocCategory } from "@/components/documents-tab";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -1295,7 +1296,7 @@ function FilesTab({ officeId, canEdit }: { officeId: string; canEdit: boolean })
                     <div key={f.id} className="border rounded-lg overflow-hidden group relative">
                       {signedUrls[f.id] ? (
                         <a href={signedUrls[f.id]} target="_blank" rel="noreferrer">
-                          <img src={signedUrls[f.id]} alt={f.file_name} className="w-full h-32 object-cover" />
+                          <SafeImage src={signedUrls[f.id]} alt={f.file_name} className="w-full h-32 object-cover" />
                         </a>
                       ) : (
                         <div className="w-full h-32 bg-muted animate-pulse" />

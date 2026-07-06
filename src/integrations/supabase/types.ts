@@ -718,10 +718,17 @@ export type Database = {
           legal_name: string | null
           logo_url: string | null
           notes: string | null
+          overhead_fire_pump_tank_count: number | null
+          overhead_tank_area_sqm: number | null
+          overhead_tank_capacity_per_unit: number | null
+          overhead_tank_count: number | null
+          overhead_tank_height_m: number | null
+          overhead_tank_type: string | null
           owner_name: string | null
           phone: string | null
           total_floors: number | null
           total_offices: number | null
+          underground_concrete_tanks_notes: string | null
           updated_at: string
           vat_number: string | null
           website: string | null
@@ -738,10 +745,17 @@ export type Database = {
           legal_name?: string | null
           logo_url?: string | null
           notes?: string | null
+          overhead_fire_pump_tank_count?: number | null
+          overhead_tank_area_sqm?: number | null
+          overhead_tank_capacity_per_unit?: number | null
+          overhead_tank_count?: number | null
+          overhead_tank_height_m?: number | null
+          overhead_tank_type?: string | null
           owner_name?: string | null
           phone?: string | null
           total_floors?: number | null
           total_offices?: number | null
+          underground_concrete_tanks_notes?: string | null
           updated_at?: string
           vat_number?: string | null
           website?: string | null
@@ -758,10 +772,17 @@ export type Database = {
           legal_name?: string | null
           logo_url?: string | null
           notes?: string | null
+          overhead_fire_pump_tank_count?: number | null
+          overhead_tank_area_sqm?: number | null
+          overhead_tank_capacity_per_unit?: number | null
+          overhead_tank_count?: number | null
+          overhead_tank_height_m?: number | null
+          overhead_tank_type?: string | null
           owner_name?: string | null
           phone?: string | null
           total_floors?: number | null
           total_offices?: number | null
+          underground_concrete_tanks_notes?: string | null
           updated_at?: string
           vat_number?: string | null
           website?: string | null

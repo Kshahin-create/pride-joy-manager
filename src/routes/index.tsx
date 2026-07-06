@@ -204,7 +204,11 @@ function LandingPage() {
                 transition={{ duration: 0.4, delay: i * 0.04 }}
                 className="group rounded-xl border border-border bg-card p-5 text-center hover:border-primary/40 hover:shadow-md transition-all"
               >
-                <div className="text-3xl mb-2">{m.emoji}</div>
+                <div className="mb-2 flex justify-center">
+                  <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary grid place-items-center">
+                    <m.icon className="h-6 w-6" />
+                  </div>
+                </div>
                 <h3 className="font-bold text-sm text-foreground">{m.title}</h3>
               </motion.div>
             ))}
@@ -242,7 +246,9 @@ function LandingPage() {
             <div className="grid grid-cols-2 gap-3">
               {MODULES.slice(0, 8).map((m) => (
                 <div key={m.title} className="rounded-lg border border-border bg-background p-4 flex items-center gap-2.5">
-                  <span className="text-xl">{m.emoji}</span>
+                  <div className="h-8 w-8 rounded-md bg-primary/10 text-primary grid place-items-center shrink-0">
+                    <m.icon className="h-4 w-4" />
+                  </div>
                   <span className="text-xs font-semibold">{m.title}</span>
                 </div>
               ))}

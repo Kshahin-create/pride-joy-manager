@@ -1,0 +1,1 @@
+ALTER TYPE public.space_type RENAME VALUE 'مخزن' TO 'مستودع';

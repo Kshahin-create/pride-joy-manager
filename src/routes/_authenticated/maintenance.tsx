@@ -83,7 +83,7 @@ type MR = {
   closed_at: string | null; approved_at: string | null; approved_by: string | null;
 };
 
-type TargetKind = "office" | "floor" | "لوبي" | "سطح" | "موقف سيارة" | "غرفة كهرباء" | "غرفة كاميرات" | "مخزن" | "مصعد" | "سلم" | "دورة مياه" | "ممر" | "أخرى";
+type TargetKind = "office" | "floor" | "لوبي" | "سطح" | "موقف سيارة" | "غرفة كهرباء" | "غرفة كاميرات" | "مستودع" | "مصعد" | "سلم" | "دورة مياه" | "ممر" | "أخرى";
 const TARGET_KINDS: { value: TargetKind; label: string }[] = [
   { value: "office", label: "مكتب" },
   { value: "floor", label: "دور كامل" },
@@ -92,7 +92,7 @@ const TARGET_KINDS: { value: TargetKind; label: string }[] = [
   { value: "موقف سيارة", label: "موقف سيارات" },
   { value: "غرفة كهرباء", label: "غرفة كهرباء" },
   { value: "غرفة كاميرات", label: "غرفة كاميرات" },
-  { value: "مخزن", label: "مخزن" },
+  { value: "مستودع", label: "مستودع" },
   { value: "مصعد", label: "مصعد" },
   { value: "سلم", label: "سلم" },
   { value: "دورة مياه", label: "دورة مياه" },

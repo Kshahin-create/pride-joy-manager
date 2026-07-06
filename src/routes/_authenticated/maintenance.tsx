@@ -219,7 +219,7 @@ function MaintenancePage() {
   const resetForm = () => {
     setForm({ request_date: new Date().toISOString().slice(0, 10), priority: "متوسطة", request_source: "مستأجر" });
     setBeforeFile(null);
-    setTargetKind("office"); setTargetOfficeId(""); setTargetSpaceId(""); setTargetFloor("");
+    setTargetKind("office"); setTargetOfficeId(""); setTargetSpaceId(""); setTargetFloor(""); setCustomLocation("");
   };
 
   const create = async () => {

@@ -112,8 +112,8 @@ const emptyForm = () => ({
 
 function CleaningContractsPage() {
   const { activePropertyId } = useActiveProperty();
-  const { hasAnyRole } = useAuth();
-  const canManage = hasAnyRole(["super_admin", "accountant"]);
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["contracts.create","contracts.edit"]);
 
   const [rows, setRows] = useState<CleaningContract[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);

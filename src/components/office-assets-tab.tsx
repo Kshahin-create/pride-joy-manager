@@ -37,8 +37,8 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 export function OfficeAssetsTab({ officeId }: { officeId: string }) {
-  const { hasAnyRole } = useAuth();
-  const canManage = hasAnyRole(["super_admin", "maintenance_supervisor"]);
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["assets.create","assets.edit"]);
   const [items, setItems] = useState<AssetRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [openPicker, setOpenPicker] = useState(false);

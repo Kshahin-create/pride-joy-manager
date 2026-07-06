@@ -78,8 +78,8 @@ interface CleaningLog {
 
 function CleaningTab() {
   const { activePropertyId } = useActiveProperty();
-  const { hasRole } = useAuth();
-  const canManage = hasRole("super_admin") || hasRole("maintenance_supervisor");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["cleaning.manage"]);
   const [plans, setPlans] = useState<CleaningPlan[]>([]);
   const [logs, setLogs] = useState<CleaningLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -480,8 +480,8 @@ interface MaintLog {
 
 function CamerasTab() {
   const { activePropertyId } = useActiveProperty();
-  const { hasRole } = useAuth();
-  const canManage = hasRole("super_admin") || hasRole("security_supervisor");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["patrols.create","incidents.create","guards.manage_attendance"]);
   const [cameras, setCameras] = useState<CameraRow[]>([]);
   const [logs, setLogs] = useState<MaintLog[]>([]);
   const [loading, setLoading] = useState(true);

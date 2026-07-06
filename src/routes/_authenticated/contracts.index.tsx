@@ -100,8 +100,8 @@ export function daysBetween(a: string, b: Date = new Date()) {
 
 function ContractsPage() {
   const { activePropertyId } = useActiveProperty();
-  const { hasRole } = useAuth();
-  const canCreate = hasRole("super_admin") || hasRole("accountant");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canCreate = isSuperAdmin || hasAnyPermission(["contracts.create"]);
   const navigate = useNavigate();
 
   const initialSearch = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;

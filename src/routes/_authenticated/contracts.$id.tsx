@@ -67,9 +67,9 @@ interface Attachment {
 function ContractDetailsPage() {
   const { id } = useParams({ from: "/_authenticated/contracts/$id" });
   const nav = useNavigate();
-  const { hasRole } = useAuth();
-  const isAdmin = hasRole("super_admin");
-  const canUpload = isAdmin || hasRole("accountant");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const isAdmin = isSuperAdmin || hasAnyPermission(["contracts.edit","contracts.cancel","contracts.renew"]);
+  const canUpload = isSuperAdmin || hasAnyPermission(["contracts.edit","contracts.create","documents.create"]);
 
   const [contract, setContract] = useState<Contract | null>(null);
   const [loading, setLoading] = useState(true);
@@ -138,13 +138,13 @@ function ContractDetailsPage() {
           <Badge className={CONTRACT_STATUS_STYLE[contract.status]}>{contract.status}</Badge>
         </div>
         <div className="flex items-center gap-2">
-          {(isAdmin || hasRole("accountant")) && (
+          {(isAdmin || canUpload) && (
             <Button variant="outline" onClick={generateInvoices} disabled={generating}>
               {generating ? <Loader2 className="h-4 w-4 ms-1 animate-spin" /> : <Receipt className="h-4 w-4 ms-1" />}
               توليد الفواتير
             </Button>
           )}
-          {(isAdmin || hasRole("accountant")) && (
+          {(isAdmin || canUpload) && (
             <Button variant="outline" onClick={() => setEditOpen(true)}>
               <Pencil className="h-4 w-4 ms-1" /> تعديل
             </Button>

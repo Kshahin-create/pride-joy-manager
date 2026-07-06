@@ -25,8 +25,8 @@ export const Route = createFileRoute("/_authenticated/building-log")({
 const MANUAL_TYPES = ["زيارة جهة حكومية","دخول مقاول","خروج مقاول","حدث يدوي"] as const;
 
 function BuildingLogPage() {
-  const { user, hasAnyRole } = useAuth();
-  const canCreate = hasAnyRole(["super_admin", "security_supervisor"]);
+  const { user, hasAnyPermission, isSuperAdmin } = useAuth();
+  const canCreate = isSuperAdmin || hasAnyPermission(["building_log.view","incidents.create"]);
 
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");

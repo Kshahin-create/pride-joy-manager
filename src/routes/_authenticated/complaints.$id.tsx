@@ -18,7 +18,7 @@ const STATUSES: TStatus[] = ["جديد", "جاري المعالجة", "مغلق"
 
 function TicketDetail() {
   const { id } = useParams({ from: "/_authenticated/complaints/$id" });
-  const { hasRole } = useAuth();
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
   const [t, setT] = useState<any>(null);
   const [users, setUsers] = useState<{ id: string; full_name: string | null }[]>([]);
   const [status, setStatus] = useState<TStatus>("جديد");
@@ -81,11 +81,7 @@ function TicketDetail() {
 
   if (!t) return <div className="p-6 text-muted-foreground">جاري التحميل...</div>;
 
-  const canEdit =
-    hasRole("super_admin") ||
-    hasRole("receptionist") ||
-    (hasRole("security_supervisor") && t.ticket_type === "أمن") ||
-    (hasRole("maintenance_supervisor") && (t.ticket_type === "صيانة" || t.ticket_type === "نظافة"));
+  const canEdit = isSuperAdmin || hasAnyPermission(["tickets.edit","tickets.assign","tickets.close"]);
 
   return (
     <div className="space-y-6 max-w-4xl">

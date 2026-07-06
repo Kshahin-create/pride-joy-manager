@@ -63,8 +63,8 @@ type PendingFile = { file: File; type: string };
 
 function ClientsPage() {
   const { activePropertyId } = useActiveProperty();
-  const { hasRole } = useAuth();
-  const canEdit = hasRole("super_admin") || hasRole("receptionist");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canEdit = isSuperAdmin || hasAnyPermission(["tenants.create","tenants.edit"]);
   const navigate = useNavigate();
 
   const [rows, setRows] = useState<Company[]>([]);

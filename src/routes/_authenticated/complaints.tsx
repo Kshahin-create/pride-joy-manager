@@ -64,8 +64,8 @@ export function statusBadge(s: TStatus) {
 
 function TicketsPage() {
   const { activePropertyId } = useActiveProperty();
-  const { hasAnyRole } = useAuth();
-  const canCreate = hasAnyRole(["super_admin", "receptionist"]);
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canCreate = isSuperAdmin || hasAnyPermission(["tickets.create"]);
 
   const [items, setItems] = useState<Ticket[]>([]);
   const [offices, setOffices] = useState<{ id: string; code: string; space_id: string | null }[]>([]);

@@ -76,9 +76,9 @@ function fmt(n: number) {
 
 function FinancePage() {
   const { activePropertyId } = useActiveProperty();
-  const { hasRole } = useAuth();
-  const canView = hasRole("super_admin") || hasRole("accountant") || hasRole("owner");
-  const canManage = hasRole("super_admin") || hasRole("accountant");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canView = isSuperAdmin || hasAnyPermission(["invoices.view","payments.record"]);
+  const canManage = isSuperAdmin || hasAnyPermission(["invoices.create","invoices.edit","payments.record"]);
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);

@@ -77,10 +77,8 @@ interface Props {
 }
 
 export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, scope }: Props) {
-  const { hasAnyRole, user } = useAuth();
-  const canManage =
-    hasAnyRole(["super_admin"]) ||
-    (hasAnyRole(["accountant"]) && (entityType === "tenant" || entityType === "contract" || scope === "tenant-side"));
+  const { hasAnyPermission, isSuperAdmin, user } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["documents.create","documents.edit"]);
 
   const [items, setItems] = useState<DocumentRow[]>([]);
   const [loading, setLoading] = useState(false);

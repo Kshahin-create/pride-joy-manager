@@ -117,8 +117,8 @@ async function uploadPhoto(file: File, prefix: string): Promise<string | null> {
 
 function MaintenancePage() {
   const { activePropertyId } = useActiveProperty();
-  const { user, hasAnyRole } = useAuth();
-  const canManage = hasAnyRole(["super_admin", "maintenance_supervisor"]);
+  const { user, hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["maintenance.create","maintenance.edit","maintenance.assign"]);
   const [items, setItems] = useState<MR[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [offices, setOffices] = useState<Office[]>([]);
@@ -371,7 +371,7 @@ function MaintenancePage() {
 
   // approve
   const openApprove = (r: MR) => {
-    if (r.status !== "مكتمل مبدئياً" && !hasAnyRole(["super_admin"])) {
+    if (r.status !== "مكتمل مبدئياً" && !isSuperAdmin) {
       return toast.error("يجب إنهاء العمل أولاً قبل الاعتماد");
     }
     setApproveFor(r); setApproveNote("");

@@ -82,9 +82,9 @@ function SecurityPage() {
 
 function GuardsTab() {
   const { activePropertyId } = useActiveProperty();
-  const { hasRole } = useAuth();
-  const canManage = hasRole("super_admin") || hasRole("security_supervisor");
-  const isAdmin = hasRole("super_admin");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["guards.create","guards.edit"]);
+  const isAdmin = isSuperAdmin || hasAnyPermission(["guards.view_salary","guards.edit_salary"]);
   const [guards, setGuards] = useState<Guard[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -319,8 +319,8 @@ interface Checkpoint {
 
 function PatrolsTab() {
   const { activePropertyId } = useActiveProperty();
-  const { hasRole } = useAuth();
-  const canManage = hasRole("super_admin") || hasRole("security_supervisor");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["patrols.create","patrols.view"]);
   const [patrols, setPatrols] = useState<Patrol[]>([]);
   const [guards, setGuards] = useState<Guard[]>([]);
   const [checkpoints, setCheckpoints] = useState<Record<string, Checkpoint[]>>({});
@@ -520,8 +520,8 @@ interface Incident {
 
 function IncidentsTab() {
   const { activePropertyId } = useActiveProperty();
-  const { hasRole } = useAuth();
-  const canManage = hasRole("super_admin") || hasRole("security_supervisor");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["incidents.create","incidents.edit","incidents.close"]);
   const [items, setItems] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);

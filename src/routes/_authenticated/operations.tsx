@@ -480,8 +480,8 @@ interface MaintLog {
 
 function CamerasTab() {
   const { activePropertyId } = useActiveProperty();
-  const { hasRole } = useAuth();
-  const canManage = hasRole("super_admin") || hasRole("security_supervisor");
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["patrols.create","incidents.create","guards.manage_attendance"]);
   const [cameras, setCameras] = useState<CameraRow[]>([]);
   const [logs, setLogs] = useState<MaintLog[]>([]);
   const [loading, setLoading] = useState(true);

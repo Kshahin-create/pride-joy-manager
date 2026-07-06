@@ -59,8 +59,8 @@ const CHECK_ITEMS = [
 
 function ParkingPage() {
   const { activePropertyId } = useActiveProperty();
-  const { hasAnyRole } = useAuth();
-  const canManage = hasAnyRole(["super_admin", "security_supervisor"]);
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["parking.manage","parking.violations"]);
 
   const [spots, setSpots] = useState<Spot[]>([]);
   const [offices, setOffices] = useState<Office[]>([]);

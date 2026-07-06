@@ -61,9 +61,9 @@ function Stars({ value }: { value: number }) {
 function VendorDetailsPage() {
   const { id } = useParams({ from: "/_authenticated/vendors/$id" });
   const nav = useNavigate();
-  const { hasRole, hasAnyRole } = useAuth();
-  const canManage = hasRole("super_admin");
-  const canEvaluate = hasAnyRole(["super_admin", "maintenance_supervisor"]);
+  const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const canManage = isSuperAdmin || hasAnyPermission(["vendors.edit","vendors.create"]);
+  const canEvaluate = isSuperAdmin || hasAnyPermission(["vendors.edit"]);
 
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [contracts, setContracts] = useState<Contract[]>([]);

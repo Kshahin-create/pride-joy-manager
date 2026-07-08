@@ -153,7 +153,7 @@ function SignInForm({ onSuccess }: { onSuccess: () => void }) {
               type="email"
               dir="ltr"
               autoComplete="email"
-              className="text-left pe-9"
+              className="text-left ps-9"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@tower.com"

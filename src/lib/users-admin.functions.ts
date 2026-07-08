@@ -2,14 +2,49 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-const ROLES = [
+// الأدوار المدمجة في enum القديم — لأي دور خارجها بنكتب في user_role_assignments فقط
+const BUILTIN_ROLES = new Set([
   "super_admin",
   "accountant",
   "security_supervisor",
   "maintenance_supervisor",
   "receptionist",
   "owner",
-] as const;
+]);
+
+async function syncUserRoles(supabaseAdmin: any, userId: string, roleNames: string[]) {
+  // امسح كل الأدوار الحالية
+  await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
+  await supabaseAdmin.from("user_role_assignments").delete().eq("user_id", userId);
+  if (!roleNames.length) return;
+
+  // الأدوار المدمجة → user_roles (للتوافق مع has_role الـ enum)
+  const builtin = roleNames.filter((n) => BUILTIN_ROLES.has(n));
+  if (builtin.length) {
+    const { error } = await supabaseAdmin
+      .from("user_roles")
+      .insert(builtin.map((role) => ({ user_id: userId, role })));
+    if (error) throw new Error(error.message);
+  }
+
+  // كل الأدوار (مدمجة + مخصصة) → user_role_assignments
+  const { data: roleRows, error: rErr } = await supabaseAdmin
+    .from("app_roles")
+    .select("id, name")
+    .in("name", roleNames);
+  if (rErr) throw new Error(rErr.message);
+  const found = new Set((roleRows ?? []).map((r: any) => r.name));
+  const missing = roleNames.filter((n) => !found.has(n));
+  if (missing.length) {
+    throw new Error(`أدوار غير موجودة في النظام: ${missing.join(", ")}`);
+  }
+  if (roleRows && roleRows.length) {
+    const { error } = await supabaseAdmin.from("user_role_assignments").insert(
+      roleRows.map((r: any) => ({ user_id: userId, role_id: r.id })),
+    );
+    if (error) throw new Error(error.message);
+  }
+}
 
 async function assertSuperAdmin(supabase: any, userId: string) {
   const { data, error } = await supabase.rpc("has_role", {

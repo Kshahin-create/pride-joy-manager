@@ -114,9 +114,10 @@ function UsersPage() {
   const allowed = hasRole("super_admin");
 
   const [rows, setRows] = useState<ProfileRow[]>([]);
+  const [allRoles, setAllRoles] = useState<RoleOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [roleFilter, setRoleFilter] = useState<AppRole | "all">("all");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
 
   const [creating, setCreating] = useState(false);
@@ -127,26 +128,35 @@ function UsersPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data: profiles, error: e1 } = await supabase
-      .from("profiles")
-      .select("id, full_name, phone, is_active, created_at")
-      .order("created_at", { ascending: false });
-    const { data: rolesData, error: e2 } = await supabase
-      .from("user_roles")
-      .select("user_id, role");
-    if (e1 || e2) {
+    const [profilesRes, rolesRes, assignmentsRes] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, full_name, phone, is_active, created_at")
+        .order("created_at", { ascending: false }),
+      (supabase as any)
+        .from("app_roles")
+        .select("id, name, description")
+        .order("name", { ascending: true }),
+      (supabase as any)
+        .from("user_role_assignments")
+        .select("user_id, app_roles(name)"),
+    ]);
+    if (profilesRes.error || rolesRes.error || assignmentsRes.error) {
       toast.error("تعذّر تحميل المستخدمين");
       setLoading(false);
       return;
     }
-    const byUser = new Map<string, AppRole[]>();
-    ((rolesData ?? []) as { user_id: string; role: AppRole }[]).forEach((r) => {
+    setAllRoles((rolesRes.data ?? []) as RoleOption[]);
+    const byUser = new Map<string, string[]>();
+    ((assignmentsRes.data ?? []) as any[]).forEach((r) => {
+      const name = r.app_roles?.name;
+      if (!name) return;
       const arr = byUser.get(r.user_id) ?? [];
-      arr.push(r.role);
+      if (!arr.includes(name)) arr.push(name);
       byUser.set(r.user_id, arr);
     });
     setRows(
-      ((profiles ?? []) as Omit<ProfileRow, "roles">[]).map((p) => ({
+      ((profilesRes.data ?? []) as Omit<ProfileRow, "roles">[]).map((p) => ({
         ...p,
         roles: byUser.get(p.id) ?? [],
       })),

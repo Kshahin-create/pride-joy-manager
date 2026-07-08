@@ -93,25 +93,8 @@ export const createUser = createServerFn({ method: "POST" })
         is_active: data.is_active,
       });
 
-    // Replace roles (handle_new_user may have inserted super_admin for the first ever user)
-    await supabaseAdmin.from("user_roles").delete().eq("user_id", uid);
-    await supabaseAdmin.from("user_role_assignments").delete().eq("user_id", uid);
-    if (data.roles.length) {
-      const { error: e2 } = await supabaseAdmin
-        .from("user_roles")
-        .insert(data.roles.map((role) => ({ user_id: uid, role })));
-      if (e2) throw new Error(e2.message);
-      // Mirror to user_role_assignments (new system)
-      const { data: roleRows } = await supabaseAdmin
-        .from("app_roles")
-        .select("id, name")
-        .in("name", data.roles as any);
-      if (roleRows && roleRows.length) {
-        await supabaseAdmin.from("user_role_assignments").insert(
-          roleRows.map((r: any) => ({ user_id: uid, role_id: r.id })),
-        );
-      }
-    }
+    // استبدال الأدوار (بما في ذلك المخصصة)
+    await syncUserRoles(supabaseAdmin, uid, data.roles);
     return { id: uid };
   });
 

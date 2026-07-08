@@ -398,9 +398,15 @@ function UsersPage() {
         </div>
       </Card>
 
-      <CreateUserDialog open={creating} onClose={() => setCreating(false)} onSaved={load} />
+      <CreateUserDialog
+        open={creating}
+        allRoles={allRoles}
+        onClose={() => setCreating(false)}
+        onSaved={load}
+      />
       <EditRolesDialog
         user={editingRoles}
+        allRoles={allRoles}
         onClose={() => setEditingRoles(null)}
         onSaved={() => {
           setEditingRoles(null);

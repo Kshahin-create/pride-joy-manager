@@ -333,7 +333,7 @@ function UsersPage() {
                       )}
                       {r.roles.map((rl) => (
                         <Badge key={rl} variant="secondary" className="text-[10px]">
-                          {ROLE_LABELS[rl]}
+                          {roleDisplay(rl, allRoles)}
                         </Badge>
                       ))}
                     </div>

@@ -81,17 +81,19 @@ interface ProfileRow {
   phone: string | null;
   is_active: boolean;
   created_at: string;
-  roles: AppRole[];
+  roles: string[];
 }
 
-const ALL_ROLES: AppRole[] = [
-  "super_admin",
-  "accountant",
-  "security_supervisor",
-  "maintenance_supervisor",
-  "receptionist",
-  "owner",
-];
+interface RoleOption {
+  id: string;
+  name: string;
+  description: string | null;
+}
+
+function roleDisplay(name: string, opts: RoleOption[]) {
+  const found = opts.find((o) => o.name === name);
+  return ROLE_LABELS[name] ?? found?.description ?? name;
+}
 
 function genPassword(len = 12) {
   const chars =

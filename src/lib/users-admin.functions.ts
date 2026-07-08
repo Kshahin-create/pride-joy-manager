@@ -23,7 +23,7 @@ async function syncUserRoles(supabaseAdmin: any, userId: string, roleNames: stri
   if (builtin.length) {
     const { error } = await supabaseAdmin
       .from("user_roles")
-      .insert(builtin.map((role) => ({ user_id: userId, role })));
+      .insert(builtin.map((role) => ({ user_id: userId, role: role as any })));
     if (error) throw new Error(error.message);
   }
 

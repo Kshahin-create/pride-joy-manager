@@ -248,13 +248,13 @@ function UsersPage() {
         </div>
         <select
           value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value as AppRole | "all")}
+          onChange={(e) => setRoleFilter(e.target.value)}
           className="h-9 rounded-md border border-input bg-background px-3 text-sm"
         >
           <option value="all">كل الأدوار</option>
-          {ALL_ROLES.map((r) => (
-            <option key={r} value={r}>
-              {ROLE_LABELS[r]}
+          {allRoles.map((r) => (
+            <option key={r.id} value={r.name}>
+              {roleDisplay(r.name, allRoles)}
             </option>
           ))}
         </select>

@@ -63,7 +63,7 @@ export const createUser = createServerFn({ method: "POST" })
       password: z.string().min(8).max(72),
       full_name: z.string().trim().min(1).max(120),
       phone: z.string().trim().max(40).optional().or(z.literal("")),
-      roles: z.array(z.enum(ROLES)).default([]),
+      roles: z.array(z.string().trim().min(1)).default([]),
       is_active: z.boolean().default(true),
     }),
   )

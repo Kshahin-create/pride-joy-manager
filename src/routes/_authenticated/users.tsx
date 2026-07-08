@@ -593,13 +593,18 @@ function CreateUserDialog({
           <div>
             <Label className="mb-2 block">الأدوار</Label>
             <div className="grid grid-cols-2 gap-2">
-              {ALL_ROLES.map((r) => (
+              {allRoles.length === 0 && (
+                <p className="text-xs text-muted-foreground col-span-2">
+                  لا توجد أدوار معرّفة. أضف من صفحة "الأدوار والصلاحيات".
+                </p>
+              )}
+              {allRoles.map((r) => (
                 <label
-                  key={r}
+                  key={r.id}
                   className="flex items-center gap-2 rounded-md border p-2 cursor-pointer hover:bg-accent text-sm"
                 >
-                  <Checkbox checked={roles.has(r)} onCheckedChange={() => toggle(r)} />
-                  {ROLE_LABELS[r]}
+                  <Checkbox checked={roles.has(r.name)} onCheckedChange={() => toggle(r.name)} />
+                  {roleDisplay(r.name, allRoles)}
                 </label>
               ))}
             </div>

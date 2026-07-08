@@ -841,7 +841,7 @@ function ResetPasswordDialog({
                 dir="ltr"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pe-9"
+                className="ps-9"
               />
               <button
                 type="button"

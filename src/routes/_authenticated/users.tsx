@@ -19,7 +19,7 @@ import {
 
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { useAuth, ROLE_LABELS, type AppRole } from "@/lib/auth-context";
+import { useAuth, ROLE_LABELS } from "@/lib/auth-context";
 import {
   createUser,
   updateUserProfile,
@@ -81,17 +81,19 @@ interface ProfileRow {
   phone: string | null;
   is_active: boolean;
   created_at: string;
-  roles: AppRole[];
+  roles: string[];
 }
 
-const ALL_ROLES: AppRole[] = [
-  "super_admin",
-  "accountant",
-  "security_supervisor",
-  "maintenance_supervisor",
-  "receptionist",
-  "owner",
-];
+interface RoleOption {
+  id: string;
+  name: string;
+  description: string | null;
+}
+
+function roleDisplay(name: string, opts: RoleOption[]) {
+  const found = opts.find((o) => o.name === name);
+  return ROLE_LABELS[name] ?? found?.description ?? name;
+}
 
 function genPassword(len = 12) {
   const chars =
@@ -112,9 +114,10 @@ function UsersPage() {
   const allowed = hasRole("super_admin");
 
   const [rows, setRows] = useState<ProfileRow[]>([]);
+  const [allRoles, setAllRoles] = useState<RoleOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [roleFilter, setRoleFilter] = useState<AppRole | "all">("all");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
 
   const [creating, setCreating] = useState(false);
@@ -125,26 +128,35 @@ function UsersPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data: profiles, error: e1 } = await supabase
-      .from("profiles")
-      .select("id, full_name, phone, is_active, created_at")
-      .order("created_at", { ascending: false });
-    const { data: rolesData, error: e2 } = await supabase
-      .from("user_roles")
-      .select("user_id, role");
-    if (e1 || e2) {
+    const [profilesRes, rolesRes, assignmentsRes] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, full_name, phone, is_active, created_at")
+        .order("created_at", { ascending: false }),
+      (supabase as any)
+        .from("app_roles")
+        .select("id, name, description")
+        .order("name", { ascending: true }),
+      (supabase as any)
+        .from("user_role_assignments")
+        .select("user_id, app_roles(name)"),
+    ]);
+    if (profilesRes.error || rolesRes.error || assignmentsRes.error) {
       toast.error("تعذّر تحميل المستخدمين");
       setLoading(false);
       return;
     }
-    const byUser = new Map<string, AppRole[]>();
-    ((rolesData ?? []) as { user_id: string; role: AppRole }[]).forEach((r) => {
+    setAllRoles((rolesRes.data ?? []) as RoleOption[]);
+    const byUser = new Map<string, string[]>();
+    ((assignmentsRes.data ?? []) as any[]).forEach((r) => {
+      const name = r.app_roles?.name;
+      if (!name) return;
       const arr = byUser.get(r.user_id) ?? [];
-      arr.push(r.role);
+      if (!arr.includes(name)) arr.push(name);
       byUser.set(r.user_id, arr);
     });
     setRows(
-      ((profiles ?? []) as Omit<ProfileRow, "roles">[]).map((p) => ({
+      ((profilesRes.data ?? []) as Omit<ProfileRow, "roles">[]).map((p) => ({
         ...p,
         roles: byUser.get(p.id) ?? [],
       })),
@@ -236,13 +248,13 @@ function UsersPage() {
         </div>
         <select
           value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value as AppRole | "all")}
+          onChange={(e) => setRoleFilter(e.target.value)}
           className="h-9 rounded-md border border-input bg-background px-3 text-sm"
         >
           <option value="all">كل الأدوار</option>
-          {ALL_ROLES.map((r) => (
-            <option key={r} value={r}>
-              {ROLE_LABELS[r]}
+          {allRoles.map((r) => (
+            <option key={r.id} value={r.name}>
+              {roleDisplay(r.name, allRoles)}
             </option>
           ))}
         </select>
@@ -321,7 +333,7 @@ function UsersPage() {
                       )}
                       {r.roles.map((rl) => (
                         <Badge key={rl} variant="secondary" className="text-[10px]">
-                          {ROLE_LABELS[rl]}
+                          {roleDisplay(rl, allRoles)}
                         </Badge>
                       ))}
                     </div>
@@ -386,9 +398,15 @@ function UsersPage() {
         </div>
       </Card>
 
-      <CreateUserDialog open={creating} onClose={() => setCreating(false)} onSaved={load} />
+      <CreateUserDialog
+        open={creating}
+        allRoles={allRoles}
+        onClose={() => setCreating(false)}
+        onSaved={load}
+      />
       <EditRolesDialog
         user={editingRoles}
+        allRoles={allRoles}
         onClose={() => setEditingRoles(null)}
         onSaved={() => {
           setEditingRoles(null);
@@ -441,10 +459,12 @@ function StatCard({
 
 function CreateUserDialog({
   open,
+  allRoles,
   onClose,
   onSaved,
 }: {
   open: boolean;
+  allRoles: RoleOption[];
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -454,7 +474,7 @@ function CreateUserDialog({
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState(() => genPassword());
   const [showPw, setShowPw] = useState(false);
-  const [roles, setRoles] = useState<Set<AppRole>>(new Set());
+  const [roles, setRoles] = useState<Set<string>>(new Set());
   const [isActive, setIsActive] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -470,7 +490,7 @@ function CreateUserDialog({
     }
   }, [open]);
 
-  const toggle = (r: AppRole) => {
+  const toggle = (r: string) => {
     setRoles((prev) => {
       const next = new Set(prev);
       if (next.has(r)) next.delete(r);
@@ -573,13 +593,18 @@ function CreateUserDialog({
           <div>
             <Label className="mb-2 block">الأدوار</Label>
             <div className="grid grid-cols-2 gap-2">
-              {ALL_ROLES.map((r) => (
+              {allRoles.length === 0 && (
+                <p className="text-xs text-muted-foreground col-span-2">
+                  لا توجد أدوار معرّفة. أضف من صفحة "الأدوار والصلاحيات".
+                </p>
+              )}
+              {allRoles.map((r) => (
                 <label
-                  key={r}
+                  key={r.id}
                   className="flex items-center gap-2 rounded-md border p-2 cursor-pointer hover:bg-accent text-sm"
                 >
-                  <Checkbox checked={roles.has(r)} onCheckedChange={() => toggle(r)} />
-                  {ROLE_LABELS[r]}
+                  <Checkbox checked={roles.has(r.name)} onCheckedChange={() => toggle(r.name)} />
+                  {roleDisplay(r.name, allRoles)}
                 </label>
               ))}
             </div>
@@ -609,15 +634,17 @@ function CreateUserDialog({
 
 function EditRolesDialog({
   user,
+  allRoles,
   onClose,
   onSaved,
 }: {
   user: ProfileRow | null;
+  allRoles: RoleOption[];
   onClose: () => void;
   onSaved: () => void;
 }) {
   const fn = useServerFn(setUserRoles);
-  const [selected, setSelected] = useState<Set<AppRole>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -626,7 +653,7 @@ function EditRolesDialog({
 
   if (!user) return null;
 
-  const toggle = (r: AppRole) => {
+  const toggle = (r: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(r)) next.delete(r);
@@ -656,13 +683,18 @@ function EditRolesDialog({
           <DialogDescription>اختر دور أو أكثر لهذا المستخدم.</DialogDescription>
         </DialogHeader>
         <div className="space-y-2 py-2">
-          {ALL_ROLES.map((r) => (
+          {allRoles.length === 0 && (
+            <p className="text-xs text-muted-foreground">
+              لا توجد أدوار معرّفة. أضف من صفحة "الأدوار والصلاحيات".
+            </p>
+          )}
+          {allRoles.map((r) => (
             <label
-              key={r}
+              key={r.id}
               className="flex items-center gap-3 rounded-md border p-3 cursor-pointer hover:bg-accent"
             >
-              <Checkbox checked={selected.has(r)} onCheckedChange={() => toggle(r)} />
-              <span className="flex-1">{ROLE_LABELS[r]}</span>
+              <Checkbox checked={selected.has(r.name)} onCheckedChange={() => toggle(r.name)} />
+              <span className="flex-1">{roleDisplay(r.name, allRoles)}</span>
             </label>
           ))}
         </div>

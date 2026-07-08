@@ -634,15 +634,17 @@ function CreateUserDialog({
 
 function EditRolesDialog({
   user,
+  allRoles,
   onClose,
   onSaved,
 }: {
   user: ProfileRow | null;
+  allRoles: RoleOption[];
   onClose: () => void;
   onSaved: () => void;
 }) {
   const fn = useServerFn(setUserRoles);
-  const [selected, setSelected] = useState<Set<AppRole>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -651,7 +653,7 @@ function EditRolesDialog({
 
   if (!user) return null;
 
-  const toggle = (r: AppRole) => {
+  const toggle = (r: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(r)) next.delete(r);
@@ -681,13 +683,18 @@ function EditRolesDialog({
           <DialogDescription>اختر دور أو أكثر لهذا المستخدم.</DialogDescription>
         </DialogHeader>
         <div className="space-y-2 py-2">
-          {ALL_ROLES.map((r) => (
+          {allRoles.length === 0 && (
+            <p className="text-xs text-muted-foreground">
+              لا توجد أدوار معرّفة. أضف من صفحة "الأدوار والصلاحيات".
+            </p>
+          )}
+          {allRoles.map((r) => (
             <label
-              key={r}
+              key={r.id}
               className="flex items-center gap-3 rounded-md border p-3 cursor-pointer hover:bg-accent"
             >
-              <Checkbox checked={selected.has(r)} onCheckedChange={() => toggle(r)} />
-              <span className="flex-1">{ROLE_LABELS[r]}</span>
+              <Checkbox checked={selected.has(r.name)} onCheckedChange={() => toggle(r.name)} />
+              <span className="flex-1">{roleDisplay(r.name, allRoles)}</span>
             </label>
           ))}
         </div>

@@ -459,10 +459,12 @@ function StatCard({
 
 function CreateUserDialog({
   open,
+  allRoles,
   onClose,
   onSaved,
 }: {
   open: boolean;
+  allRoles: RoleOption[];
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -472,7 +474,7 @@ function CreateUserDialog({
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState(() => genPassword());
   const [showPw, setShowPw] = useState(false);
-  const [roles, setRoles] = useState<Set<AppRole>>(new Set());
+  const [roles, setRoles] = useState<Set<string>>(new Set());
   const [isActive, setIsActive] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -488,7 +490,7 @@ function CreateUserDialog({
     }
   }, [open]);
 
-  const toggle = (r: AppRole) => {
+  const toggle = (r: string) => {
     setRoles((prev) => {
       const next = new Set(prev);
       if (next.has(r)) next.delete(r);

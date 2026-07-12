@@ -3,15 +3,33 @@ import { getResource, canMethod, type ApiMethod } from "@/lib/api-resources";
 
 // Proxy route: /api/public/v1/<table>?<filters>
 //
-// Flow:
-//  1. Read API key from `Authorization: Bearer pjk_...`
-//  2. Verify it via the `verify_api_key` RPC → returns user_id
-//  3. Look up user roles
-//  4. Check the resource map allows this method for those roles
-//  5. Forward the request to Supabase Data API with the service role key
-//     (we already did role-based gating above)
+// Security model:
+//  1. Bearer API key → resolved to user_id via `verify_api_key` RPC.
+//  2. Application-level role gate (see api-resources.ts).
+//  3. Multi-tenant property scoping enforced in this handler — the request
+//     is forwarded with the service role key, so RLS does NOT apply and we
+//     MUST scope every query to the user's assigned properties here.
+//  4. Admin/owner users get cross-property access; every other role is
+//     restricted to rows whose `property_id` matches `user_properties`.
+//  5. Tables without a `property_id` column are only exposed to admin/owner.
 
 const ALLOWED_METHODS: ApiMethod[] = ["GET", "POST", "PATCH", "DELETE"];
+
+// Tables that carry a `property_id` column (mirrors information_schema at build time).
+// If you add property scoping to a new table, add it here too.
+const PROPERTY_SCOPED_TABLES = new Set<string>([
+  "ac_contract_attachments", "ac_contracts", "ac_units", "assets", "building_log",
+  "cameras", "cleaning_contracts", "cleaning_plans", "companies", "contracts",
+  "documents", "electricity_meters", "elevator_contracts", "expenses",
+  "fire_contracts", "guards", "inspection_templates", "inspections", "invoices",
+  "maintenance_requests", "network_points", "offices", "parking_spots",
+  "patrol_checkpoints", "patrols", "payments", "pm_plans", "security_incidents",
+  "spaces", "supply_contracts", "tickets", "vendor_contracts", "vendor_payments",
+  "visitors",
+]);
+
+// Roles that are always cross-property (bypass property scoping in the proxy).
+const CROSS_PROPERTY_ROLES = new Set(["super_admin", "owner"]);
 
 function cors(extra: Record<string, string> = {}): Record<string, string> {
   return {
@@ -28,6 +46,11 @@ function json(body: unknown, status = 200, extra: Record<string, string> = {}) {
     status,
     headers: { "Content-Type": "application/json", ...cors(extra) },
   });
+}
+
+function propertyFilterValue(ids: string[]): string {
+  // PostgREST `in.(...)` list — quote each UUID for safety.
+  return `in.(${ids.map((id) => `"${id}"`).join(",")})`;
 }
 
 async function handle(request: Request, params: { _splat?: string }) {
@@ -85,10 +108,90 @@ async function handle(request: Request, params: { _splat?: string }) {
     );
   }
 
-  // 5. Forward to PostgREST using service role
+  // 5. Property scoping — enforced in-proxy since we forward with service role.
+  const isCrossProperty = roles.some((r) => CROSS_PROPERTY_ROLES.has(r));
+  const tableIsScoped = PROPERTY_SCOPED_TABLES.has(table);
+
+  let allowedPropertyIds: string[] | null = null; // null = unrestricted
+  if (!isCrossProperty) {
+    if (!tableIsScoped) {
+      return json(
+        {
+          error: "forbidden: this table is not property-scoped; only super_admin/owner may access it via the API",
+          table,
+        },
+        403,
+      );
+    }
+    const { data: props, error: pErr } = await supabaseAdmin
+      .from("user_properties" as never)
+      .select("property_id")
+      .eq("user_id", userId);
+    if (pErr) return json({ error: "failed to resolve property scope" }, 500);
+    allowedPropertyIds = ((props ?? []) as { property_id: string }[])
+      .map((p) => p.property_id)
+      .filter(Boolean);
+    if (allowedPropertyIds.length === 0) {
+      return json({ error: "forbidden: no properties assigned to this user" }, 403);
+    }
+  }
+
+  // 6. Build target URL with property_id filter injection.
   const baseUrl = process.env.SUPABASE_URL!;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
   const url = new URL(request.url);
+
+  if (allowedPropertyIds && tableIsScoped) {
+    // Reject any caller-supplied property_id filter — we own this filter.
+    if (url.searchParams.has("property_id")) {
+      return json(
+        { error: "property_id filter is managed by the API; do not send it" },
+        400,
+      );
+    }
+    url.searchParams.set("property_id", propertyFilterValue(allowedPropertyIds));
+  }
+
+  // 7. Validate/normalise write payloads for property-scoped tables.
+  let bodyText: string | undefined;
+  if (method !== "GET" && method !== "DELETE") {
+    bodyText = await request.text();
+    if (allowedPropertyIds && tableIsScoped && bodyText) {
+      try {
+        const parsed = JSON.parse(bodyText);
+        const rows = Array.isArray(parsed) ? parsed : [parsed];
+        for (const r of rows) {
+          if (!r || typeof r !== "object") continue;
+          const pid = (r as Record<string, unknown>).property_id;
+          if (method === "POST") {
+            if (typeof pid !== "string") {
+              return json(
+                { error: "property_id is required in the request body for this table" },
+                400,
+              );
+            }
+            if (!allowedPropertyIds.includes(pid)) {
+              return json(
+                { error: "forbidden: property_id is outside your assigned properties" },
+                403,
+              );
+            }
+          } else if (method === "PATCH") {
+            // PATCH: reject attempts to move rows between properties.
+            if (pid !== undefined && (typeof pid !== "string" || !allowedPropertyIds.includes(pid))) {
+              return json(
+                { error: "forbidden: cannot set property_id outside your assigned properties" },
+                403,
+              );
+            }
+          }
+        }
+      } catch {
+        return json({ error: "invalid JSON body" }, 400);
+      }
+    }
+  }
+
   const target = `${baseUrl}/rest/v1/${table}${url.search}`;
 
   const forwardHeaders: Record<string, string> = {
@@ -102,9 +205,7 @@ async function handle(request: Request, params: { _splat?: string }) {
   if (range) forwardHeaders["Range"] = range;
 
   const init: RequestInit = { method, headers: forwardHeaders };
-  if (method !== "GET" && method !== "DELETE") {
-    init.body = await request.text();
-  }
+  if (bodyText !== undefined) init.body = bodyText;
 
   const res = await fetch(target, init);
   const body = await res.text();

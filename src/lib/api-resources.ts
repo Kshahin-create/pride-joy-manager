@@ -78,7 +78,7 @@ export const API_RESOURCES: ApiResource[] = [
   { table: "parking_cleaning_logs",   label: "نظافة المواقف",  description: "سجل نظافة المواقف", read: ["super_admin","security_supervisor","owner"], write: ["super_admin","security_supervisor"], remove: SUPER },
 
   // ── خدمات ──────────────────────────────────────
-  { table: "tickets",                 label: "الشكاوى والطلبات", description: "تذاكر العملاء",      read: "*", write: "*" as unknown as ApiRole[], remove: SUPER },
+  { table: "tickets",                 label: "الشكاوى والطلبات", description: "تذاكر العملاء",      read: "*", write: ["super_admin","receptionist","maintenance_supervisor","security_supervisor"], remove: SUPER },
   { table: "documents",               label: "المستندات",          description: "أرشيف المستندات",  read: "*", write: ["super_admin","accountant"], remove: SUPER },
   { table: "cleaning_logs",           label: "سجل النظافة",       description: "سجل أعمال النظافة", read: ["super_admin","maintenance_supervisor","owner"], write: ["super_admin","maintenance_supervisor"], remove: SUPER },
   { table: "cleaning_plans",          label: "خطط النظافة",      description: "جداول النظافة",     read: ["super_admin","maintenance_supervisor","owner"], write: ["super_admin","maintenance_supervisor"], remove: SUPER },

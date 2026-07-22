@@ -48,7 +48,7 @@ type Stats = {
 
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(Math.round(n || 0));
 const fmtSAR = (n: number) =>
-  `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(n || 0))} ر.س`;
+  `SAR ${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(n || 0))}`;
 
 // Stagger container for section grid
 const stagger = {

@@ -30,6 +30,7 @@ import { UpcomingMaintenance, type UpcomingPM } from "@/components/dashboard/upc
 import { RecentIncidents, type IncidentRow } from "@/components/dashboard/recent-incidents";
 import { ComplaintsByCategory, type CategoryRow } from "@/components/dashboard/complaints-by-category";
 import { DocsExpiring, type ExpiringDoc } from "@/components/dashboard/docs-expiring";
+import { BuildingHealthScore } from "@/components/dashboard/building-health-score";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,

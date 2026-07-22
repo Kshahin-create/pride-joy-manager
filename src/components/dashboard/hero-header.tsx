@@ -22,7 +22,8 @@ export function HeroHeader({
   title, onRefresh, loading, refreshedAt, canSeeFinance, isAdmin, isMaintenance, rangeSlot,
 }: Props) {
   const { user, roles } = useAuth();
-  const { activePropertyName } = useActiveProperty() as any;
+  const { activeProperty } = useActiveProperty();
+  const activePropertyName = activeProperty?.name;
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {

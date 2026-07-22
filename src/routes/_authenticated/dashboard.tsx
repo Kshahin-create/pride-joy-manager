@@ -31,6 +31,7 @@ import { RecentIncidents, type IncidentRow } from "@/components/dashboard/recent
 import { ComplaintsByCategory, type CategoryRow } from "@/components/dashboard/complaints-by-category";
 import { DocsExpiring, type ExpiringDoc } from "@/components/dashboard/docs-expiring";
 import { BuildingHealthScore } from "@/components/dashboard/building-health-score";
+import { TodaysBrief } from "@/components/dashboard/todays-brief";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -458,6 +459,18 @@ function Dashboard() {
         }}
       />
 
+      <TodaysBrief
+        inputs={{
+          woClosedToday: stats?.tickets_closed ?? 0,
+          woOverdue: extras.wo_overdue,
+          criticalFailures: stats?.critical_failures ?? 0,
+          contractsExpiringSoon: expiring.filter((r) => r.days_left > 0 && r.days_left <= 7).length,
+          revenueDeltaPct: collectedDelta,
+          ticketsEmergency: stats?.tickets_emergency ?? 0,
+          visitorsToday: extras.visitors_today,
+        }}
+      />
+
       {/* Quick stats strip — one-glance building health */}
       <QuickStatsStrip
         items={[
@@ -547,6 +560,9 @@ function Dashboard() {
         )}
       </motion.div>
 
+      {/* Action Center — decision-driving row, above analytics */}
+      <ActionCenter items={actions} />
+
       {/* Main grid */}
       <motion.div
         variants={stagger}
@@ -562,7 +578,6 @@ function Dashboard() {
           </div>
           {show.events && <ActivityHeatmap cells={heatmap} />}
           {(show.contracts || isAdmin) && <ExpiringContractsTable rows={expiring} />}
-          <ActionCenter items={actions} />
         </motion.div>
 
         <motion.div variants={item} className="space-y-4">

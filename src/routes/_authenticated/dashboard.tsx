@@ -560,6 +560,9 @@ function Dashboard() {
         )}
       </motion.div>
 
+      {/* Action Center — decision-driving row, above analytics */}
+      <ActionCenter items={actions} />
+
       {/* Main grid */}
       <motion.div
         variants={stagger}
@@ -575,7 +578,6 @@ function Dashboard() {
           </div>
           {show.events && <ActivityHeatmap cells={heatmap} />}
           {(show.contracts || isAdmin) && <ExpiringContractsTable rows={expiring} />}
-          <ActionCenter items={actions} />
         </motion.div>
 
         <motion.div variants={item} className="space-y-4">

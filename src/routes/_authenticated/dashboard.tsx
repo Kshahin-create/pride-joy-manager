@@ -30,6 +30,7 @@ import { UpcomingMaintenance, type UpcomingPM } from "@/components/dashboard/upc
 import { RecentIncidents, type IncidentRow } from "@/components/dashboard/recent-incidents";
 import { ComplaintsByCategory, type CategoryRow } from "@/components/dashboard/complaints-by-category";
 import { DocsExpiring, type ExpiringDoc } from "@/components/dashboard/docs-expiring";
+import { BuildingHealthScore } from "@/components/dashboard/building-health-score";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -48,7 +49,7 @@ type Stats = {
 
 const fmt = (n: number) => new Intl.NumberFormat("en-US").format(Math.round(n || 0));
 const fmtSAR = (n: number) =>
-  `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(n || 0))} ر.س`;
+  `SAR ${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(n || 0))}`;
 
 // Stagger container for section grid
 const stagger = {
@@ -442,6 +443,21 @@ function Dashboard() {
 
       <AlertStrip items={alertItems} />
 
+      <BuildingHealthScore
+        inputs={{
+          ticketsOpen: stats?.tickets_open ?? 0,
+          ticketsEmergency: stats?.tickets_emergency ?? 0,
+          criticalFailures: stats?.critical_failures ?? 0,
+          woOverdue: extras.wo_overdue,
+          pmDue: extras.wo_pm_due,
+          contractsExpiring: stats?.contracts_expiring ?? 0,
+          contractsExpired: expiredCount,
+          incidentsOpen: stats?.incidents_open ?? 0,
+          docsExpiring: extras.docs_expiring_count,
+          overdueTotal: stats?.overdue_total ?? 0,
+        }}
+      />
+
       {/* Quick stats strip — one-glance building health */}
       <QuickStatsStrip
         items={[
@@ -603,19 +619,15 @@ function Dashboard() {
           )}
 
           {show.events && (
-            <Card>
+            <Card className="shadow-sm">
               <CardHeader className="pb-2 flex-row items-center justify-between">
                 <CardTitle className="text-sm font-bold flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-primary" /> آخر الأحداث
+                  <Activity className="h-4 w-4 text-primary" /> سجل النشاط
                 </CardTitle>
-                <Link to="/building-log" className="text-xs text-primary hover:underline">الكل</Link>
+                <Link to="/building-log" className="text-xs text-primary hover:underline">عرض الكل ←</Link>
               </CardHeader>
-              <CardContent className="max-h-[420px] overflow-y-auto">
-                {events.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-6">لا توجد أحداث</p>
-                ) : (
-                  <BuildingLogTimeline items={events} />
-                )}
+              <CardContent className="max-h-[420px] overflow-y-auto pt-0">
+                <ActivityTimelineFilterable events={events} />
               </CardContent>
             </Card>
           )}
@@ -646,6 +658,60 @@ function MiniRow({
         <span className={`text-xs font-semibold ${positive ? "text-emerald-600" : negative ? "text-red-600" : "text-muted-foreground"}`}>
           {positive ? "▲" : negative ? "▼" : "•"} {Math.abs(delta!).toFixed(0)}%
         </span>
+      )}
+    </div>
+  );
+}
+
+const EVENT_FILTERS: { id: string; label: string; match: (m: string, t: string) => boolean }[] = [
+  { id: "all",       label: "الكل",     match: () => true },
+  { id: "mnt",       label: "الصيانة",  match: (m, t) => m === "maintenance" || /صيانة|عطل|أصل/.test(t) },
+  { id: "finance",   label: "المالية",  match: (m, t) => m === "finance" || /دفعة|فاتورة|مصروف/.test(t) },
+  { id: "security",  label: "الأمن",    match: (m, t) => m === "security" || /أمن|حادث|جولة/.test(t) },
+  { id: "cleaning",  label: "النظافة",  match: (m, t) => m === "cleaning" || /نظافة/.test(t) },
+  { id: "contracts", label: "العقود",   match: (m, t) => m === "contracts" || /عقد/.test(t) },
+];
+
+function ActivityTimelineFilterable({ events }: { events: BuildingLogRow[] }) {
+  const [tab, setTab] = useState("all");
+  const [q, setQ] = useState("");
+  const active = EVENT_FILTERS.find((f) => f.id === tab) ?? EVENT_FILTERS[0];
+  const filtered = events.filter((e) => {
+    if (!active.match(e.module ?? "", e.event_type ?? "")) return false;
+    if (q && !(`${e.description ?? ""} ${e.location ?? ""}`.toLowerCase().includes(q.toLowerCase()))) return false;
+    return true;
+  });
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-1.5 sticky top-0 bg-background pt-2 pb-2 z-10 border-b -mx-6 px-6">
+        {EVENT_FILTERS.map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setTab(f.id)}
+            className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+              tab === f.id
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-background hover:bg-muted text-muted-foreground"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="بحث…"
+          className="ms-auto text-[11px] px-2.5 py-1 rounded-full border bg-background w-32 focus:w-44 transition-all outline-none focus:ring-2 focus:ring-primary/30"
+        />
+      </div>
+      {filtered.length === 0 ? (
+        <div className="text-center py-8 text-xs text-muted-foreground flex flex-col items-center gap-2">
+          <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+          لا توجد أحداث مطابقة — كل شيء هادئ.
+        </div>
+      ) : (
+        <BuildingLogTimeline items={filtered} />
       )}
     </div>
   );

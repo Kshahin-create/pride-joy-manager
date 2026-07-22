@@ -443,6 +443,21 @@ function Dashboard() {
 
       <AlertStrip items={alertItems} />
 
+      <BuildingHealthScore
+        inputs={{
+          ticketsOpen: stats?.tickets_open ?? 0,
+          ticketsEmergency: stats?.tickets_emergency ?? 0,
+          criticalFailures: stats?.critical_failures ?? 0,
+          woOverdue: extras.wo_overdue,
+          pmDue: extras.wo_pm_due,
+          contractsExpiring: stats?.contracts_expiring ?? 0,
+          contractsExpired: expiredCount,
+          incidentsOpen: stats?.incidents_open ?? 0,
+          docsExpiring: extras.docs_expiring_count,
+          overdueTotal: stats?.overdue_total ?? 0,
+        }}
+      />
+
       {/* Quick stats strip — one-glance building health */}
       <QuickStatsStrip
         items={[

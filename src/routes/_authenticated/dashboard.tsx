@@ -662,3 +662,57 @@ function MiniRow({
     </div>
   );
 }
+
+const EVENT_FILTERS: { id: string; label: string; match: (m: string, t: string) => boolean }[] = [
+  { id: "all",       label: "الكل",     match: () => true },
+  { id: "mnt",       label: "الصيانة",  match: (m, t) => m === "maintenance" || /صيانة|عطل|أصل/.test(t) },
+  { id: "finance",   label: "المالية",  match: (m, t) => m === "finance" || /دفعة|فاتورة|مصروف/.test(t) },
+  { id: "security",  label: "الأمن",    match: (m, t) => m === "security" || /أمن|حادث|جولة/.test(t) },
+  { id: "cleaning",  label: "النظافة",  match: (m, t) => m === "cleaning" || /نظافة/.test(t) },
+  { id: "contracts", label: "العقود",   match: (m, t) => m === "contracts" || /عقد/.test(t) },
+];
+
+function ActivityTimelineFilterable({ events }: { events: BuildingLogRow[] }) {
+  const [tab, setTab] = useState("all");
+  const [q, setQ] = useState("");
+  const active = EVENT_FILTERS.find((f) => f.id === tab) ?? EVENT_FILTERS[0];
+  const filtered = events.filter((e) => {
+    if (!active.match(e.module ?? "", e.event_type ?? "")) return false;
+    if (q && !(`${e.description ?? ""} ${e.location ?? ""}`.toLowerCase().includes(q.toLowerCase()))) return false;
+    return true;
+  });
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-1.5 sticky top-0 bg-background pt-2 pb-2 z-10 border-b -mx-6 px-6">
+        {EVENT_FILTERS.map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setTab(f.id)}
+            className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+              tab === f.id
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-background hover:bg-muted text-muted-foreground"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="بحث…"
+          className="ms-auto text-[11px] px-2.5 py-1 rounded-full border bg-background w-32 focus:w-44 transition-all outline-none focus:ring-2 focus:ring-primary/30"
+        />
+      </div>
+      {filtered.length === 0 ? (
+        <div className="text-center py-8 text-xs text-muted-foreground flex flex-col items-center gap-2">
+          <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+          لا توجد أحداث مطابقة — كل شيء هادئ.
+        </div>
+      ) : (
+        <BuildingLogTimeline items={filtered} />
+      )}
+    </div>
+  );
+}

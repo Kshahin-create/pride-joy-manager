@@ -67,10 +67,10 @@ export function TimeRangeSelector({
         <Button
           variant="outline"
           size="sm"
-          className="h-8 gap-1.5 bg-white/10 border-white/25 text-white hover:bg-white/20 hover:text-white backdrop-blur"
+          className="h-8 gap-1.5 bg-white/20 border-white/40 text-white hover:bg-white/30 hover:text-white backdrop-blur-md font-medium shadow-sm"
         >
-          <CalendarRange className="h-3.5 w-3.5" />
-          <span className="text-xs">{rangeLabel(value)}</span>
+          <CalendarRange className="h-3.5 w-3.5 text-white" />
+          <span className="text-xs text-white">{rangeLabel(value)}</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 p-2 pointer-events-auto">

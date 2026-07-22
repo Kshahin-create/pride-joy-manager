@@ -619,19 +619,15 @@ function Dashboard() {
           )}
 
           {show.events && (
-            <Card>
+            <Card className="shadow-sm">
               <CardHeader className="pb-2 flex-row items-center justify-between">
                 <CardTitle className="text-sm font-bold flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-primary" /> آخر الأحداث
+                  <Activity className="h-4 w-4 text-primary" /> سجل النشاط
                 </CardTitle>
-                <Link to="/building-log" className="text-xs text-primary hover:underline">الكل</Link>
+                <Link to="/building-log" className="text-xs text-primary hover:underline">عرض الكل ←</Link>
               </CardHeader>
-              <CardContent className="max-h-[420px] overflow-y-auto">
-                {events.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-6">لا توجد أحداث</p>
-                ) : (
-                  <BuildingLogTimeline items={events} />
-                )}
+              <CardContent className="max-h-[420px] overflow-y-auto pt-0">
+                <ActivityTimelineFilterable events={events} />
               </CardContent>
             </Card>
           )}

@@ -459,6 +459,18 @@ function Dashboard() {
         }}
       />
 
+      <TodaysBrief
+        inputs={{
+          woClosedToday: stats?.tickets_closed ?? 0,
+          woOverdue: extras.wo_overdue,
+          criticalFailures: stats?.critical_failures ?? 0,
+          contractsExpiringSoon: expiring.filter((r) => r.days_left > 0 && r.days_left <= 7).length,
+          revenueDeltaPct: collectedDelta,
+          ticketsEmergency: stats?.tickets_emergency ?? 0,
+          visitorsToday: extras.visitors_today,
+        }}
+      />
+
       {/* Quick stats strip — one-glance building health */}
       <QuickStatsStrip
         items={[

@@ -1,0 +1,33 @@
+{
+  "name": "نخبة تسكين العقارية - TAAM",
+  "short_name": "TAAM",
+  "description": "نظام إدارة وتشغيل نخبة تسكين العقارية",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#086c6b",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    {
+      "src": "/__l5e/assets-v1/1b5dca4c-c6a1-478d-907c-730627e3656e/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/__l5e/assets-v1/1b5dca4c-c6a1-478d-907c-730627e3656e/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/__l5e/assets-v1/1b5dca4c-c6a1-478d-907c-730627e3656e/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

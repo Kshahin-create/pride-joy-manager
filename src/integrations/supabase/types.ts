@@ -2383,6 +2383,7 @@ export type Database = {
           archived_at: string | null
           archived_by: string | null
           created_at: string
+          employer_id: string | null
           id: string
           is_active: boolean
           name: string
@@ -2392,6 +2393,7 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           created_at?: string
+          employer_id?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -2401,11 +2403,20 @@ export type Database = {
           archived_at?: string | null
           archived_by?: string | null
           created_at?: string
+          employer_id?: string | null
           id?: string
           is_active?: boolean
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "employee_departments_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employee_employers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       employee_employers: {
         Row: {

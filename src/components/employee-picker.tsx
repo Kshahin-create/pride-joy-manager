@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,12 +28,15 @@ export type EmployeeOption = {
   job_title: string | null;
 };
 
+type Employer = { id: string; name: string };
+type Department = { id: string; name: string; employer_id: string | null };
+
+const ADD_NEW = "__add_new__";
+
 interface Props {
   value: string | null;
   onChange: (employeeId: string | null, employee: EmployeeOption | null) => void;
-  /** Filter shown employees by department (e.g. "النظافة"). Empty = all. */
   filterDepartment?: string;
-  /** Default department for quick-add form. */
   defaultDepartment?: string;
   defaultEmployer?: string;
   placeholder?: string;
@@ -51,10 +53,20 @@ export function EmployeePicker({
   disabled,
 }: Props) {
   const [items, setItems] = useState<EmployeeOption[]>([]);
-  const [employers, setEmployers] = useState<string[]>([]);
-  const [departments, setDepartments] = useState<string[]>([]);
+  const [employers, setEmployers] = useState<Employer[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Quick-add employer/department dialogs
+  const [empOpen, setEmpOpen] = useState(false);
+  const [empName, setEmpName] = useState("");
+  const [empSaving, setEmpSaving] = useState(false);
+
+  const [depOpen, setDepOpen] = useState(false);
+  const [depName, setDepName] = useState("");
+  const [depSaving, setDepSaving] = useState(false);
+
   const [form, setForm] = useState({
     full_name: "",
     mobile: "",
@@ -80,11 +92,11 @@ export function EmployeePicker({
 
   const loadLookups = async () => {
     const [{ data: emp }, { data: dep }] = await Promise.all([
-      (supabase as any).from("employee_employers").select("name").eq("is_active", true).order("name"),
-      (supabase as any).from("employee_departments").select("name").eq("is_active", true).order("name"),
+      (supabase as any).from("employee_employers").select("id, name").eq("is_active", true).order("name"),
+      (supabase as any).from("employee_departments").select("id, name, employer_id").eq("is_active", true).order("name"),
     ]);
-    setEmployers((emp ?? []).map((r: any) => r.name));
-    setDepartments((dep ?? []).map((r: any) => r.name));
+    setEmployers((emp ?? []) as Employer[]);
+    setDepartments((dep ?? []) as Department[]);
   };
 
   useEffect(() => {
@@ -96,6 +108,71 @@ export function EmployeePicker({
     () => (filterDepartment ? items.filter((i) => i.department === filterDepartment) : items),
     [items, filterDepartment],
   );
+
+  // Departments filtered by selected employer (or shared ones with employer_id = null)
+  const filteredDepartments = useMemo(() => {
+    if (!form.employer) return [] as Department[];
+    const selectedEmp = employers.find((e) => e.name === form.employer);
+    if (!selectedEmp) return departments.filter((d) => d.employer_id === null);
+    return departments.filter(
+      (d) => d.employer_id === selectedEmp.id || d.employer_id === null,
+    );
+  }, [departments, employers, form.employer]);
+
+  const addEmployer = async () => {
+    if (!empName.trim()) {
+      toast.error("الاسم مطلوب");
+      return;
+    }
+    setEmpSaving(true);
+    const { data, error } = await (supabase as any)
+      .from("employee_employers")
+      .insert({ name: empName.trim(), is_active: true })
+      .select("id, name")
+      .single();
+    setEmpSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تمت إضافة جهة العمل");
+    setEmployers((prev) => [...prev, data as Employer].sort((a, b) => a.name.localeCompare(b.name)));
+    setForm((f) => ({ ...f, employer: data.name, department: "" }));
+    setEmpName("");
+    setEmpOpen(false);
+  };
+
+  const addDepartment = async () => {
+    if (!depName.trim()) {
+      toast.error("الاسم مطلوب");
+      return;
+    }
+    if (!form.employer) {
+      toast.error("اختر جهة العمل أولاً");
+      return;
+    }
+    const selectedEmp = employers.find((e) => e.name === form.employer);
+    setDepSaving(true);
+    const { data, error } = await (supabase as any)
+      .from("employee_departments")
+      .insert({
+        name: depName.trim(),
+        is_active: true,
+        employer_id: selectedEmp?.id ?? null,
+      })
+      .select("id, name, employer_id")
+      .single();
+    setDepSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تمت إضافة القسم");
+    setDepartments((prev) => [...prev, data as Department].sort((a, b) => a.name.localeCompare(b.name)));
+    setForm((f) => ({ ...f, department: data.name }));
+    setDepName("");
+    setDepOpen(false);
+  };
 
   const quickAdd = async () => {
     if (!form.full_name.trim() || !form.employer) {
@@ -225,39 +302,67 @@ export function EmployeePicker({
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
+              {/* Employer first */}
               <div className="grid gap-1.5">
                 <Label>جهة العمل *</Label>
                 <Select
                   value={form.employer}
-                  onValueChange={(v) => setForm({ ...form, employer: v })}
+                  onValueChange={(v) => {
+                    if (v === ADD_NEW) {
+                      setEmpOpen(true);
+                      return;
+                    }
+                    setForm({ ...form, employer: v, department: "" });
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="اختر" />
                   </SelectTrigger>
                   <SelectContent>
-                    {employers.map((n) => (
-                      <SelectItem key={n} value={n}>
-                        {n}
+                    {employers.map((e) => (
+                      <SelectItem key={e.id} value={e.name}>
+                        {e.name}
                       </SelectItem>
                     ))}
+                    <SelectItem value={ADD_NEW} className="text-primary font-medium">
+                      + إضافة جهة عمل جديدة
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              {/* Department depends on employer */}
               <div className="grid gap-1.5">
-                <Label>القسم</Label>
+                <Label>القسم *</Label>
                 <Select
                   value={form.department}
-                  onValueChange={(v) => setForm({ ...form, department: v })}
+                  onValueChange={(v) => {
+                    if (v === ADD_NEW) {
+                      setDepOpen(true);
+                      return;
+                    }
+                    setForm({ ...form, department: v });
+                  }}
+                  disabled={!form.employer}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر" />
+                    <SelectValue placeholder={form.employer ? "اختر" : "اختر جهة العمل أولاً"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {departments.map((n) => (
-                      <SelectItem key={n} value={n}>
-                        {n}
+                    {filteredDepartments.length === 0 && form.employer && (
+                      <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                        لا توجد أقسام لجهة العمل هذه
+                      </div>
+                    )}
+                    {filteredDepartments.map((d) => (
+                      <SelectItem key={d.id} value={d.name}>
+                        {d.name}
                       </SelectItem>
                     ))}
+                    {form.employer && (
+                      <SelectItem value={ADD_NEW} className="text-primary font-medium">
+                        + إضافة قسم جديد
+                      </SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -271,6 +376,53 @@ export function EmployeePicker({
               إلغاء
             </Button>
             <Button onClick={quickAdd} disabled={saving}>
+              حفظ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add employer modal */}
+      <Dialog open={empOpen} onOpenChange={setEmpOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>إضافة جهة عمل جديدة</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-1.5">
+            <Label>اسم جهة العمل *</Label>
+            <Input value={empName} onChange={(e) => setEmpName(e.target.value)} autoFocus />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEmpOpen(false)} disabled={empSaving}>
+              إلغاء
+            </Button>
+            <Button onClick={addEmployer} disabled={empSaving}>
+              حفظ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add department modal */}
+      <Dialog open={depOpen} onOpenChange={setDepOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>إضافة قسم جديد</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-2">
+            <div className="grid gap-1.5">
+              <Label>اسم القسم *</Label>
+              <Input value={depName} onChange={(e) => setDepName(e.target.value)} autoFocus />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              سيتم ربط القسم بجهة العمل: <span className="font-medium">{form.employer || "—"}</span>
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDepOpen(false)} disabled={depSaving}>
+              إلغاء
+            </Button>
+            <Button onClick={addDepartment} disabled={depSaving}>
               حفظ
             </Button>
           </DialogFooter>

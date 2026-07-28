@@ -35,6 +35,18 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
     handlers: {
       POST: async ({ request }) => {
         try {
+          // Verify Telegram webhook secret to reject spoofed updates.
+          const apiKey = process.env.TELEGRAM_API_KEY ?? "";
+          const { createHash, timingSafeEqual } = await import("crypto");
+          const expected = createHash("sha256")
+            .update(`telegram-webhook:${apiKey}`)
+            .digest("base64url");
+          const provided = request.headers.get("x-telegram-bot-api-secret-token") ?? "";
+          const a = Buffer.from(provided);
+          const b = Buffer.from(expected);
+          if (!apiKey || a.length !== b.length || !timingSafeEqual(a, b)) {
+            return new Response("Unauthorized", { status: 401 });
+          }
           const update: any = await request.json();
           const msg = update.message ?? update.edited_message;
           if (!msg?.chat?.id) return Response.json({ ok: true });

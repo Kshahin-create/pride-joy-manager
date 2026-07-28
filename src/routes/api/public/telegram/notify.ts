@@ -32,10 +32,20 @@ export const Route = createFileRoute("/api/public/telegram/notify")({
     handlers: {
       POST: async ({ request }) => {
         try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const provided = request.headers.get("x-internal-secret") ?? "";
+          const { data: sec } = await supabaseAdmin
+            .from("internal_secrets" as never)
+            .select("value")
+            .eq("name", "telegram_dispatch")
+            .maybeSingle();
+          const expected = (sec as { value?: string } | null)?.value ?? "";
+          if (!expected || provided !== expected) {
+            return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
+          }
           const { notification_id } = (await request.json().catch(() => ({}))) as { notification_id?: string };
           if (!notification_id) return Response.json({ ok: false, error: "missing id" }, { status: 400 });
 
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { data: n } = await supabaseAdmin
             .from("notifications")
             .select("*")

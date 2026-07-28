@@ -141,6 +141,24 @@ async function handle(request: Request, params: { _splat?: string }) {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
   const url = new URL(request.url);
 
+  // 6a. Block PostgREST relationship embedding — the proxy authorizes only the
+  //     top-level table, so `select=*,related(*)` or `select=alias:related(*)`
+  //     would bypass the role gate and pull data from other tables via the
+  //     service-role forward. Only bare column lists are permitted.
+  for (const key of ["select", "columns"]) {
+    const val = url.searchParams.get(key);
+    if (val && (val.includes("(") || val.includes(")") || val.includes(":"))) {
+      return json(
+        {
+          error:
+            "embedded/related-table syntax is not permitted in the select parameter; pass a plain comma-separated column list only",
+          param: key,
+        },
+        400,
+      );
+    }
+  }
+
   if (allowedPropertyIds && tableIsScoped) {
     // Reject any caller-supplied property_id filter — we own this filter.
     if (url.searchParams.has("property_id")) {

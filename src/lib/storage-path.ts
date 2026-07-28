@@ -15,6 +15,7 @@ export function getSafeFileExtension(file: File, fallback = "bin") {
   return typeExtension || fallback;
 }
 
+
 export function createStorageObjectPath(prefix: string, file: File, label?: string) {
   const safePrefix = prefix
     .split("/")

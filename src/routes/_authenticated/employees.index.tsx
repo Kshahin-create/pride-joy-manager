@@ -585,6 +585,53 @@ function EmployeesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add employer modal */}
+      <Dialog open={empOpen} onOpenChange={setEmpOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>إضافة جهة عمل جديدة</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-1.5">
+            <Label>اسم جهة العمل *</Label>
+            <Input value={empName} onChange={(e) => setEmpName(e.target.value)} autoFocus />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEmpOpen(false)} disabled={empSaving}>
+              إلغاء
+            </Button>
+            <Button onClick={addEmployer} disabled={empSaving}>
+              حفظ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add department modal */}
+      <Dialog open={depOpen} onOpenChange={setDepOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>إضافة قسم جديد</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-2">
+            <div className="grid gap-1.5">
+              <Label>اسم القسم *</Label>
+              <Input value={depName} onChange={(e) => setDepName(e.target.value)} autoFocus />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              سيتم ربط القسم بجهة العمل: <span className="font-medium">{form.employer || "—"}</span>
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDepOpen(false)} disabled={depSaving}>
+              إلغاء
+            </Button>
+            <Button onClick={addDepartment} disabled={depSaving}>
+              حفظ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {!canManage && (
         <p className="text-xs text-muted-foreground text-center">
           ملاحظة: تعديل أو حذف الموظفين يتطلب صلاحيات إشرافية.

@@ -235,7 +235,7 @@ function PhotoSlot({
       const newPath = createStorageObjectPath(logId, file);
       const { error: upErr } = await supabase.storage.from("cleaning-photos").upload(newPath, file);
       if (upErr) throw upErr;
-      const { error: updErr } = await supabase.from("cleaning_logs").update({ [field]: newPath }).eq("id", logId);
+      const { error: updErr } = await (supabase as any).from("cleaning_logs").update({ [field]: newPath }).eq("id", logId);
       if (updErr) throw updErr;
       if (path) await supabase.storage.from("cleaning-photos").remove([path]);
       toast.success("تم استبدال الصورة");
@@ -250,7 +250,7 @@ function PhotoSlot({
     if (!confirm("حذف الصورة؟")) return;
     setBusy(true);
     try {
-      const { error: updErr } = await supabase.from("cleaning_logs").update({ [field]: null }).eq("id", logId);
+      const { error: updErr } = await (supabase as any).from("cleaning_logs").update({ [field]: null }).eq("id", logId);
       if (updErr) throw updErr;
       await supabase.storage.from("cleaning-photos").remove([path]);
       toast.success("تم حذف الصورة");

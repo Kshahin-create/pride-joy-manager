@@ -38,6 +38,10 @@ export const Route = createFileRoute("/_authenticated/employees/")({
   component: EmployeesPage,
 });
 
+type Employer = { id: string; name: string };
+type Department = { id: string; name: string; employer_id: string | null };
+
+
 type Employee = {
   id: string;
   full_name: string;

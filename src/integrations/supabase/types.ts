@@ -5702,6 +5702,14 @@ export type Database = {
         Returns: undefined
       }
       can_manage_security: { Args: { _uid: string }; Returns: boolean }
+      can_upload_module: {
+        Args: { _mod: string; _uid: string }
+        Returns: boolean
+      }
+      can_view_module: {
+        Args: { _mod: string; _uid: string }
+        Returns: boolean
+      }
       create_telegram_link_code: { Args: never; Returns: string }
       delete_record: {
         Args: { _id: string; _reason?: string; _table: string }

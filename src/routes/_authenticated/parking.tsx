@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Car, Plus, ClipboardCheck, Sparkles, AlertOctagon, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { SafeImage } from "@/components/safe-image";
 import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
+import { createStorageObjectPath } from "@/lib/storage-path";
 
 export const Route = createFileRoute("/_authenticated/parking")({ component: ParkingPage });
 
@@ -171,7 +172,7 @@ function ParkingPage() {
   };
 
   const uploadOne = async (f: File) => {
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}-${f.name}`;
+    const path = createStorageObjectPath("parking", f);
     const { error } = await (supabase as any).storage.from("parking-photos").upload(path, f);
     if (error) throw error;
     return path;

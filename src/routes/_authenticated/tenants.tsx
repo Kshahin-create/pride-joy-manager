@@ -26,6 +26,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
+import { createStorageObjectPath } from "@/lib/storage-path";
 
 export const Route = createFileRoute("/_authenticated/tenants")({
   component: ClientsPage,
@@ -280,7 +281,7 @@ export function CompanyFormDialog({ open, company, onClose, onSaved }: {
     if (pending.length === 0) return;
     const { data: u } = await supabase.auth.getUser();
     for (const it of pending) {
-      const path = `${companyId}/${Date.now()}_${it.file.name}`;
+      const path = createStorageObjectPath(companyId, it.file);
       const up = await supabase.storage.from("companies").upload(path, it.file, { upsert: false });
       if (up.error) { toast.error("فشل رفع " + it.file.name); continue; }
       await supabase.from("company_attachments").insert({

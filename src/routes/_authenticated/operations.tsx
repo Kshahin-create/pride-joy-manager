@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EmployeePicker } from "@/components/employee-picker";
 import { toast } from "sonner";
 import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
+import { createStorageObjectPath } from "@/lib/storage-path";
 
 export const Route = createFileRoute("/_authenticated/operations")({
   component: OperationsPage,
@@ -228,24 +229,6 @@ function PhotoSlot({ label, path }: { label: string; path: string | null }) {
   );
 }
 
-function getStorageSafeExtension(file: File) {
-  const byName = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "");
-  if (byName && byName.length <= 8) return byName;
-
-  const byType = file.type.split("/").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "");
-  if (byType === "jpeg") return "jpg";
-  return byType || "jpg";
-}
-
-function buildCleaningPhotoPath(planId: string, kind: "before" | "after", file: File) {
-  const extension = getStorageSafeExtension(file);
-  const randomId = typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : Math.random().toString(36).slice(2);
-
-  return `${planId}/${Date.now()}-${kind}-${randomId}.${extension}`;
-}
-
 type CleaningContractOpt = { id: string; vendor_name: string | null; contract_number: string | null };
 
 function PlanDialog({ open, onClose, onSaved }: { open: boolean; onClose: () => void; onSaved: () => void }) {
@@ -421,7 +404,7 @@ function LogDialog({
   }, [open, initialPlanId]);
 
   const uploadOne = async (file: File, kind: "before" | "after"): Promise<string | null> => {
-    const path = buildCleaningPhotoPath(planId, kind, file);
+    const path = createStorageObjectPath(planId, file, kind);
     const { error } = await supabase.storage.from("cleaning-photos").upload(path, file);
     if (error) throw new Error(`فشل رفع صورة ${kind === "before" ? "قبل" : "بعد"}: ${error.message}`);
     return path;

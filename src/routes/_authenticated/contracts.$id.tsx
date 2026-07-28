@@ -28,6 +28,7 @@ import {
 import { toast } from "sonner";
 import { CONTRACT_STATUS_STYLE, type ContractStatus, ContractFormDialog } from "./contracts.index";
 import { DelegatesCard, LinkedOfficesCard, LinkedParkingCard } from "@/components/contract-relations";
+import { createStorageObjectPath } from "@/lib/storage-path";
 import { TaxFeesCard, DepositCard, PaymentScheduleCard } from "@/components/contract-financials";
 
 export const Route = createFileRoute("/_authenticated/contracts/$id")({
@@ -338,7 +339,7 @@ function AttachmentsCard({
     setUploading(true);
     const { data: u } = await supabase.auth.getUser();
     for (const f of Array.from(files)) {
-      const path = `${contractId}/${Date.now()}_${f.name}`;
+      const path = createStorageObjectPath(contractId, f);
       const up = await supabase.storage.from("contracts").upload(path, f, { upsert: false });
       if (up.error) { toast.error("فشل رفع " + f.name + ": " + up.error.message); continue; }
       const { error } = await supabase.from("contract_attachments").insert({

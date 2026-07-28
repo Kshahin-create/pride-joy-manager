@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { Plus, Download, Eye, Trash2, FileText, AlertTriangle, Search, Share2, Archive, UploadCloud, X, CheckSquare } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import JSZip from "jszip";
+import { createStorageObjectPath } from "@/lib/storage-path";
 
 export const DOC_CATEGORIES = [
   "عقد","مخطط","شهادة","فاتورة","صورة","تقرير","أمر عمل",
@@ -115,7 +116,7 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
   useEffect(() => { void load(); }, [load]);
 
   const uploadOne = async (file: File) => {
-    const path = `${entityType}/${entityId ?? "_root"}/${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
+    const path = createStorageObjectPath(`${entityType}/${entityId ?? "_root"}`, file);
     const { error } = await (supabase as any).storage.from("documents").upload(path, file);
     if (error) throw error;
     return path;

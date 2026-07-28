@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
 import { AssetSpecsFields } from "@/components/asset-specs-fields";
 import { ContractQuickAddDialog } from "@/components/contract-quick-add-dialog";
+import { createStorageObjectPath } from "@/lib/storage-path";
 
 type ContractKind = "ac" | "elevator" | "fire" | "cleaning" | "supply";
 const CONTRACT_TABLES: Record<ContractKind, { table: string; label: string }> = {
@@ -203,7 +204,7 @@ export function AssetFormDialog({ open, onClose, onSaved, asset, defaultOfficeId
 
   const uploadPendingFor = async (assetId: string) => {
     for (const { f, name } of pendingFiles) {
-      const path = `${assetId}/${Date.now()}-${Math.random().toString(36).slice(2)}-${f.name}`;
+      const path = createStorageObjectPath(assetId, f);
       const { error: upErr } = await (supabase as any).storage.from("asset-photos").upload(path, f);
       if (upErr) { toast.error(upErr.message); continue; }
       await (supabase as any).from("asset_attachments").insert({

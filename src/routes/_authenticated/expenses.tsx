@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Check, X, Banknote, TrendingUp, TrendingDown, Wallet, Paperclip, Download, Trash2 } from "lucide-react";
+import { createStorageObjectPath } from "@/lib/storage-path";
 
 import { FinanceAccessGate } from "@/components/finance-access-gate";
 
@@ -100,7 +101,7 @@ function ExpensesPage() {
 
   const uploadFilesFor = async (expenseId: string, files: File[]) => {
     for (const f of files) {
-      const path = `${expenseId}/${Date.now()}-${f.name}`;
+      const path = createStorageObjectPath(expenseId, f);
       const up = await supabase.storage.from("expense-attachments").upload(path, f, { upsert: false });
       if (up.error) { toast.error(`فشل رفع ${f.name}: ${up.error.message}`); continue; }
       const ins = await supabase.from("expense_attachments").insert({

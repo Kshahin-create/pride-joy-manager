@@ -32,6 +32,11 @@ export const Route = createFileRoute("/api/public/telegram/notify")({
     handlers: {
       POST: async ({ request }) => {
         try {
+          const expected = process.env.INTERNAL_TRIGGER_SECRET;
+          const provided = request.headers.get("x-internal-secret") ?? "";
+          if (!expected || provided !== expected) {
+            return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
+          }
           const { notification_id } = (await request.json().catch(() => ({}))) as { notification_id?: string };
           if (!notification_id) return Response.json({ ok: false, error: "missing id" }, { status: 400 });
 

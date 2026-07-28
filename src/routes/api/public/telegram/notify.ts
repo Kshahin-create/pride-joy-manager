@@ -32,8 +32,14 @@ export const Route = createFileRoute("/api/public/telegram/notify")({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const expected = process.env.INTERNAL_TRIGGER_SECRET;
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const provided = request.headers.get("x-internal-secret") ?? "";
+          const { data: sec } = await supabaseAdmin
+            .from("internal_secrets" as never)
+            .select("value")
+            .eq("name", "telegram_dispatch")
+            .maybeSingle();
+          const expected = (sec as { value?: string } | null)?.value ?? "";
           if (!expected || provided !== expected) {
             return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
           }

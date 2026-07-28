@@ -21,12 +21,17 @@ export const Route = createFileRoute("/api/public/telegram/daily-report")({
     handlers: {
       POST: async ({ request }) => {
         try {
-          const expected = process.env.INTERNAL_TRIGGER_SECRET;
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const provided = request.headers.get("x-internal-secret") ?? "";
+          const { data: sec } = await supabaseAdmin
+            .from("internal_secrets" as never)
+            .select("value")
+            .eq("name", "telegram_dispatch")
+            .maybeSingle();
+          const expected = (sec as { value?: string } | null)?.value ?? "";
           if (!expected || provided !== expected) {
             return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
           }
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           // build report
           const date = new Date().toISOString().slice(0, 10);
           const { data: rpt } = await supabaseAdmin.rpc("get_daily_report" as never, { _date: date } as never);

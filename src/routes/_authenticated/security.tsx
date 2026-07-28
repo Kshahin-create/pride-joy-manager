@@ -211,7 +211,7 @@ function GuardDialog({
     setSaving(true);
     let photo_url: string | null = null;
     if (photoFile) {
-      const path = `${Date.now()}_${photoFile.name}`;
+      const path = createStorageObjectPath("guards", photoFile);
       const up = await supabase.storage.from("guards-photos").upload(path, photoFile);
       if (up.error) { toast.error("فشل رفع الصورة: " + up.error.message); }
       else photo_url = path;

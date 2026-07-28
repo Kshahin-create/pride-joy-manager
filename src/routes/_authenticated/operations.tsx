@@ -198,9 +198,19 @@ function CleaningTab() {
   );
 }
 
-function PhotoSlot({ label, path }: { label: string; path: string | null }) {
+function PhotoSlot({
+  label, path, logId, field, canManage, onChanged,
+}: {
+  label: string;
+  path: string | null;
+  logId: string;
+  field: "before_photo_path" | "after_photo_path";
+  canManage: boolean;
+  onChanged: () => void;
+}) {
   const [url, setUrl] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const [busy, setBusy] = useState(false);
   useEffect(() => {
     setUrl(null);
     setUnavailable(false);
@@ -218,19 +228,72 @@ function PhotoSlot({ label, path }: { label: string; path: string | null }) {
     });
     return () => { active = false; };
   }, [path]);
+
+  const replace = async (file: File) => {
+    setBusy(true);
+    try {
+      const newPath = createStorageObjectPath(logId, file);
+      const { error: upErr } = await supabase.storage.from("cleaning-photos").upload(newPath, file);
+      if (upErr) throw upErr;
+      const { error: updErr } = await supabase.from("cleaning_logs").update({ [field]: newPath }).eq("id", logId);
+      if (updErr) throw updErr;
+      if (path) await supabase.storage.from("cleaning-photos").remove([path]);
+      toast.success("تم استبدال الصورة");
+      onChanged();
+    } catch (e: any) {
+      toast.error(e.message ?? "تعذّر رفع الصورة");
+    } finally { setBusy(false); }
+  };
+
+  const remove = async () => {
+    if (!path) return;
+    if (!confirm("حذف الصورة؟")) return;
+    setBusy(true);
+    try {
+      const { error: updErr } = await supabase.from("cleaning_logs").update({ [field]: null }).eq("id", logId);
+      if (updErr) throw updErr;
+      await supabase.storage.from("cleaning-photos").remove([path]);
+      toast.success("تم حذف الصورة");
+      onChanged();
+    } catch (e: any) {
+      toast.error(e.message ?? "تعذّر حذف الصورة");
+    } finally { setBusy(false); }
+  };
+
   return (
     <div>
-      <div className="text-xs text-muted-foreground mb-1">{label}</div>
+      <div className="flex items-center justify-between mb-1">
+        <div className="text-xs text-muted-foreground">{label}</div>
+        {canManage && (
+          <div className="flex items-center gap-1">
+            <label className="inline-flex items-center gap-1 text-xs text-primary cursor-pointer hover:underline">
+              <ImagePlus className="h-3.5 w-3.5" />
+              {path ? "استبدال" : "رفع"}
+              <input
+                type="file" accept="image/*" className="hidden" disabled={busy}
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) void replace(f); e.target.value = ""; }}
+              />
+            </label>
+            {path && (
+              <button type="button" onClick={remove} disabled={busy}
+                className="inline-flex items-center gap-1 text-xs text-destructive hover:underline">
+                <Trash2 className="h-3.5 w-3.5" /> حذف
+              </button>
+            )}
+          </div>
+        )}
+      </div>
       {url ? (
         <SafeImage src={url} alt={label} className="w-full h-40 object-cover rounded-md border" />
       ) : (
         <div className="w-full h-40 rounded-md border border-dashed flex items-center justify-center text-muted-foreground text-xs">
-          {path && unavailable ? "الصورة غير متاحة" : "لا توجد صورة"}
+          {busy ? "جارٍ..." : path && unavailable ? "الصورة غير متاحة" : "لا توجد صورة"}
         </div>
       )}
     </div>
   );
 }
+
 
 type CleaningContractOpt = { id: string; vendor_name: string | null; contract_number: string | null };
 

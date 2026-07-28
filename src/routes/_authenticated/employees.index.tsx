@@ -120,15 +120,69 @@ function EmployeesPage() {
   };
 
   const loadLookups = async () => {
-    const [{ data: emp }, { data: dep }, { data: vds }] = await Promise.all([
-      (supabase as any).from("employee_employers").select("name").eq("is_active", true).order("name"),
-      (supabase as any).from("employee_departments").select("name").eq("is_active", true).order("name"),
-      (supabase as any).from("vendors").select("company_name, activity").order("company_name"),
+    const [{ data: emp }, { data: dep }] = await Promise.all([
+      (supabase as any).from("employee_employers").select("id, name").eq("is_active", true).order("name"),
+      (supabase as any).from("employee_departments").select("id, name, employer_id").eq("is_active", true).order("name"),
     ]);
-    setEmployers((emp ?? []).map((r: any) => r.name));
-    setDepartments((dep ?? []).map((r: any) => r.name));
-    setVendors((vds ?? []) as { company_name: string; activity: string | null }[]);
+    setEmployers((emp ?? []) as Employer[]);
+    setDepartments((dep ?? []) as Department[]);
   };
+
+  const addEmployer = async () => {
+    if (!empName.trim()) {
+      toast.error("الاسم مطلوب");
+      return;
+    }
+    setEmpSaving(true);
+    const { data, error } = await (supabase as any)
+      .from("employee_employers")
+      .insert({ name: empName.trim(), is_active: true })
+      .select("id, name")
+      .single();
+    setEmpSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تمت إضافة جهة العمل");
+    setEmployers((prev) => [...prev, data as Employer].sort((a, b) => a.name.localeCompare(b.name)));
+    setForm((f) => ({ ...f, employer: data.name, department: "" }));
+    setEmpName("");
+    setEmpOpen(false);
+  };
+
+  const addDepartment = async () => {
+    if (!depName.trim()) {
+      toast.error("الاسم مطلوب");
+      return;
+    }
+    if (!form.employer) {
+      toast.error("اختر جهة العمل أولاً");
+      return;
+    }
+    const selectedEmp = employers.find((e) => e.name === form.employer);
+    setDepSaving(true);
+    const { data, error } = await (supabase as any)
+      .from("employee_departments")
+      .insert({
+        name: depName.trim(),
+        is_active: true,
+        employer_id: selectedEmp?.id ?? null,
+      })
+      .select("id, name, employer_id")
+      .single();
+    setDepSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تمت إضافة القسم");
+    setDepartments((prev) => [...prev, data as Department].sort((a, b) => a.name.localeCompare(b.name)));
+    setForm((f) => ({ ...f, department: data.name }));
+    setDepName("");
+    setDepOpen(false);
+  };
+
 
   useEffect(() => {
     load();

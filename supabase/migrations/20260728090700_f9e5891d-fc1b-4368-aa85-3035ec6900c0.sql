@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS asset_photos_read_auth ON storage.objects;

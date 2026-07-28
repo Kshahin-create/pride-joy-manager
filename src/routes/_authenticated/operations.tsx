@@ -172,10 +172,13 @@ function CleaningTab() {
                           {log.execution_date} · {log.executed_by || "—"}
                         </div>
                       </div>
+                      {canManage && (
+                        <DeleteArchiveMenu table="cleaning_logs" id={log.id} entityLabel={`سجل ${log.execution_date}`} onDone={load} compact />
+                      )}
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      <PhotoSlot label="قبل" path={log.before_photo_path} />
-                      <PhotoSlot label="بعد" path={log.after_photo_path} />
+                      <PhotoSlot label="قبل" path={log.before_photo_path} logId={log.id} field="before_photo_path" canManage={canManage} onChanged={load} />
+                      <PhotoSlot label="بعد" path={log.after_photo_path} logId={log.id} field="after_photo_path" canManage={canManage} onChanged={load} />
                     </div>
                     {log.notes && <p className="text-sm mt-2 text-muted-foreground">{log.notes}</p>}
                   </div>

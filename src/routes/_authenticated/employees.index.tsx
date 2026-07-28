@@ -38,6 +38,10 @@ export const Route = createFileRoute("/_authenticated/employees/")({
   component: EmployeesPage,
 });
 
+type Employer = { id: string; name: string };
+type Department = { id: string; name: string; employer_id: string | null };
+
+
 type Employee = {
   id: string;
   full_name: string;
@@ -75,9 +79,8 @@ function EmployeesPage() {
     isSuperAdmin || hasRole("maintenance_supervisor") || hasRole("security_supervisor");
 
   const [items, setItems] = useState<Employee[]>([]);
-  const [employers, setEmployers] = useState<string[]>([]);
-  const [departments, setDepartments] = useState<string[]>([]);
-  const [vendors, setVendors] = useState<{ company_name: string; activity: string | null }[]>([]);
+  const [employers, setEmployers] = useState<Employer[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [q, setQ] = useState("");
   const [filterDept, setFilterDept] = useState<string>("");
   const [filterEmp, setFilterEmp] = useState<string>("");
@@ -86,32 +89,27 @@ function EmployeesPage() {
   const [saving, setSaving] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
-  const INTERNAL_COMPANY = "نخبة تسكين العقارية";
+  const ADD_NEW = "__add_new__";
 
-  // ربط جهة العمل بنوع القسم عبر نشاط المورد (vendors.activity)
-  const deptKeywords = (dept: string): string[] => {
-    const d = dept || "";
-    if (d.includes("نظاف")) return ["نظاف"];
-    if (d.includes("أمن") || d.includes("امن") || d.includes("حراس")) return ["أمن", "امن", "حراس"];
-    if (d.includes("صيان")) return ["صيان"];
-    if (d.includes("تكيي") || d.includes("تبريد")) return ["تكيي", "تبريد"];
-    if (d.includes("مصعد") || d.includes("مصاعد")) return ["مصعد", "مصاعد"];
-    if (d.includes("حريق") || d.includes("إطفاء") || d.includes("اطفاء")) return ["حريق", "إطفاء", "اطفاء"];
-    if (d.includes("كهرب")) return ["كهرب"];
-    if (d.includes("سباك") || d.includes("صحي")) return ["سباك", "صحي"];
-    return [];
-  };
+  // Quick-add employer/department dialogs
+  const [empOpen, setEmpOpen] = useState(false);
+  const [empName, setEmpName] = useState("");
+  const [empSaving, setEmpSaving] = useState(false);
 
-  const employerOptions = useMemo(() => {
-    const dept = form.department ?? "";
-    const keys = deptKeywords(dept);
-    const matched = keys.length
-      ? vendors
-          .filter((v) => v.activity && keys.some((k) => v.activity!.includes(k)))
-          .map((v) => v.company_name)
-      : vendors.map((v) => v.company_name);
-    return Array.from(new Set([INTERNAL_COMPANY, ...matched, ...employers]));
-  }, [form.department, vendors, employers]);
+  const [depOpen, setDepOpen] = useState(false);
+  const [depName, setDepName] = useState("");
+  const [depSaving, setDepSaving] = useState(false);
+
+  // Departments filtered by selected employer (or shared ones with employer_id = null)
+  const filteredDepartments = useMemo(() => {
+    if (!form.employer) return [] as Department[];
+    const selectedEmp = employers.find((e) => e.name === form.employer);
+    if (!selectedEmp) return departments.filter((d) => d.employer_id === null);
+    return departments.filter(
+      (d) => d.employer_id === selectedEmp.id || d.employer_id === null,
+    );
+  }, [departments, employers, form.employer]);
+
 
   const load = async () => {
     let q1 = (supabase as any).from("employees").select("*");
@@ -122,15 +120,69 @@ function EmployeesPage() {
   };
 
   const loadLookups = async () => {
-    const [{ data: emp }, { data: dep }, { data: vds }] = await Promise.all([
-      (supabase as any).from("employee_employers").select("name").eq("is_active", true).order("name"),
-      (supabase as any).from("employee_departments").select("name").eq("is_active", true).order("name"),
-      (supabase as any).from("vendors").select("company_name, activity").order("company_name"),
+    const [{ data: emp }, { data: dep }] = await Promise.all([
+      (supabase as any).from("employee_employers").select("id, name").eq("is_active", true).order("name"),
+      (supabase as any).from("employee_departments").select("id, name, employer_id").eq("is_active", true).order("name"),
     ]);
-    setEmployers((emp ?? []).map((r: any) => r.name));
-    setDepartments((dep ?? []).map((r: any) => r.name));
-    setVendors((vds ?? []) as { company_name: string; activity: string | null }[]);
+    setEmployers((emp ?? []) as Employer[]);
+    setDepartments((dep ?? []) as Department[]);
   };
+
+  const addEmployer = async () => {
+    if (!empName.trim()) {
+      toast.error("الاسم مطلوب");
+      return;
+    }
+    setEmpSaving(true);
+    const { data, error } = await (supabase as any)
+      .from("employee_employers")
+      .insert({ name: empName.trim(), is_active: true })
+      .select("id, name")
+      .single();
+    setEmpSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تمت إضافة جهة العمل");
+    setEmployers((prev) => [...prev, data as Employer].sort((a, b) => a.name.localeCompare(b.name)));
+    setForm((f) => ({ ...f, employer: data.name, department: "" }));
+    setEmpName("");
+    setEmpOpen(false);
+  };
+
+  const addDepartment = async () => {
+    if (!depName.trim()) {
+      toast.error("الاسم مطلوب");
+      return;
+    }
+    if (!form.employer) {
+      toast.error("اختر جهة العمل أولاً");
+      return;
+    }
+    const selectedEmp = employers.find((e) => e.name === form.employer);
+    setDepSaving(true);
+    const { data, error } = await (supabase as any)
+      .from("employee_departments")
+      .insert({
+        name: depName.trim(),
+        is_active: true,
+        employer_id: selectedEmp?.id ?? null,
+      })
+      .select("id, name, employer_id")
+      .single();
+    setDepSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("تمت إضافة القسم");
+    setDepartments((prev) => [...prev, data as Department].sort((a, b) => a.name.localeCompare(b.name)));
+    setForm((f) => ({ ...f, department: data.name }));
+    setDepName("");
+    setDepOpen(false);
+  };
+
 
   useEffect(() => {
     load();
@@ -319,8 +371,8 @@ function EmployeesPage() {
             <SelectContent>
               <SelectItem value="all">كل الأقسام</SelectItem>
               {departments.map((d) => (
-                <SelectItem key={d} value={d}>
-                  {d}
+                <SelectItem key={d.id} value={d.name}>
+                  {d.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -331,9 +383,9 @@ function EmployeesPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">كل جهات العمل</SelectItem>
-              {employers.map((d) => (
-                <SelectItem key={d} value={d}>
-                  {d}
+              {employers.map((e) => (
+                <SelectItem key={e.id} value={e.name}>
+                  {e.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -434,55 +486,69 @@ function EmployeesPage() {
               <Textarea rows={2} value={form.address ?? ""} onChange={(e) => setForm({ ...form, address: e.target.value })} />
             </div>
             <div className="grid grid-cols-2 gap-3">
+              {/* Employer first */}
               <div className="grid gap-1.5">
-                <Label>القسم</Label>
+                <Label>جهة العمل *</Label>
                 <Select
-                  value={form.department ?? ""}
-                  onValueChange={(v) => setForm({ ...form, department: v, employer: "" })}
+                  value={form.employer ?? ""}
+                  onValueChange={(v) => {
+                    if (v === ADD_NEW) {
+                      setEmpOpen(true);
+                      return;
+                    }
+                    setForm({ ...form, employer: v, department: "" });
+                  }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر القسم أولاً" />
+                    <SelectValue placeholder="اختر" />
                   </SelectTrigger>
                   <SelectContent>
-                    {departments.map((n) => (
-                      <SelectItem key={n} value={n}>
-                        {n}
+                    {employers.map((e) => (
+                      <SelectItem key={e.id} value={e.name}>
+                        {e.name}
                       </SelectItem>
                     ))}
+                    <SelectItem value={ADD_NEW} className="text-primary font-medium">
+                      + إضافة جهة عمل جديدة
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              {/* Department depends on employer */}
               <div className="grid gap-1.5">
-                <Label>جهة العمل *</Label>
-                <Select value={form.employer ?? ""} onValueChange={(v) => setForm({ ...form, employer: v })}>
+                <Label>القسم *</Label>
+                <Select
+                  value={form.department ?? ""}
+                  onValueChange={(v) => {
+                    if (v === ADD_NEW) {
+                      setDepOpen(true);
+                      return;
+                    }
+                    setForm({ ...form, department: v });
+                  }}
+                  disabled={!form.employer}
+                >
                   <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        form.department
-                          ? `شركات ${form.department}`
-                          : "اختر القسم لعرض الشركات المرتبطة"
-                      }
-                    />
+                    <SelectValue placeholder={form.employer ? "اختر" : "اختر جهة العمل أولاً"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {employerOptions.length === 0 ? (
-                      <div className="px-3 py-2 text-xs text-muted-foreground">
-                        لا توجد شركات مسجلة لهذا القسم — أضفها من صفحة الموردين
+                    {filteredDepartments.length === 0 && form.employer && (
+                      <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                        لا توجد أقسام لجهة العمل هذه
                       </div>
-                    ) : (
-                      employerOptions.map((n) => (
-                        <SelectItem key={n} value={n}>
-                          {n}
-                        </SelectItem>
-                      ))
+                    )}
+                    {filteredDepartments.map((d) => (
+                      <SelectItem key={d.id} value={d.name}>
+                        {d.name}
+                      </SelectItem>
+                    ))}
+                    {form.employer && (
+                      <SelectItem value={ADD_NEW} className="text-primary font-medium">
+                        + إضافة قسم جديد
+                      </SelectItem>
                     )}
                   </SelectContent>
                 </Select>
-                {form.department && (
-                  <p className="text-[11px] text-muted-foreground">
-                    القائمة مفلترة حسب الموردين بنشاط: {form.department}
-                  </p>
-                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -514,6 +580,53 @@ function EmployeesPage() {
               إلغاء
             </Button>
             <Button onClick={save} disabled={saving}>
+              حفظ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add employer modal */}
+      <Dialog open={empOpen} onOpenChange={setEmpOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>إضافة جهة عمل جديدة</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-1.5">
+            <Label>اسم جهة العمل *</Label>
+            <Input value={empName} onChange={(e) => setEmpName(e.target.value)} autoFocus />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEmpOpen(false)} disabled={empSaving}>
+              إلغاء
+            </Button>
+            <Button onClick={addEmployer} disabled={empSaving}>
+              حفظ
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add department modal */}
+      <Dialog open={depOpen} onOpenChange={setDepOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>إضافة قسم جديد</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-2">
+            <div className="grid gap-1.5">
+              <Label>اسم القسم *</Label>
+              <Input value={depName} onChange={(e) => setDepName(e.target.value)} autoFocus />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              سيتم ربط القسم بجهة العمل: <span className="font-medium">{form.employer || "—"}</span>
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDepOpen(false)} disabled={depSaving}>
+              إلغاء
+            </Button>
+            <Button onClick={addDepartment} disabled={depSaving}>
               حفظ
             </Button>
           </DialogFooter>

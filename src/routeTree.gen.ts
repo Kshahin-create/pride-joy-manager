@@ -58,6 +58,7 @@ import { Route as AuthenticatedVendorsIdRouteImport } from './routes/_authentica
 import { Route as AuthenticatedTenantsIdRouteImport } from './routes/_authenticated/tenants.$id'
 import { Route as AuthenticatedOfficesIdRouteImport } from './routes/_authenticated/offices.$id'
 import { Route as AuthenticatedEmployeesEmployersRouteImport } from './routes/_authenticated/employees.employers'
+import { Route as AuthenticatedEmployeesDepartmentsRouteImport } from './routes/_authenticated/employees.departments'
 import { Route as AuthenticatedEmployeesIdRouteImport } from './routes/_authenticated/employees.$id'
 import { Route as AuthenticatedContractsIdRouteImport } from './routes/_authenticated/contracts.$id'
 import { Route as AuthenticatedComplaintsIdRouteImport } from './routes/_authenticated/complaints.$id'
@@ -331,6 +332,12 @@ const AuthenticatedEmployeesEmployersRoute =
     path: '/employees/employers',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEmployeesDepartmentsRoute =
+  AuthenticatedEmployeesDepartmentsRouteImport.update({
+    id: '/employees/departments',
+    path: '/employees/departments',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEmployeesIdRoute =
   AuthenticatedEmployeesIdRouteImport.update({
     id: '/employees/$id',
@@ -427,6 +434,7 @@ export interface FileRoutesByFullPath {
   '/complaints/$id': typeof AuthenticatedComplaintsIdRoute
   '/contracts/$id': typeof AuthenticatedContractsIdRoute
   '/employees/$id': typeof AuthenticatedEmployeesIdRoute
+  '/employees/departments': typeof AuthenticatedEmployeesDepartmentsRoute
   '/employees/employers': typeof AuthenticatedEmployeesEmployersRoute
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
@@ -486,6 +494,7 @@ export interface FileRoutesByTo {
   '/complaints/$id': typeof AuthenticatedComplaintsIdRoute
   '/contracts/$id': typeof AuthenticatedContractsIdRoute
   '/employees/$id': typeof AuthenticatedEmployeesIdRoute
+  '/employees/departments': typeof AuthenticatedEmployeesDepartmentsRoute
   '/employees/employers': typeof AuthenticatedEmployeesEmployersRoute
   '/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/tenants/$id': typeof AuthenticatedTenantsIdRoute
@@ -547,6 +556,7 @@ export interface FileRoutesById {
   '/_authenticated/complaints/$id': typeof AuthenticatedComplaintsIdRoute
   '/_authenticated/contracts/$id': typeof AuthenticatedContractsIdRoute
   '/_authenticated/employees/$id': typeof AuthenticatedEmployeesIdRoute
+  '/_authenticated/employees/departments': typeof AuthenticatedEmployeesDepartmentsRoute
   '/_authenticated/employees/employers': typeof AuthenticatedEmployeesEmployersRoute
   '/_authenticated/offices/$id': typeof AuthenticatedOfficesIdRoute
   '/_authenticated/tenants/$id': typeof AuthenticatedTenantsIdRoute
@@ -608,6 +618,7 @@ export interface FileRouteTypes {
     | '/complaints/$id'
     | '/contracts/$id'
     | '/employees/$id'
+    | '/employees/departments'
     | '/employees/employers'
     | '/offices/$id'
     | '/tenants/$id'
@@ -667,6 +678,7 @@ export interface FileRouteTypes {
     | '/complaints/$id'
     | '/contracts/$id'
     | '/employees/$id'
+    | '/employees/departments'
     | '/employees/employers'
     | '/offices/$id'
     | '/tenants/$id'
@@ -727,6 +739,7 @@ export interface FileRouteTypes {
     | '/_authenticated/complaints/$id'
     | '/_authenticated/contracts/$id'
     | '/_authenticated/employees/$id'
+    | '/_authenticated/employees/departments'
     | '/_authenticated/employees/employers'
     | '/_authenticated/offices/$id'
     | '/_authenticated/tenants/$id'
@@ -1101,6 +1114,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEmployeesEmployersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/employees/departments': {
+      id: '/_authenticated/employees/departments'
+      path: '/employees/departments'
+      fullPath: '/employees/departments'
+      preLoaderRoute: typeof AuthenticatedEmployeesDepartmentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/employees/$id': {
       id: '/_authenticated/employees/$id'
       path: '/employees/$id'
@@ -1243,6 +1263,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssetsIdRoute: typeof AuthenticatedAssetsIdRoute
   AuthenticatedContractsIdRoute: typeof AuthenticatedContractsIdRoute
   AuthenticatedEmployeesIdRoute: typeof AuthenticatedEmployeesIdRoute
+  AuthenticatedEmployeesDepartmentsRoute: typeof AuthenticatedEmployeesDepartmentsRoute
   AuthenticatedEmployeesEmployersRoute: typeof AuthenticatedEmployeesEmployersRoute
   AuthenticatedOfficesIdRoute: typeof AuthenticatedOfficesIdRoute
   AuthenticatedVendorsIdRoute: typeof AuthenticatedVendorsIdRoute
@@ -1291,6 +1312,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssetsIdRoute: AuthenticatedAssetsIdRoute,
   AuthenticatedContractsIdRoute: AuthenticatedContractsIdRoute,
   AuthenticatedEmployeesIdRoute: AuthenticatedEmployeesIdRoute,
+  AuthenticatedEmployeesDepartmentsRoute:
+    AuthenticatedEmployeesDepartmentsRoute,
   AuthenticatedEmployeesEmployersRoute: AuthenticatedEmployeesEmployersRoute,
   AuthenticatedOfficesIdRoute: AuthenticatedOfficesIdRoute,
   AuthenticatedVendorsIdRoute: AuthenticatedVendorsIdRoute,

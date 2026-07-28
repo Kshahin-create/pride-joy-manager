@@ -371,8 +371,8 @@ function EmployeesPage() {
             <SelectContent>
               <SelectItem value="all">كل الأقسام</SelectItem>
               {departments.map((d) => (
-                <SelectItem key={d} value={d}>
-                  {d}
+                <SelectItem key={d.id} value={d.name}>
+                  {d.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -383,9 +383,9 @@ function EmployeesPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">كل جهات العمل</SelectItem>
-              {employers.map((d) => (
-                <SelectItem key={d} value={d}>
-                  {d}
+              {employers.map((e) => (
+                <SelectItem key={e.id} value={e.name}>
+                  {e.name}
                 </SelectItem>
               ))}
             </SelectContent>

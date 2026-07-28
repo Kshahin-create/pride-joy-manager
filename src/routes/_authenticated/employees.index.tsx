@@ -486,55 +486,69 @@ function EmployeesPage() {
               <Textarea rows={2} value={form.address ?? ""} onChange={(e) => setForm({ ...form, address: e.target.value })} />
             </div>
             <div className="grid grid-cols-2 gap-3">
+              {/* Employer first */}
               <div className="grid gap-1.5">
-                <Label>القسم</Label>
+                <Label>جهة العمل *</Label>
                 <Select
-                  value={form.department ?? ""}
-                  onValueChange={(v) => setForm({ ...form, department: v, employer: "" })}
+                  value={form.employer ?? ""}
+                  onValueChange={(v) => {
+                    if (v === ADD_NEW) {
+                      setEmpOpen(true);
+                      return;
+                    }
+                    setForm({ ...form, employer: v, department: "" });
+                  }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="اختر القسم أولاً" />
+                    <SelectValue placeholder="اختر" />
                   </SelectTrigger>
                   <SelectContent>
-                    {departments.map((n) => (
-                      <SelectItem key={n} value={n}>
-                        {n}
+                    {employers.map((e) => (
+                      <SelectItem key={e.id} value={e.name}>
+                        {e.name}
                       </SelectItem>
                     ))}
+                    <SelectItem value={ADD_NEW} className="text-primary font-medium">
+                      + إضافة جهة عمل جديدة
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              {/* Department depends on employer */}
               <div className="grid gap-1.5">
-                <Label>جهة العمل *</Label>
-                <Select value={form.employer ?? ""} onValueChange={(v) => setForm({ ...form, employer: v })}>
+                <Label>القسم *</Label>
+                <Select
+                  value={form.department ?? ""}
+                  onValueChange={(v) => {
+                    if (v === ADD_NEW) {
+                      setDepOpen(true);
+                      return;
+                    }
+                    setForm({ ...form, department: v });
+                  }}
+                  disabled={!form.employer}
+                >
                   <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        form.department
-                          ? `شركات ${form.department}`
-                          : "اختر القسم لعرض الشركات المرتبطة"
-                      }
-                    />
+                    <SelectValue placeholder={form.employer ? "اختر" : "اختر جهة العمل أولاً"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {employerOptions.length === 0 ? (
-                      <div className="px-3 py-2 text-xs text-muted-foreground">
-                        لا توجد شركات مسجلة لهذا القسم — أضفها من صفحة الموردين
+                    {filteredDepartments.length === 0 && form.employer && (
+                      <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                        لا توجد أقسام لجهة العمل هذه
                       </div>
-                    ) : (
-                      employerOptions.map((n) => (
-                        <SelectItem key={n} value={n}>
-                          {n}
-                        </SelectItem>
-                      ))
+                    )}
+                    {filteredDepartments.map((d) => (
+                      <SelectItem key={d.id} value={d.name}>
+                        {d.name}
+                      </SelectItem>
+                    ))}
+                    {form.employer && (
+                      <SelectItem value={ADD_NEW} className="text-primary font-medium">
+                        + إضافة قسم جديد
+                      </SelectItem>
                     )}
                   </SelectContent>
                 </Select>
-                {form.department && (
-                  <p className="text-[11px] text-muted-foreground">
-                    القائمة مفلترة حسب الموردين بنشاط: {form.department}
-                  </p>
-                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">

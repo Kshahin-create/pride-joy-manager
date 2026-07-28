@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Plus, Sparkles, FileText, Upload, Trash2, Pencil, Download, Calendar, Users } from "lucide-react";
 import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
 import { ArchivedFilterToggle, DeleteArchiveMenu } from "@/components/delete-archive-menu";
+import { createStorageObjectPath } from "@/lib/storage-path";
 
 export const Route = createFileRoute("/_authenticated/cleaning-contracts")({
   component: CleaningContractsPage,
@@ -285,8 +286,7 @@ function CleaningContractsPage() {
   const uploadAttachment = async (file: File) => {
     if (!attachContract) return;
     setUploading(true);
-    const ext = file.name.split(".").pop();
-    const path = `${attachContract.id}/${Date.now()}.${ext}`;
+    const path = createStorageObjectPath(attachContract.id, file);
     const up = await supabase.storage.from("cleaning-contracts").upload(path, file);
     if (up.error) { setUploading(false); return toast.error(up.error.message); }
     const ins = await supabase.from("cleaning_contract_attachments").insert({

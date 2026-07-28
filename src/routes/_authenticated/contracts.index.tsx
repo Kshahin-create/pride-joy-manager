@@ -24,6 +24,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { CompanyFormDialog } from "./tenants";
 import { DeleteArchiveMenu, ArchivedFilterToggle } from "@/components/delete-archive-menu";
+import { createStorageObjectPath } from "@/lib/storage-path";
 
 export const Route = createFileRoute("/_authenticated/contracts/")({
   component: ContractsPage,
@@ -422,7 +423,7 @@ export function ContractFormDialog({
 
     if (targetId && pending.length > 0) {
       for (const p of pending) {
-        const path = `${targetId}/${Date.now()}_${p.file.name}`;
+        const path = createStorageObjectPath(targetId, p.file);
         const up = await supabase.storage.from("contracts").upload(path, p.file, { upsert: false });
         if (up.error) { toast.error("فشل رفع " + p.file.name + ": " + up.error.message); continue; }
         await supabase.from("contract_attachments").insert({

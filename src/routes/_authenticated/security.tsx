@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
+import { createStorageObjectPath } from "@/lib/storage-path";
 
 export const Route = createFileRoute("/_authenticated/security")({
   component: SecurityPage,
@@ -210,7 +211,7 @@ function GuardDialog({
     setSaving(true);
     let photo_url: string | null = null;
     if (photoFile) {
-      const path = `${Date.now()}_${photoFile.name}`;
+      const path = createStorageObjectPath("guards", photoFile);
       const up = await supabase.storage.from("guards-photos").upload(path, photoFile);
       if (up.error) { toast.error("فشل رفع الصورة: " + up.error.message); }
       else photo_url = path;
@@ -443,7 +444,7 @@ function PatrolDialog({
     for (const c of validCps) {
       let photo_path: string | null = null;
       if (c.file) {
-        const path = `${p.id}/${Date.now()}_${c.file.name}`;
+        const path = createStorageObjectPath(p.id, c.file);
         const up = await supabase.storage.from("patrol-photos").upload(path, c.file);
         if (!up.error) photo_path = path;
       }
@@ -641,7 +642,7 @@ function IncidentDialog({ open, onClose, onSaved }: { open: boolean; onClose: ()
     setSaving(true);
     const photos: string[] = [];
     for (const f of files) {
-      const path = `${Date.now()}_${f.name}`;
+      const path = createStorageObjectPath("incidents", f);
       const up = await supabase.storage.from("incident-photos").upload(path, f);
       if (!up.error) photos.push(path);
     }

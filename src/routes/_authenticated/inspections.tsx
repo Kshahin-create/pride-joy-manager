@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import {
   ClipboardCheck, Play, AlertTriangle, CheckCircle2, Wrench, Eye, FileText,
 } from "lucide-react";
+import { createStorageObjectPath } from "@/lib/storage-path";
 
 export const Route = createFileRoute("/_authenticated/inspections")({
   component: InspectionsPage,
@@ -172,7 +173,7 @@ function InspectionsPage() {
   };
 
   const uploadPhoto = async (inspectionId: string, file: File) => {
-    const path = `${inspectionId}/${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
+    const path = createStorageObjectPath(inspectionId, file);
     const { error } = await (supabase as any).storage.from("inspection-photos").upload(path, file);
     if (error) throw error;
     return path;

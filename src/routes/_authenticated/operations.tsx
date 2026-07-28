@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EmployeePicker } from "@/components/employee-picker";
 import { toast } from "sonner";
 import { DeleteArchiveMenu } from "@/components/delete-archive-menu";
+import { createStorageObjectPath } from "@/lib/storage-path";
 
 export const Route = createFileRoute("/_authenticated/operations")({
   component: OperationsPage,
@@ -196,11 +197,21 @@ function CleaningTab() {
 
 function PhotoSlot({ label, path }: { label: string; path: string | null }) {
   const [url, setUrl] = useState<string | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
   useEffect(() => {
-    if (!path) { setUrl(null); return; }
+    setUrl(null);
+    setUnavailable(false);
+    if (!path) return;
     let active = true;
-    supabase.storage.from("cleaning-photos").createSignedUrl(path, 600).then(({ data }) => {
-      if (active && data) setUrl(data.signedUrl);
+    supabase.storage.from("cleaning-photos").createSignedUrl(path, 600).then(({ data, error }) => {
+      if (!active) return;
+      if (error || !data?.signedUrl) {
+        setUnavailable(true);
+        return;
+      }
+      setUrl(data.signedUrl);
+    }).catch(() => {
+      if (active) setUnavailable(true);
     });
     return () => { active = false; };
   }, [path]);
@@ -211,7 +222,7 @@ function PhotoSlot({ label, path }: { label: string; path: string | null }) {
         <SafeImage src={url} alt={label} className="w-full h-40 object-cover rounded-md border" />
       ) : (
         <div className="w-full h-40 rounded-md border border-dashed flex items-center justify-center text-muted-foreground text-xs">
-          لا توجد صورة
+          {path && unavailable ? "الصورة غير متاحة" : "لا توجد صورة"}
         </div>
       )}
     </div>
@@ -393,30 +404,33 @@ function LogDialog({
   }, [open, initialPlanId]);
 
   const uploadOne = async (file: File, kind: "before" | "after"): Promise<string | null> => {
-    const path = `${planId}/${Date.now()}_${kind}_${file.name}`;
+    const path = createStorageObjectPath(planId, file, kind);
     const { error } = await supabase.storage.from("cleaning-photos").upload(path, file);
-    if (error) { toast.error("فشل رفع صورة " + kind + ": " + error.message); return null; }
+    if (error) throw new Error(`فشل رفع صورة ${kind === "before" ? "قبل" : "بعد"}: ${error.message}`);
     return path;
   };
 
   const submit = async () => {
     if (!planId) { toast.error("اختر الخطة"); return; }
     setSaving(true);
-    let beforePath: string | null = null;
-    let afterPath: string | null = null;
-    if (beforeFile) beforePath = await uploadOne(beforeFile, "before");
-    if (afterFile) afterPath = await uploadOne(afterFile, "after");
-    const { data: u } = await supabase.auth.getUser();
-    const { error } = await supabase.from("cleaning_logs").insert({
-      plan_id: planId, execution_date: executionDate,
-      executed_by: executedBy || null, notes: notes || null,
-      before_photo_path: beforePath, after_photo_path: afterPath,
-      created_by: u.user?.id,
-    });
-    setSaving(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success("تم تسجيل التنفيذ");
-    onSaved();
+    try {
+      const beforePath = beforeFile ? await uploadOne(beforeFile, "before") : null;
+      const afterPath = afterFile ? await uploadOne(afterFile, "after") : null;
+      const { data: u } = await supabase.auth.getUser();
+      const { error } = await supabase.from("cleaning_logs").insert({
+        plan_id: planId, execution_date: executionDate,
+        executed_by: executedBy || null, notes: notes || null,
+        before_photo_path: beforePath, after_photo_path: afterPath,
+        created_by: u.user?.id,
+      });
+      if (error) throw error;
+      toast.success("تم تسجيل التنفيذ");
+      onSaved();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "تعذر تسجيل التنفيذ");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

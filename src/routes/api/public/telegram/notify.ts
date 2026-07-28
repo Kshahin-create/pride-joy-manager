@@ -46,7 +46,6 @@ export const Route = createFileRoute("/api/public/telegram/notify")({
           const { notification_id } = (await request.json().catch(() => ({}))) as { notification_id?: string };
           if (!notification_id) return Response.json({ ok: false, error: "missing id" }, { status: 400 });
 
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { data: n } = await supabaseAdmin
             .from("notifications")
             .select("*")

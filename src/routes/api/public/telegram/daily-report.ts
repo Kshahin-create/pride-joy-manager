@@ -19,8 +19,13 @@ const fmt = (n: number) => Number(n ?? 0).toLocaleString("en-US");
 export const Route = createFileRoute("/api/public/telegram/daily-report")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
         try {
+          const expected = process.env.INTERNAL_TRIGGER_SECRET;
+          const provided = request.headers.get("x-internal-secret") ?? "";
+          if (!expected || provided !== expected) {
+            return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
+          }
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           // build report
           const date = new Date().toISOString().slice(0, 10);

@@ -79,9 +79,8 @@ function EmployeesPage() {
     isSuperAdmin || hasRole("maintenance_supervisor") || hasRole("security_supervisor");
 
   const [items, setItems] = useState<Employee[]>([]);
-  const [employers, setEmployers] = useState<string[]>([]);
-  const [departments, setDepartments] = useState<string[]>([]);
-  const [vendors, setVendors] = useState<{ company_name: string; activity: string | null }[]>([]);
+  const [employers, setEmployers] = useState<Employer[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [q, setQ] = useState("");
   const [filterDept, setFilterDept] = useState<string>("");
   const [filterEmp, setFilterEmp] = useState<string>("");
@@ -90,32 +89,27 @@ function EmployeesPage() {
   const [saving, setSaving] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
 
-  const INTERNAL_COMPANY = "نخبة تسكين العقارية";
+  const ADD_NEW = "__add_new__";
 
-  // ربط جهة العمل بنوع القسم عبر نشاط المورد (vendors.activity)
-  const deptKeywords = (dept: string): string[] => {
-    const d = dept || "";
-    if (d.includes("نظاف")) return ["نظاف"];
-    if (d.includes("أمن") || d.includes("امن") || d.includes("حراس")) return ["أمن", "امن", "حراس"];
-    if (d.includes("صيان")) return ["صيان"];
-    if (d.includes("تكيي") || d.includes("تبريد")) return ["تكيي", "تبريد"];
-    if (d.includes("مصعد") || d.includes("مصاعد")) return ["مصعد", "مصاعد"];
-    if (d.includes("حريق") || d.includes("إطفاء") || d.includes("اطفاء")) return ["حريق", "إطفاء", "اطفاء"];
-    if (d.includes("كهرب")) return ["كهرب"];
-    if (d.includes("سباك") || d.includes("صحي")) return ["سباك", "صحي"];
-    return [];
-  };
+  // Quick-add employer/department dialogs
+  const [empOpen, setEmpOpen] = useState(false);
+  const [empName, setEmpName] = useState("");
+  const [empSaving, setEmpSaving] = useState(false);
 
-  const employerOptions = useMemo(() => {
-    const dept = form.department ?? "";
-    const keys = deptKeywords(dept);
-    const matched = keys.length
-      ? vendors
-          .filter((v) => v.activity && keys.some((k) => v.activity!.includes(k)))
-          .map((v) => v.company_name)
-      : vendors.map((v) => v.company_name);
-    return Array.from(new Set([INTERNAL_COMPANY, ...matched, ...employers]));
-  }, [form.department, vendors, employers]);
+  const [depOpen, setDepOpen] = useState(false);
+  const [depName, setDepName] = useState("");
+  const [depSaving, setDepSaving] = useState(false);
+
+  // Departments filtered by selected employer (or shared ones with employer_id = null)
+  const filteredDepartments = useMemo(() => {
+    if (!form.employer) return [] as Department[];
+    const selectedEmp = employers.find((e) => e.name === form.employer);
+    if (!selectedEmp) return departments.filter((d) => d.employer_id === null);
+    return departments.filter(
+      (d) => d.employer_id === selectedEmp.id || d.employer_id === null,
+    );
+  }, [departments, employers, form.employer]);
+
 
   const load = async () => {
     let q1 = (supabase as any).from("employees").select("*");

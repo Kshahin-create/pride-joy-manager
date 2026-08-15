@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useFilePermissions } from "@/lib/file-permissions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +48,8 @@ export const Route = createFileRoute("/_authenticated/assets/$id")({
 function AssetDetail() {
   const { id } = Route.useParams();
   const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const { canDeleteFiles } = useFilePermissions();
+  const canDeleteAssetFiles = canDeleteFiles("assets");
   const canManage = isSuperAdmin || hasAnyPermission(["assets.edit","assets.create"]);
   const [asset, setAsset] = useState<Asset | null>(null);
   const [history, setHistory] = useState<MR[]>([]);
@@ -203,7 +206,7 @@ function AssetDetail() {
                   </div>
                   <div className="flex gap-1">
                     <Button size="sm" variant="ghost" onClick={() => downloadAtt(a)}><Download className="h-4 w-4" /></Button>
-                    {canManage && (
+                    {(canManage || canDeleteAssetFiles) && (
                       <Button size="sm" variant="ghost" onClick={() => deleteAtt(a)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>

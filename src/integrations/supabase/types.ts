@@ -5701,6 +5701,10 @@ export type Database = {
         Args: { _id: string; _reason?: string; _table: string }
         Returns: undefined
       }
+      can_delete_files: {
+        Args: { _mod: string; _uid: string }
+        Returns: boolean
+      }
       can_manage_security: { Args: { _uid: string }; Returns: boolean }
       can_upload_module: {
         Args: { _mod: string; _uid: string }

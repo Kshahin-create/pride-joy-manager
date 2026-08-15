@@ -17,6 +17,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 import { Plus, Check, X, Banknote, TrendingUp, TrendingDown, Wallet, Paperclip, Download, Trash2 } from "lucide-react";
 import { createStorageObjectPath } from "@/lib/storage-path";
+import { useFilePermissions } from "@/lib/file-permissions";
 
 import { FinanceAccessGate } from "@/components/finance-access-gate";
 
@@ -48,6 +49,8 @@ const fmt = (n: number) => Number(n || 0).toLocaleString("en-US") + " ر.س";
 function ExpensesPage() {
   const { activePropertyId } = useActiveProperty();
   const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const { canDeleteFiles } = useFilePermissions();
+  const canDeleteExpenseFiles = canDeleteFiles("expenses");
   const canCreate = isSuperAdmin || hasAnyPermission(["expenses.create"]);
   const canApprove = isSuperAdmin || hasAnyPermission(["expenses.approve","expenses.reject"]);
   const canPay = isSuperAdmin || hasAnyPermission(["expenses.pay","payments.record"]);
@@ -461,7 +464,7 @@ function ExpensesPage() {
                   <Button size="sm" variant="outline" onClick={() => downloadAttachment(a.storage_path, a.file_name)}>
                     <Download className="h-3 w-3" />
                   </Button>
-                  {canApprove && (
+                  {(canApprove || canDeleteExpenseFiles) && (
                     <Button size="sm" variant="outline" onClick={() => deleteAttachment(a)}>
                       <Trash2 className="h-3 w-3 text-destructive" />
                     </Button>

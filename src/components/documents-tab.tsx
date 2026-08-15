@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useFilePermissions } from "@/lib/file-permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -79,6 +80,8 @@ interface Props {
 
 export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, scope }: Props) {
   const { hasAnyPermission, isSuperAdmin, user } = useAuth();
+  const { canDeleteFiles } = useFilePermissions();
+  const canDeleteDocFiles = canDeleteFiles("documents");
   const canManage = isSuperAdmin || hasAnyPermission(["documents.create","documents.edit"]);
 
   const [items, setItems] = useState<DocumentRow[]>([]);
@@ -450,7 +453,7 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
                       <Button size="icon" variant="ghost" onClick={() => view(d)} title="معاينة"><Eye className="h-4 w-4" /></Button>
                       <Button size="icon" variant="ghost" onClick={() => download(d)} title="تحميل"><Download className="h-4 w-4" /></Button>
                       <Button size="icon" variant="ghost" onClick={() => share(d)} title="نسخ رابط مشاركة (7 أيام)"><Share2 className="h-4 w-4" /></Button>
-                      {canManage && (
+                      {(canManage || canDeleteDocFiles) && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button size="icon" variant="ghost" className="text-destructive"><Trash2 className="h-4 w-4" /></Button>

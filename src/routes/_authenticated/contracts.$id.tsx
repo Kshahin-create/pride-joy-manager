@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useFilePermissions } from "@/lib/file-permissions";
 import { DocumentsTab } from "@/components/documents-tab";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,8 +70,10 @@ function ContractDetailsPage() {
   const { id } = useParams({ from: "/_authenticated/contracts/$id" });
   const nav = useNavigate();
   const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const { canDeleteFiles } = useFilePermissions();
   const isAdmin = isSuperAdmin || hasAnyPermission(["contracts.edit","contracts.cancel","contracts.renew"]);
   const canUpload = isSuperAdmin || hasAnyPermission(["contracts.edit","contracts.create","documents.create"]);
+  const canDeleteContractFiles = canDeleteFiles("contracts");
 
   const [contract, setContract] = useState<Contract | null>(null);
   const [loading, setLoading] = useState(true);
@@ -207,7 +210,7 @@ function ContractDetailsPage() {
       <TaxFeesCard contractId={contract.id} canManage={canUpload} />
       <DepositCard contractId={contract.id} canManage={canUpload} />
       <PaymentScheduleCard contractId={contract.id} canManage={canUpload} />
-      <AttachmentsCard contractId={contract.id} canUpload={canUpload} canDelete={isAdmin} />
+      <AttachmentsCard contractId={contract.id} canUpload={canUpload} canDelete={isAdmin || canDeleteContractFiles} />
 
       <Card>
         <CardHeader><CardTitle>مستندات العقد</CardTitle></CardHeader>

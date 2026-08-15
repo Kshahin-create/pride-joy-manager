@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useFilePermissions } from "@/lib/file-permissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -154,6 +155,8 @@ function OfficeDetailsPage() {
   const isMaint = hasRole("maintenance_supervisor");
   const canEditUtility = isAdmin || isMaint;
   const canEditOffice = isSuperAdmin || hasAnyPermission(["offices.edit"]);
+  const { canDeleteFiles } = useFilePermissions();
+  const canDeleteOfficeFiles = canDeleteFiles("offices");
   const canChangeStatus = isSuperAdmin || hasAnyPermission(["offices.change_status"]);
   const canSeeTenant = isSuperAdmin || hasAnyPermission(["tenants.view","contracts.view"]);
   const canSeeFinance = isSuperAdmin || hasAnyPermission(["invoices.view","expenses.view","payments.record"]);
@@ -280,7 +283,7 @@ function OfficeDetailsPage() {
         )}
         {canSeeFiles && (
           <TabsContent value="files" className="mt-4">
-            <FilesTab officeId={office.id} canEdit={canEditOffice} />
+            <FilesTab officeId={office.id} canEdit={canEditOffice || canDeleteOfficeFiles} />
           </TabsContent>
         )}
         {canSeeLog && (

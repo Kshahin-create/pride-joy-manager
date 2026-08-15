@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
+import { useFilePermissions } from "@/lib/file-permissions";
 import { toast } from "sonner";
 import { Plus, Sparkles, FileText, Upload, Trash2, Pencil, Download, Calendar, Users } from "lucide-react";
 import { VendorQuickAddDialog } from "@/components/vendor-quick-add-dialog";
@@ -114,6 +115,8 @@ const emptyForm = () => ({
 function CleaningContractsPage() {
   const { activePropertyId } = useActiveProperty();
   const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const { canDeleteFiles } = useFilePermissions();
+  const canDeleteContractFiles = canDeleteFiles("contracts");
   const canManage = isSuperAdmin || hasAnyPermission(["contracts.create","contracts.edit"]);
 
   const [rows, setRows] = useState<CleaningContract[]>([]);
@@ -661,7 +664,7 @@ function CleaningContractsPage() {
                   </div>
                 </div>
                 <Button size="sm" variant="ghost" onClick={() => downloadAttachment(a)}><Download className="h-4 w-4" /></Button>
-                {canManage && (
+                {(canManage || canDeleteContractFiles) && (
                   <Button size="sm" variant="ghost" onClick={() => deleteAttachment(a)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>

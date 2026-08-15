@@ -155,6 +155,8 @@ function OfficeDetailsPage() {
   const isMaint = hasRole("maintenance_supervisor");
   const canEditUtility = isAdmin || isMaint;
   const canEditOffice = isSuperAdmin || hasAnyPermission(["offices.edit"]);
+  const { canDeleteFiles } = useFilePermissions();
+  const canDeleteOfficeFiles = canDeleteFiles("offices");
   const canChangeStatus = isSuperAdmin || hasAnyPermission(["offices.change_status"]);
   const canSeeTenant = isSuperAdmin || hasAnyPermission(["tenants.view","contracts.view"]);
   const canSeeFinance = isSuperAdmin || hasAnyPermission(["invoices.view","expenses.view","payments.record"]);

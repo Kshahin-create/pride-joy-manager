@@ -464,7 +464,7 @@ function ExpensesPage() {
                   <Button size="sm" variant="outline" onClick={() => downloadAttachment(a.storage_path, a.file_name)}>
                     <Download className="h-3 w-3" />
                   </Button>
-                  {canApprove && (
+                  {(canApprove || canDeleteExpenseFiles) && (
                     <Button size="sm" variant="outline" onClick={() => deleteAttachment(a)}>
                       <Trash2 className="h-3 w-3 text-destructive" />
                     </Button>

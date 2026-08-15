@@ -48,6 +48,8 @@ const fmt = (n: number) => Number(n || 0).toLocaleString("en-US") + " ر.س";
 function ExpensesPage() {
   const { activePropertyId } = useActiveProperty();
   const { hasAnyPermission, isSuperAdmin } = useAuth();
+  const { canDeleteFiles } = useFilePermissions();
+  const canDeleteExpenseFiles = canDeleteFiles("expenses");
   const canCreate = isSuperAdmin || hasAnyPermission(["expenses.create"]);
   const canApprove = isSuperAdmin || hasAnyPermission(["expenses.approve","expenses.reject"]);
   const canPay = isSuperAdmin || hasAnyPermission(["expenses.pay","payments.record"]);

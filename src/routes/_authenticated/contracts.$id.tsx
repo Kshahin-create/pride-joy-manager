@@ -210,7 +210,7 @@ function ContractDetailsPage() {
       <TaxFeesCard contractId={contract.id} canManage={canUpload} />
       <DepositCard contractId={contract.id} canManage={canUpload} />
       <PaymentScheduleCard contractId={contract.id} canManage={canUpload} />
-      <AttachmentsCard contractId={contract.id} canUpload={canUpload} canDelete={isAdmin} />
+      <AttachmentsCard contractId={contract.id} canUpload={canUpload} canDelete={isAdmin || canDeleteContractFiles} />
 
       <Card>
         <CardHeader><CardTitle>مستندات العقد</CardTitle></CardHeader>

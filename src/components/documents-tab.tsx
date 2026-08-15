@@ -80,6 +80,8 @@ interface Props {
 
 export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, scope }: Props) {
   const { hasAnyPermission, isSuperAdmin, user } = useAuth();
+  const { canDeleteFiles } = useFilePermissions();
+  const canDeleteDocFiles = canDeleteFiles("documents");
   const canManage = isSuperAdmin || hasAnyPermission(["documents.create","documents.edit"]);
 
   const [items, setItems] = useState<DocumentRow[]>([]);

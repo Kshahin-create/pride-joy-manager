@@ -206,7 +206,7 @@ function AssetDetail() {
                   </div>
                   <div className="flex gap-1">
                     <Button size="sm" variant="ghost" onClick={() => downloadAtt(a)}><Download className="h-4 w-4" /></Button>
-                    {canManage && (
+                    {(canManage || canDeleteAssetFiles) && (
                       <Button size="sm" variant="ghost" onClick={() => deleteAtt(a)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>

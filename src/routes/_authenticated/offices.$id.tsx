@@ -281,7 +281,7 @@ function OfficeDetailsPage() {
         )}
         {canSeeFiles && (
           <TabsContent value="files" className="mt-4">
-            <FilesTab officeId={office.id} canEdit={canEditOffice} />
+            <FilesTab officeId={office.id} canEdit={canEditOffice || canDeleteOfficeFiles} />
           </TabsContent>
         )}
         {canSeeLog && (

@@ -664,7 +664,7 @@ function CleaningContractsPage() {
                   </div>
                 </div>
                 <Button size="sm" variant="ghost" onClick={() => downloadAttachment(a)}><Download className="h-4 w-4" /></Button>
-                {canManage && (
+                {(canManage || canDeleteContractFiles) && (
                   <Button size="sm" variant="ghost" onClick={() => deleteAttachment(a)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>

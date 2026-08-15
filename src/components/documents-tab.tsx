@@ -453,7 +453,7 @@ export function DocumentsTab({ entityType, entityId = null, fixedEntity = true, 
                       <Button size="icon" variant="ghost" onClick={() => view(d)} title="معاينة"><Eye className="h-4 w-4" /></Button>
                       <Button size="icon" variant="ghost" onClick={() => download(d)} title="تحميل"><Download className="h-4 w-4" /></Button>
                       <Button size="icon" variant="ghost" onClick={() => share(d)} title="نسخ رابط مشاركة (7 أيام)"><Share2 className="h-4 w-4" /></Button>
-                      {canManage && (
+                      {(canManage || canDeleteDocFiles) && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button size="icon" variant="ghost" className="text-destructive"><Trash2 className="h-4 w-4" /></Button>

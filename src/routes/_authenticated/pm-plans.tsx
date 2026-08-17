@@ -35,7 +35,7 @@ const PRIORITIES = ["طارئة","عالية","متوسطة","منخفضة"] as 
 function PmPlansPage() {
   const { activePropertyId } = useActiveProperty();
   const { hasAnyPermission, isSuperAdmin } = useAuth();
-  const canManage = isSuperAdmin || hasAnyPermission(["pm_plans.manage"]);
+  const canManage = isSuperAdmin || hasAnyPermission(["pm_plans.create","pm_plans.edit","pm_plans.delete"]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [q, setQ] = useState("");

@@ -60,6 +60,11 @@ const MODULE_FOR_TABLE: Record<string, string> = {
   ac_units: "ac_units",
   building_log: "building_log",
   tickets: "tickets",
+  ac_contracts: "service_contracts",
+  elevator_contracts: "service_contracts",
+  fire_contracts: "service_contracts",
+  supply_contracts: "service_contracts",
+  vendor_contracts: "service_contracts",
 };
 
 interface Props {
@@ -91,10 +96,10 @@ export function DeleteArchiveMenu({
   const { hasPermission } = useAuth();
   const mod = MODULE_FOR_TABLE[table];
   const modDelete = mod ? hasPermission(`${mod}.delete`) : false;
-  const modManage = mod ? hasPermission(`${mod}.manage`) : false;
-  const canArchive = hasPermission("records.archive") || modDelete || modManage;
-  const canRestore = hasPermission("records.restore") || modDelete || modManage;
-  const canDelete = hasPermission("records.delete") || modDelete;
+  const modEdit = mod ? hasPermission(`${mod}.edit`) : false;
+  const canArchive = hasPermission("records.archive") || modDelete || modEdit;
+  const canRestore = hasPermission("records.restore") || modDelete || modEdit;
+  const canDelete = modDelete || hasPermission("records.purge");
 
   const [open, setOpen] = useState<Mode | null>(null);
   const [reason, setReason] = useState("");

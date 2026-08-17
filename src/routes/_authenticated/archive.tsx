@@ -81,7 +81,7 @@ function ArchivePage() {
   const { activePropertyId } = useActiveProperty();
   const { hasPermission } = useAuth();
   const canRestore = hasPermission("records.restore");
-  const canDelete = hasPermission("records.delete");
+  const canDelete = hasPermission("records.purge");
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");

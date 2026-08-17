@@ -81,7 +81,7 @@ interface CleaningLog {
 function CleaningTab() {
   const { activePropertyId } = useActiveProperty();
   const { hasAnyPermission, isSuperAdmin } = useAuth();
-  const canManage = isSuperAdmin || hasAnyPermission(["cleaning.manage"]);
+  const canManage = isSuperAdmin || hasAnyPermission(["cleaning.create","cleaning.edit","cleaning.delete"]);
   const [plans, setPlans] = useState<CleaningPlan[]>([]);
   const [logs, setLogs] = useState<CleaningLog[]>([]);
   const [loading, setLoading] = useState(true);

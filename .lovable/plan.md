@@ -1,150 +1,93 @@
-# خطة إعادة بناء "لوحة الإدارة العليا" — Executive Command Center
+# إعادة ضبط نظام الصلاحيات — نتيجة المراجعة + المصفوفة المقترحة
 
-الهدف: تحويل الداشبورد الحالي (كروت متراصّة بدون هرمية) إلى **مركز قيادة تنفيذي** يعطي المدير في أول 5 ثواني إجابة على 4 أسئلة: كم بندخّل؟ كم مستحق علينا/لنا؟ إيه اللي محتاج تدخّل دلوقتي؟ إيه اتجاه الأداء؟
+لا توجد أي Migration منفّذة. ده Audit + Matrix للاعتماد.
 
----
+## 1) نتيجة المراجعة (الوضع الحالي)
 
-## 1) الهيكل البصري الجديد (Layout)
+**الصلاحيات:** 172 مفتاح في 32 موديول، لكن غير موحّدة:
 
-```text
-┌───────────────────────────────────────────────────────────────┐
-│  Header: تحية + التاريخ + فلتر الفترة (اليوم/أسبوع/شهر/سنة)  │
-│          + زر "تصدير التقرير" + آخر تحديث                     │
-├───────────────────────────────────────────────────────────────┤
-│  ▸ Alert Strip (شريط تنبيهات حمراء/صفراء عند وجود حرج فقط)   │
-├───────────────────────────────────────────────────────────────┤
-│  KPI Hero Row  — 4 كروت كبيرة (Sparkline + Δ% مقابل الشهر)  │
-│  [الإيرادات] [المتأخرات] [الإشغال %] [صافي التدفق]           │
-├───────────────────────────────────────────────────────────────┤
-│  عمود 2/3 (رئيسي)              │  عمود 1/3 (جانبي)           │
-│  ─ رسم إيرادات vs مصروفات      │  ─ Occupancy Ring كبير      │
-│    (Area Chart 12 شهر)         │  ─ توزيع المكاتب Donut       │
-│  ─ Top 5 عقود على وشك الانتهاء │  ─ آخر 6 أحداث (Feed مصغّر)  │
-│  ─ Heatmap البلاغات/الأسبوع    │                             │
-├───────────────────────────────────────────────────────────────┤
-│  Tabs: [تشغيل] [صيانة] [أمن] [مواقف] [زوار]                  │
-│  كل تبويب فيه 3-4 كروت + Mini chart متعلق بالقسم              │
-├───────────────────────────────────────────────────────────────┤
-│  Action Center — قائمة "محتاج تدخّل"                          │
-│  (متأخرات SLA، عقود منتهية، أعطال حرجة، مخالفات مفتوحة)      │
-└───────────────────────────────────────────────────────────────┘
-```
+- موديولات فيها `manage` مبهمة بدل create/edit/delete: `spaces`, `pm_plans`, `cleaning`, `parking`, `cameras`, `settings` (identity/telegram/api_keys).
+- موديولات ناقصها create/edit/view كاملة: `patrols` (فيها delete/upload فقط + create/view تحت security)، `incidents` (نفس المشكلة)، `guards` (upload/file_delete تحت guards + باقي المفاتيح تحت security)، `invoices` (متكرر في موديولين)، `payments`, `vendor_payments` (مفيش view/edit)، `visitors` (مفيش edit)، `building_log` (مفيش create/edit)، `electricity`, `network_points`, `ac_units` (delete بس)، `companies` (upload بس).
+- تكرار/تشتت: `tenants` معرّف بموديولين (العملاء/المستأجرون + المستأجرين)، `security` موديول عملاق فيه 19 مفتاح لحاجات بتخص guards/patrols/incidents/cameras، `assets` فيه 4 مفاتيح delete متكررة، `invoices` مقسوم بين المالية والمدفوعات.
+- `records.archive/delete/restore` + `files.archive/delete` بيشتغلوا كصلاحيات عامة فوق صلاحيات الموديولات.
 
----
+**RLS في قاعدة البيانات:** 63 جدول لسه فيه سياسات معتمدة على `has_role()` فقط بدون `has_permission()` — أبرزها: `contracts`, `offices`, `expenses`, `tickets`, `documents`, `invoices`, `payments`, `pm_plans`, `spaces`, `vendors`, `vendor_payments`, `visitors`, `patrols`, `security_incidents`, `guard_*`, `companies`, كل عقود الخدمات (`ac_/fire_/elevator_/supply_/cleaning_contracts`) وجداول المرفقات التابعة لها. وفي سياسة owner-scoped واحدة على `profiles` (مقصودة: تعديل البروفايل الشخصي).
 
-## 2) المكوّنات الجديدة
+**Storage:** 16 bucket، منهم 15 لسه فيهم سياسات role-only (من 2 لـ 5 سياسات لكل bucket) متعايشة مع سياسات الصلاحيات — يعني القراءة/الرفع لسه بتعتمد على اسم الدور في مسارات كتير، وده سبب أخطاء الرفع المتكررة. الـ`avatars` bucket المفروض يفضل owner-scoped.
 
-### A. Hero KPI Cards (4 كروت رئيسية)
-كل كرت يحتوي:
-- الرقم الكبير + العملة/الوحدة
-- **Sparkline** صغير (آخر 30 يوم) — recharts
-- **Δ%** مقارنة بالشهر السابق (سهم أخضر/أحمر)
-- خلفية Gradient خفيف بلون الحالة
-- Click → ينقل للصفحة التفصيلية
+## 2) قواعد الحكم النهائية
 
-### B. Alert Strip
-شريط علوي يظهر **فقط** لو فيه:
-- بلاغات طارئة > 0
-- أوامر SLA متأخرة > 0
-- عقود منتهية غير مجددة
-- أعطال أصول حرجة
-شكل: أحمر/أصفر متدرج، أيقونة نابضة، زر "عرض الكل".
+1. `super_admin` يتجاوز كل شيء (بدون تغيير).
+2. أي مستخدم آخر: القرار من `role_permissions` فقط — ممنوع أي شرط على اسم الدور.
+3. `edit`/`delete` مش owner-only: أي حد عنده المفتاح يعدّل/يمسح أي سجل داخل نطاق عقاراته.
+4. عزل `property_id` باقٍ كما هو لكل الجداول اللي فيها عقار.
+5. دالة موحّدة `can(uid, key)` = `super_admin OR has_permission(uid, key)`، و`can_in_property(uid, key, property_id)` تضيف شرط العقار.
 
-### C. Revenue vs Expenses Chart
-Area Chart مزدوج (إيرادات خضراء / مصروفات حمراء) — 12 شهر، مع ملء متدرج وTooltip يعرض الصافي.
+## 3) المصفوفة المقترحة (Permission Matrix)
 
-### D. Occupancy Ring محسّن
-- الحلقة الحالية + Legend تفاعلي
-- Progress Bars صغيرة لكل حالة (مؤجر/محجوز/متاح/صيانة)
-- نسبة إشغال الأدوار (Bar chart أفقي: كل دور ونسبته)
+الأعمدة الأساسية لكل موديول: `view` / `create` / `edit` / `delete` + (`upload`, `file_delete` لو فيه مرفقات) + مفاتيح خاصة.
 
-### E. Top Contracts Expiring
-جدول مضغوط: اسم المستأجر، المكتب، تاريخ الانتهاء، أيام متبقية (Badge ملوّن حسب القرب)، زر "تجديد".
+| الموديول | الأساسية | مرفقات | مفاتيح خاصة |
+|---|---|---|---|
+| offices | view create edit delete | upload file_delete | change_status |
+| spaces | view create edit delete | — | — (إلغاء `spaces.manage`) |
+| assets | view create edit delete | upload file_delete | — (تنظيف delete المكرر) |
+| employees | view create edit delete | upload file_delete | — |
+| tenants (العملاء/المستأجرون) | view create edit delete | upload file_delete | — (دمج الموديولين) |
+| companies | view create edit delete | upload file_delete | — |
+| vendors | view create edit delete | upload file_delete | evaluate |
+| contracts | view create edit delete | upload file_delete | renew cancel |
+| service_contracts (AC/مصاعد/حريق/توريد/نظافة) | view create edit delete | upload file_delete | — |
+| invoices | view create edit delete | upload file_delete | — (توحيد الموديول) |
+| payments | view create edit delete | upload file_delete | record |
+| vendor_payments | view create edit delete | upload file_delete | record |
+| expenses | view create edit delete | upload file_delete | approve reject pay |
+| maintenance (أوامر العمل) | view create edit delete | upload file_delete | assign close reopen |
+| pm_plans | view create edit delete | — | generate (توليد أوامر) |
+| inspections | view create edit delete | upload file_delete | manage_templates |
+| cleaning | view create edit delete | upload file_delete | — (إلغاء `cleaning.manage`) |
+| parking | view create edit delete | upload file_delete | violations (إلغاء `parking.manage`) |
+| visitors | view create edit delete | — | checkin checkout |
+| tickets (الشكاوى) | view create edit delete | upload file_delete | assign close reopen |
+| incidents | view create edit delete | upload file_delete | close |
+| patrols | view create edit delete | upload file_delete | — |
+| guards | view create edit delete | upload file_delete | view_salary edit_salary manage_attendance |
+| cameras | view create edit delete | — | — (إلغاء `cameras.manage`) |
+| documents | view create edit delete | upload file_delete | — |
+| building_log | view create edit delete | — | — |
+| electricity | view create edit delete | — | — |
+| network_points | view create edit delete | — | — |
+| ac_units | view create edit delete | — | — |
+| identity (هوية المبنى) | view edit | upload file_delete | — |
+| users | view create edit delete | — | assign_roles deactivate |
+| roles | view manage | — | — (إدارية بحتة، تفضل كما هي) |
+| settings (api_keys / telegram) | view manage | — | — (إدارية بحتة) |
+| dashboard / daily_report / building_map | view (+ widgets) | — | — |
 
-### F. Tickets Heatmap
-شبكة 7×24 (أيام×ساعات) تظهر كثافة البلاغات — يكشف أوقات الذروة.
+**الصلاحيات العامة:** `records.archive/restore` تفضل للأرشيف، و`records.purge` (بديل واضح لـ`records.delete`) للحذف النهائي من سلة المهملات فقط — مش بديل عن حذف الموديولات. `files.archive/delete` تتشال لصالح `<module>.file_delete`.
 
-### G. Section Tabs
-بدل 6 أقسام مفتوحة، Tabs مع Badge counter على كل تبويب لو فيه عنصر حرج.
+## 4) اللي هيتغيّر مقابل اللي هيفضل
 
-### H. Action Center
-قائمة موحّدة "To-Do تنفيذي":
-- 🔴 عقد رقم X منتهي منذ 5 أيام
-- 🟠 أمر صيانة MNT-XXXX متأخر 3 أيام
-- 🟡 خطة PM مستحقة اليوم
-كل بند فيه CTA سريع.
+**هيتغيّر:**
+- تقسيم كل `*.manage` التشغيلية إلى create/edit/delete (مع إبقاء المفتاح القديم شغّال مؤقتًا كـ alias عشان الأدوار الحالية ما تفقدش صلاحياتها).
+- إضافة المفاتيح الناقصة (حوالي 60 مفتاح) وإعادة تجميع موديول `security` تحت guards/patrols/incidents/cameras.
+- إعادة كتابة RLS لكل الـ63 جدول لتصبح: `can(uid,'<module>.<action>') AND user_has_property(...)`.
+- إعادة كتابة سياسات الـ15 bucket لتعتمد `can_upload_module` / `can_view_module` / `can_delete_files` فقط وحذف السياسات role-only المتبقية.
+- ترحيل تلقائي: كل دور عنده `X.manage` ياخد X.create/edit/delete، وكل دور عنده صلاحية قديمة تحت `security.*` ياخد المفتاح الجديد المقابل.
 
-### I. Building Log Feed (مصغّر)
-عمود جانبي، آخر 6 أحداث بس، مع "عرض الكل".
+**هيفضل كما هو:**
+- تجاوز `super_admin` الكامل.
+- عزل `property_id`.
+- `profiles` self-update، و`avatars` owner-scoped.
+- مفاتيح الـ dashboard widgets.
+- شاشة الأدوار/الصلاحيات ديناميكية (بتقرأ من `app_permissions`) فمش محتاجة إعادة بناء، بس هتعرض الأعمدة الجديدة.
 
----
+## 5) خطوات التنفيذ بعد الاعتماد
 
-## 3) البيانات والاستعلامات
+1. Migration 1: تحديث `app_permissions` (إضافة/إعادة تسمية/دمج) + ترحيل `role_permissions`.
+2. Migration 2: دوال `can()` / `can_in_property()` + إعادة كتابة RLS لكل الجداول.
+3. Migration 3: إعادة كتابة سياسات الـ Storage buckets وحذف role-only.
+4. تحديث الواجهة: بوابات `hasPermission` للأزرار (create/edit/delete/upload) بدل `manage`، وتحديث `delete-archive-menu`.
+5. اختبار بحساب غير Super Admin: إنشاء/تعديل/حذف/رفع في كل موديول.
 
-سيتم إضافة **RPC واحد جديد**: `get_executive_dashboard(period text)` يرجّع:
-- KPIs الأربعة + قيم الشهر السابق (لحساب Δ)
-- سلسلة 30 يوم للـ sparklines
-- سلسلة 12 شهر إيرادات + مصروفات
-- Top 5 عقود قاربت الانتهاء
-- Heatmap counts (7×24)
-- Action items (Union من 4 مصادر مع priority)
-
-فائدة: طلب شبكة واحد بدل 9 طلبات متوازية حاليًا → أسرع + أقل حِمل.
-
-الأرقام المالية تظل محكومة بـ `useCanSeeFinance` (super_admin/accountant) والصلاحيات الحبيبية `dashboard.widget.*` تبقى تعمل.
-
----
-
-## 4) التصميم البصري
-
-- **الهرمية**: Hero > Charts > Tabs > Feed
-- **الألوان**: نستعمل tokens موجودة (`--primary #086c6b`) + accents:
-  - نجاح: emerald | تحذير: amber | خطر: red | معلومة: sky
-- **Motion**: framer-motion لدخول الكروت (stagger 50ms) وتحديث الأرقام (count-up).
-- **Density**: padding أقل داخل الكروت الفرعية، spacing أكبر بين الأقسام الرئيسية.
-- **RTL**: كل الرسوم reversed axis (موجود بالفعل جزئيًا).
-- **Responsive**: على الموبايل Tabs تبقى، Hero يصبح 2×2، الأعمدة تنهار لعمود واحد.
-
----
-
-## 5) ملفات ستُنشأ/تُعدَّل
-
-**جديد:**
-- `supabase/migrations/*_executive_dashboard_rpc.sql` — RPC موحّد
-- `src/components/dashboard/kpi-hero-card.tsx`
-- `src/components/dashboard/alert-strip.tsx`
-- `src/components/dashboard/revenue-expenses-chart.tsx`
-- `src/components/dashboard/occupancy-panel.tsx`
-- `src/components/dashboard/expiring-contracts-table.tsx`
-- `src/components/dashboard/tickets-heatmap.tsx`
-- `src/components/dashboard/action-center.tsx`
-- `src/components/dashboard/section-tabs.tsx`
-- `src/components/dashboard/period-filter.tsx`
-
-**معدَّل:**
-- `src/routes/_authenticated/dashboard.tsx` — إعادة كتابة كاملة تستدعي RPC وتركّب المكوّنات الجديدة
-- `src/styles.css` — إضافة gradient/shadow tokens للكروت الجديدة
-
-**غير مُلمَس:**
-- منطق الصلاحيات (`useAuth`, `hasPermission`) — يبقى كما هو
-- باقي الصفحات
-
----
-
-## 6) خطوات التنفيذ (بالترتيب)
-
-1. إنشاء RPC `get_executive_dashboard` + منح صلاحيات execute.
-2. بناء المكوّنات الفرعية واحدًا واحدًا (KPI → Chart → Tabs → Action Center).
-3. إعادة كتابة `dashboard.tsx` مع الحفاظ على منطق الصلاحيات ومفاتيح widgets.
-4. إضافة الأنيميشن والتفاصيل البصرية.
-5. اختبار على viewport موبايل + سطح مكتب.
-
----
-
-## أسئلة سريعة قبل التنفيذ
-
-- الفلتر الزمني الافتراضي: **شهر جاري** ولا **آخر 30 يوم**؟
-- الـ Heatmap للبلاغات: مفيد ولا أستبدله بـ **رسم اتجاه** (Line) أبسط؟
-- Action Center: أعرض بحد أقصى 5 بنود ولا 10؟
-
-لو موافقة على الخطة، أبدأ التنفيذ فورًا.
+**محتاج اعتمادك على المصفوفة (خصوصًا تقسيم `manage` وتسمية `records.purge`) قبل تنفيذ أي Migration.**

@@ -34,7 +34,7 @@ export function SafeImage({
     <img
       src={src}
       alt={alt}
-      className={className}
+      className={cn("cursor-zoom-in", className)}
       onError={() => setError(true)}
       {...props}
     />

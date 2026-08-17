@@ -5697,6 +5697,7 @@ export type Database = {
         Returns: string
       }
       _is_archivable_table: { Args: { _table: string }; Returns: boolean }
+      _is_deletable_table: { Args: { _table: string }; Returns: boolean }
       _module_for_table: { Args: { _t: string }; Returns: string }
       archive_record: {
         Args: { _id: string; _reason?: string; _table: string }

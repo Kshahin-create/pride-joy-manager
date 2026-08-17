@@ -53,9 +53,12 @@ export function DeleteArchiveMenu({
   compact = false,
 }: Props) {
   const { hasPermission } = useAuth();
-  const canArchive = hasPermission("records.archive");
-  const canRestore = hasPermission("records.restore");
-  const canDelete = hasPermission("records.delete");
+  const mod = MODULE_FOR_TABLE[table];
+  const modDelete = mod ? hasPermission(`${mod}.delete`) : false;
+  const modManage = mod ? hasPermission(`${mod}.manage`) : false;
+  const canArchive = hasPermission("records.archive") || modDelete || modManage;
+  const canRestore = hasPermission("records.restore") || modDelete || modManage;
+  const canDelete = hasPermission("records.delete") || modDelete;
 
   const [open, setOpen] = useState<Mode | null>(null);
   const [reason, setReason] = useState("");

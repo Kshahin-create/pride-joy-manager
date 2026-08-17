@@ -20,5 +20,13 @@ export function BrandLogo({
   className?: string;
   alt?: string;
 }) {
-  return <SafeImage src={SRC[variant]} alt={alt} className={className} loading="eager" />;
+  return (
+    <SafeImage
+      src={SRC[variant]}
+      alt={alt}
+      className={`cursor-default ${className}`}
+      loading="eager"
+      data-no-zoom
+    />
+  );
 }

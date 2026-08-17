@@ -16,6 +16,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { ActivePropertyProvider } from "@/lib/active-property-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { Toaster } from "@/components/ui/sonner";
+import { ImageLightbox } from "@/components/image-lightbox";
 import { DirectionProvider } from "@radix-ui/react-direction";
 
 function NotFoundComponent() {
@@ -145,6 +146,7 @@ function RootComponent() {
           <AuthProvider>
             <ActivePropertyProvider>
               <Outlet />
+              <ImageLightbox />
               <Toaster position="top-center" richColors />
             </ActivePropertyProvider>
           </AuthProvider>

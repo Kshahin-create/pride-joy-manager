@@ -26,6 +26,42 @@ import { useAuth } from "@/lib/auth-context";
 
 type Mode = "archive" | "restore" | "delete";
 
+/** ربط كل جدول بالقسم الخاص به لاستخدام صلاحيات القسم (نفس الربط الموجود في قاعدة البيانات) */
+const MODULE_FOR_TABLE: Record<string, string> = {
+  cleaning_plans: "cleaning",
+  cleaning_logs: "cleaning",
+  cleaning_contracts: "cleaning",
+  parking_spots: "parking",
+  parking_violations: "parking",
+  parking_cleaning_logs: "parking",
+  parking_maintenance_checks: "parking",
+  maintenance_requests: "maintenance",
+  security_incidents: "incidents",
+  patrols: "patrols",
+  guards: "guards",
+  assets: "assets",
+  contracts: "contracts",
+  offices: "offices",
+  companies: "tenants",
+  expenses: "expenses",
+  invoices: "invoices",
+  payments: "payments",
+  documents: "documents",
+  employees: "employees",
+  vendors: "vendors",
+  vendor_payments: "vendor_payments",
+  visitors: "visitors",
+  inspections: "inspections",
+  pm_plans: "pm_plans",
+  spaces: "spaces",
+  cameras: "cameras",
+  network_points: "network_points",
+  electricity_meters: "electricity",
+  ac_units: "ac_units",
+  building_log: "building_log",
+  tickets: "tickets",
+};
+
 interface Props {
   /** اسم الجدول في قاعدة البيانات */
   table: string;
@@ -53,9 +89,12 @@ export function DeleteArchiveMenu({
   compact = false,
 }: Props) {
   const { hasPermission } = useAuth();
-  const canArchive = hasPermission("records.archive");
-  const canRestore = hasPermission("records.restore");
-  const canDelete = hasPermission("records.delete");
+  const mod = MODULE_FOR_TABLE[table];
+  const modDelete = mod ? hasPermission(`${mod}.delete`) : false;
+  const modManage = mod ? hasPermission(`${mod}.manage`) : false;
+  const canArchive = hasPermission("records.archive") || modDelete || modManage;
+  const canRestore = hasPermission("records.restore") || modDelete || modManage;
+  const canDelete = hasPermission("records.delete") || modDelete;
 
   const [open, setOpen] = useState<Mode | null>(null);
   const [reason, setReason] = useState("");

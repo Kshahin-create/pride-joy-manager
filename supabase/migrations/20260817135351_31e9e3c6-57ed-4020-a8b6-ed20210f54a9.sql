@@ -1,0 +1,2 @@
+UPDATE public.app_permissions SET label = 'حذف النظافة (الخطط والسجلات)' WHERE key = 'cleaning.delete';
+UPDATE public.app_permissions SET label = 'عرض النظافة (الخطط والسجلات)' WHERE key = 'cleaning.view';

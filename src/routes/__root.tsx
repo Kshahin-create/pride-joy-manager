@@ -146,6 +146,7 @@ function RootComponent() {
           <AuthProvider>
             <ActivePropertyProvider>
               <Outlet />
+              <ImageLightbox />
               <Toaster position="top-center" richColors />
             </ActivePropertyProvider>
           </AuthProvider>
